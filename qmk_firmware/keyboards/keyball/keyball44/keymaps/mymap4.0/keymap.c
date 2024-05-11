@@ -170,7 +170,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
 // oled setting ------------------------------
 #ifdef OLED_ENABLE
-#    include "lib/oledkit/oledkit.h"
 
 void oled_render_layer_state(void) {
     oled_write_P(PSTR("Layer: "), false);
@@ -195,32 +194,42 @@ void oled_render_layer_state(void) {
             break;
     }
 }
-/*
-static const char *format_4d(int d) {
-    static char buf[5] = {0}; // max width (4) + NUL (1)
-    char        lead   = ' ';
-    if (d < 0) {
-        d    = -d;
-        lead = '-';
-    }
-    buf[3] = (d % 10) + '0';
-    d /= 10;
-    if (d == 0) {
-        buf[2] = lead;
-        lead   = ' ';
-    } else {
-        buf[2] = (d % 10) + '0';
-        d /= 10;
-    }
-    if (d == 0) {
-        buf[1] = lead;
-        lead   = ' ';
-    } else {
-        buf[1] = (d % 10) + '0';
-        d /= 10;
-    }
-    buf[0] = lead;
-    return buf;
+
+
+#    include "lib/oledkit/oledkit.h"
+
+void oledkit_render_info_user(void) {
+    keyball_oled_render_keyinfo();
+    keyball_oled_render_ballinfo();
+    /* keyball_oled_render_layerinfo(); */
+    oled_render_layer_state();
 }
-*/
+
+/* static const char *format_4d(int d) { */
+/*     static char buf[5] = {0}; // max width (4) + NUL (1) */
+/*     char        lead   = ' '; */
+/*     if (d < 0) { */
+/*         d    = -d; */
+/*         lead = '-'; */
+/*     } */
+/*     buf[3] = (d % 10) + '0'; */
+/*     d /= 10; */
+/*     if (d == 0) { */
+/*         buf[2] = lead; */
+/*         lead   = ' '; */
+/*     } else { */
+/*         buf[2] = (d % 10) + '0'; */
+/*         d /= 10; */
+/*     } */
+/*     if (d == 0) { */
+/*         buf[1] = lead; */
+/*         lead   = ' '; */
+/*     } else { */
+/*         buf[1] = (d % 10) + '0'; */
+/*         d /= 10; */
+/*     } */
+/*     buf[0] = lead; */
+/*     return buf; */
+/* } */
+
 #endif
