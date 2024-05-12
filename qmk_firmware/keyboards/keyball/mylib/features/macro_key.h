@@ -28,6 +28,7 @@
 /* enum arrow_held arrow_held = NO_DIR; */
 
 #include "os_detection.h"
+#include "my_keycode.h"
 
 // mod override用変数
 uint8_t mod_state;
@@ -53,6 +54,46 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     mod_state = get_mods();
 
     switch (keycode) {
+        case _Cur_ENT:
+            if (!record->tap.count && record->event.pressed) {
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    layer_on(_mCur);
+                } else {
+                    layer_on(_wCur);
+                }
+                return false;
+            } else {
+              layer_off(_mCur);
+              layer_off(_wCur);
+            }
+            return true;
+
+        case _Mou_SCLN:
+            if (!record->tap.count && record->event.pressed) {
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    layer_on(_mMou);
+                } else {
+                    layer_off(_wMou);
+                }
+                return false;
+            } else {
+              layer_off(_mMou);
+              layer_off(_wMou);
+            }
+            return true;
+
+        case MO(_mMou):
+            if (record->event.pressed) {
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    layer_on(_mMou);
+                } else {
+                    layer_on(_wMou);
+                }
+            } else {
+              layer_off(_mMou);
+              layer_off(_wMou);
+            }
+            return false;
 
         case KC_H:
             if (record->event.pressed) {
@@ -164,8 +205,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case DEEPL:
             if (record->event.pressed) {
-                tap_code16(G(KC_C));
-                tap_code16(G(KC_C));
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  tap_code16(G(KC_C));
+                  tap_code16(G(KC_C));
+                } else {
+                  tap_code16(C(KC_C));
+                  tap_code16(C(KC_C));
+                }
                 return false;
             }
             break;
@@ -200,7 +246,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                   // mission control
-                  tap_code16(C(KC_UP));
+                  /* tap_code16(C(KC_UP)); */
+                  tap_code16(m_MIS_CON);
                 } else {
                   // task control
                   tap_code16(C(KC_TAB));
@@ -255,13 +302,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 state = NONE;
                 rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                   tap_code16(G(KC_T));
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(G(KC_T));
+                  } else {
+                    tap_code16(C(KC_T));
+                  }
                 }
                 repeat_speed = NORMAL;
             }
             break;
 
-        case MAG_SWIPE:
+        case WIN_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
                 swipe_timer = timer_read();
@@ -272,7 +323,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 state = NONE;
                 rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(A(C(KC_ENT)));
+                  } else {
+                    tap_code16(G(KC_UP));
+                  }
                 }
                 repeat_speed = NORMAL;
             }

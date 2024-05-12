@@ -37,12 +37,12 @@ HSV_YELLOW
 #define _Sym_SPC LT(_Sym, KC_SPC)
 #define _MO_SCLN LT(_Mou, KC_SCLN)
 #define _NumP_SCLN LT(_NumP, KC_SCLN)
-#define _Cur_ENT LT(_Cur, KC_ENT)
+#define _Cur_ENT LT(0, KC_ENT)
 #define _Win_SLSH LT(_Win, KC_SLSH)
 #define _cDef_MI LT(_cDef, KC_MINUS)
 #define _NumP_ESC LT(_NumP, KC_ESC)
 #define _Mou_NumP LT(_Mou, KC_NO)
-#define _Mou_SCLN LT(_Mou, KC_SCLN)
+#define _Mou_SCLN LT(0, KC_SCLN)
 #define _Esc_NumP LT(0, Esc_NumP)
 
 // mod + kc *JIS
@@ -95,38 +95,55 @@ HSV_YELLOW
 #define M_F15 RCTL(KC_F13)
 
 // short cut command
-// mac
-#define COPY LGUI(KC_C)
-#define PASTE LGUI(KC_V)
-#define CUT LGUI(KC_X)
-#define DELETE LGUI(KC_BSPC)
-#define S_ALL LGUI(KC_A)
-#define CLOSE LGUI(KC_W)
-#define NEW_TAB LGUI(KC_T)
-#define UNDO LGUI(KC_Z)
-#define REDO LGUI(LSFT(KC_Z))
-#define QUIT LGUI(KC_Q)
-#define FIND LGUI(KC_F)
-#define SAVE LGUI(KC_S)
-#define MEMO RCTL(KC_Q)
-#define MIS_CON LCTL(KC_UP)
-#define APP_CON LCTL(KC_DOWN)
-#define BACK LGUI(KC_LEFT)
-#define FORWARD LGUI(KC_RIGHT)
-#define DESK_L LCTL(KC_LEFT)
-#define DESK_R LCTL(KC_RIGHT)
+// common
 #define TAB_R LCTL(KC_TAB)
 #define TAB_L C(S(KC_TAB))
-#define LAST_TAB G(S(KC_T))
-#define SLEEP A(G(KC_Q))
-#define ZOOM_IN LGUI(LSFT(KC_SCLN))
-#define ZOOM_OUT LGUI(KC_MINUS)
-#define SPOT_L LGUI(KC_SPC)
-#define RELOAD LGUI(KC_R)
-#define SCSH_3 LSG(KC_3)
-#define SCSH_4 LSG(KC_4)
-#define SCSH_5 LSG(KC_5)
-#define EJECT_SSD G(A(BSLSH)) // eject backup SSD
+
+// mac
+#define m_COPY LGUI(KC_C)
+#define m_PASTE LGUI(KC_V)
+#define m_CUT LGUI(KC_X)
+#define m_DELETE LGUI(KC_BSPC)
+#define m_ALL LGUI(KC_A)
+#define m_CLOSE LGUI(KC_W)
+#define m_NEW_TAB LGUI(KC_T)
+#define m_UNDO LGUI(KC_Z)
+#define m_REDO LGUI(LSFT(KC_Z))
+#define m_QUIT LGUI(KC_Q)
+#define m_FIND LGUI(KC_F)
+#define m_SAVE LGUI(KC_S)
+#define m_MEMO RCTL(KC_Q)
+#define m_MIS_CON LCTL(KC_UP)
+#define m_APP_CON LCTL(KC_DOWN)
+#define m_BACK LGUI(KC_LEFT)
+#define m_FORWARD LGUI(KC_RIGHT)
+#define m_L_DESK LCTL(KC_LEFT)
+#define m_R_DESK LCTL(KC_RIGHT)
+#define m_LAST_TAB G(S(KC_T))
+#define m_SLEEP A(G(KC_Q))
+#define m_LAUNCH LGUI(KC_SPC)
+#define m_RELOAD LGUI(KC_R)
+#define m_SCSH_3 LSG(KC_3)
+#define m_SCSH_4 LSG(KC_4)
+#define m_SCSH_5 LSG(KC_5)
+
+// win
+#define w_COPY C(KC_C)
+#define w_PASTE C(KC_V)
+#define w_CUT C(KC_X)
+#define w_ALL C(KC_A)
+#define w_CLOSE C(KC_W)
+#define w_NEW_TAB C(KC_T)
+#define w_LAST_TAB S(C(KC_T))
+#define w_UNDO C(KC_Z)
+#define w_REDO C(KC_Y)
+#define w_RELOAD C(KC_R)
+#define w_QUIT A(KC_F4)
+#define w_FIND C(KC_F)
+#define w_SAVE C(KC_S)
+#define w_TASK C(KC_TAB)
+#define w_R_DESK G(S(KC_RIGHT))
+#define w_L_DESK G(S(KC_LEFT))
 
 // mod tap
 #define MINUS_A MT(MOD_LALT, KC_MINUS)
@@ -152,10 +169,10 @@ HSV_YELLOW
 
 // home end
 // karabiner前提
-#define HOME RCTL(KC_LEFT)
-#define END RCTL(KC_RIGHT)
-#define PGDN RCTL(KC_DOWN)
-#define PGUP RCTL(KC_UP)
+#define m_HOME RCTL(KC_LEFT)
+#define m_END RCTL(KC_RIGHT)
+#define m_PGDN RCTL(KC_DOWN)
+#define m_PGUP RCTL(KC_UP)
 
 // magnet
 #define MGN_L C(A(KC_LEFT))
@@ -179,9 +196,11 @@ HSV_YELLOW
 enum layer_names {
     _Def = 0,
     _Sym,
-    _Cur,
+    _mCur,
+    _wCur,
     _NumP,
-    _Mou,
+    _mMou,
+    _wMou,
     _Scr,
 };
 
@@ -191,7 +210,7 @@ enum custom_keycodes {
     VOL_SWIPE,
     BROWSE_SWIPE,
     TAB_SWIPE,
-    MAG_SWIPE,
+    WIN_SWIPE,
     /* L_ARROW, // <- */
     /* L_D_ARR, // <= */
     /* SPD_UP, */

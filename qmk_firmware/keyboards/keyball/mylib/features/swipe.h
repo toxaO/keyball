@@ -41,6 +41,7 @@ enum { NORMAL = 0, HIGH, VERY_HIGH } repeat_speed = NORMAL;
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数
 // 上、下、左、右、スワイプなしの5つのオプションがあります
+// スワイプなしに関しはmacrokey.hに記載する
 void process_swipe_gesture(int16_t x, int16_t y) {
   // APP_SWIPE
   // desktop control
@@ -51,7 +52,11 @@ void process_swipe_gesture(int16_t x, int16_t y) {
             tap_code(KC_ESC);
             canceller = false;
         } else {
-            tap_code16(G(KC_SPACE)); // spotlight
+            if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+              tap_code16(G(KC_SPACE)); // spotlight
+            } else {
+              tap_code16(KC_LGUI); // windows key
+            }
             canceller = true;
         }
       } else { // swipe down
@@ -59,16 +64,28 @@ void process_swipe_gesture(int16_t x, int16_t y) {
             tap_code(KC_ESC);
             canceller = false;
         } else {
-            tap_code16(C(KC_DOWN)); // app control
+            if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+              tap_code16(C(KC_DOWN)); // spotlight
+            } else {
+              tap_code16(G(KC_TAB)); // windows key
+            }
             canceller = true;
         }
       }
     }
     if (my_abs(x) > my_abs(y)) {
       if (x < 0) { // swipe left
-        tap_code16(C(KC_RIGHT)); // right desktop
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(m_R_DESK); // spotlight
+        } else {
+          tap_code16(w_R_DESK); // windows key
+        }
       } else { // swipe right
-        tap_code16(C(KC_LEFT)); // left desktop
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(m_L_DESK); // spotlight
+        } else {
+          tap_code16(w_L_DESK); // windows key
+        }
       }
     }
   }
@@ -98,16 +115,32 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   if (current_keycode == BROWSE_SWIPE) {
     if (my_abs(x) < my_abs(y)) {
       if (y < 0) { // swipe up
-        tap_code16(G(KC_C)); // copy
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(G(KC_C)); // copy
+        } else {
+          tap_code16(C(KC_C)); // windows key
+        }
       } else { // swipe down
-        tap_code16(G(KC_V)); // paste
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(G(KC_V)); // copy
+        } else {
+          tap_code16(C(KC_V)); // windows key
+        }
       }
     }
     if (my_abs(x) > my_abs(y)) {
       if (x < 0) { // swipe left
-        tap_code16(G(KC_LEFT)); // browse back
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(G(KC_LEFT)); // browse back
+        } else {
+          tap_code16(KC_WBAK); // windows key
+        }
       } else { // swipe right
-        tap_code16(G(KC_RIGHT)); // browse forward
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(G(KC_RIGHT)); // browse back
+        } else {
+          tap_code16(KC_WFWD); // windows key
+        }
       }
     }
   }
@@ -117,9 +150,17 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   if (current_keycode == TAB_SWIPE) {
     if (my_abs(x) < my_abs(y)) {
       if (y < 0) { // swipe up
-        tap_code16(S(G(KC_T))); // new tab
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(m_NEW_TAB); // browse back
+        } else {
+          tap_code16(w_NEW_TAB); // windows key
+        }
       } else { // swipe down
-        tap_code16(G(KC_W)); // tab close
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(m_CLOSE); // browse back
+        } else {
+          tap_code16(w_CLOSE); // windows key
+        }
       }
     }
     if (my_abs(x) > my_abs(y)) {
@@ -133,21 +174,37 @@ void process_swipe_gesture(int16_t x, int16_t y) {
     }
   }
 
-  // MAG_SWIPE
+  // WIN_SWIPE
   // MEGNET
-  if (current_keycode == MAG_SWIPE) {
+  if (current_keycode == WIN_SWIPE) {
     if (my_abs(x) < my_abs(y)) {
       if (y < 0) { // swipe up
-        tap_code16(C(A(KC_UP)));
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(MGN_U); // browse back
+        } else {
+          tap_code16(G(KC_UP)); // windows key
+        }
       } else { // swipe down
-        tap_code16(C(A(KC_DOWN)));
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(MGN_D); // browse back
+        } else {
+          tap_code16(G(KC_DOWN)); // windows key
+        }
       }
     }
     if (my_abs(x) > my_abs(y)) {
       if (x < 0) { // swipe left
-        tap_code16(C(A(KC_LEFT)));
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(MGN_L); // browse back
+        } else {
+          tap_code16(G(KC_LEFT)); // windows key
+        }
       } else { // swipe right
-        tap_code16(C(A(KC_RIGHT)));
+        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+          tap_code16(MGN_R); // browse back
+        } else {
+          tap_code16(G(KC_RIGHT)); // windows key
+        }
       }
     }
   }
