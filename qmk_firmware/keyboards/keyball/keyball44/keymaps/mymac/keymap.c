@@ -158,7 +158,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // clang-format on
 
-
 // layer state setting ------------------------------
 layer_state_t layer_state_set_user(layer_state_t state) {
 
@@ -214,16 +213,16 @@ void oled_render_layer_state(void) {
             oled_write_ln_P(PSTR("Sym / Num "), false);
             break;
         case _mCur:
-            oled_write_ln_P(PSTR("Cur M Func"), false);
+            oled_write_ln_P(PSTR("Cur / Func"), false);
             break;
         case _wCur:
-            oled_write_ln_P(PSTR("Cur W Func"), false);
+            oled_write_ln_P(PSTR("Cur / Func"), false);
             break;
         case _mMou:
-            oled_write_ln_P(PSTR("Mouse M   "), false);
+            oled_write_ln_P(PSTR("Mouse     "), false);
             break;
         case _wMou:
-            oled_write_ln_P(PSTR("Mouse W   "), false);
+            oled_write_ln_P(PSTR("Mouse     "), false);
             break;
         case _Scr:
             oled_write_ln_P(PSTR("Scroll    "), false);
