@@ -24,32 +24,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "my_keycode.h"
 
 
-// layer_names------------------------------
-enum layer_names {
-    _Def = 0,
-    _Sym,
-    _Cur,
-    _NumP,
-    _Mou,
-    _Scr,
-};
+/* // layer_names------------------------------ */
+/* enum layer_names { */
+/*     _Def = 0, */
+/*     _Sym, */
+/*     _Cur, */
+/*     _NumP, */
+/*     _Mou, */
+/*     _Scr, */
+/* }; */
 
-// custom keycode --------------------
-enum custom_keycodes {
-    APP_SWIPE = KEYBALL_SAFE_RANGE,
-    VOL_SWIPE,
-    BROWSE_SWIPE,
-    TAB_SWIPE,
-    MAG_SWIPE,
-    /* L_ARROW, // <- */
-    /* L_D_ARR, // <= */
-    /* SPD_UP, */
-    R_ARROW, // ->
-    R_D_ARR, // <=
-    S_M_CLICK,
-    Esc_NumP, // my_keycodeの中でmacro key設定用
-    DEEPL,
-};
+/* // custom keycode -------------------- */
+/* enum custom_keycodes { */
+/*     APP_SWIPE = KEYBALL_SAFE_RANGE, */
+/*     VOL_SWIPE, */
+/*     BROWSE_SWIPE, */
+/*     TAB_SWIPE, */
+/*     MAG_SWIPE, */
+/*     /1* L_ARROW, // <- *1/ */
+/*     /1* L_D_ARR, // <= *1/ */
+/*     /1* SPD_UP, *1/ */
+/*     R_ARROW, // -> */
+/*     R_D_ARR, // <= */
+/*     S_M_CLICK, */
+/*     Esc_NumP, // my_keycodeの中でmacro key設定用 */
+/*     DEEPL, */
+/* }; */
 
 #include "features/swipe.h"
 #include "features/macro_key.h"
@@ -197,6 +197,13 @@ void oled_render_layer_state(void) {
     }
 }
 
+void oledkit_render_info_user(void) {
+    keyball_oled_render_keyinfo();
+    keyball_oled_render_ballinfo();
+    keyball_oled_render_layerinfo();
+    oled_render_layer_state();
+}
+
 /* void oled_render_repeat_speed(void) { */
 /*     oled_write_P(PSTR("re_sp: "), false); */
 /*     switch (repeat_speed) { */
@@ -239,12 +246,12 @@ void oled_render_layer_state(void) {
 /*     return buf; */
 /* } */
 
-void oledkit_render_info_user(void) {
-    oled_render_layer_state();
-    /* keyball_oled_render_keyinfo(); */
-    keyball_oled_render_ballinfo();
-    /* oled_write_P(PSTR("arrow_count: "),false); */
-    /* oled_write(format_4d(arrow_count), false); */
-    /* oled_render_repeat_speed(); */
-}
+/* void oledkit_render_info_user(void) { */
+/*     oled_render_layer_state(); */
+/*     /1* keyball_oled_render_keyinfo(); *1/ */
+/*     keyball_oled_render_ballinfo(); */
+/*     /1* oled_write_P(PSTR("arrow_count: "),false); *1/ */
+/*     /1* oled_write(format_4d(arrow_count), false); *1/ */
+/*     /1* oled_render_repeat_speed(); *1/ */
+/* } */
 #endif

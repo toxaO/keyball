@@ -24,32 +24,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "my_keycode.h"
 
 
-// layer_names------------------------------
-enum layer_names {
-    _Def = 0,
-    _Sym,
-    _Cur,
-    _NumP,
-    _Mou,
-    _Scr,
-};
+/* // layer_names------------------------------ */
+/* enum layer_names { */
+/*     _Def = 0, */
+/*     _Sym, */
+/*     _Cur, */
+/*     _NumP, */
+/*     _Mou, */
+/*     _Scr, */
+/* }; */
 
-// カスタムキーコード------------------------------
-enum custom_keycodes {
-    APP_SWIPE = KEYBALL_SAFE_RANGE,
-    VOL_SWIPE,
-    BROWSE_SWIPE,
-    TAB_SWIPE,
-    MAG_SWIPE,
-    /* L_ARROW, // <- */
-    /* L_D_ARR, // <= */
-    /* SPD_UP, */
-    R_ARROW, // ->
-    R_D_ARR, // <=
-    S_M_CLICK,
-    Esc_NumP, // my_keycodeの中でmacro key設定用
-    DEEPL,
-};
+/* // カスタムキーコード------------------------------ */
+/* enum custom_keycodes { */
+/*     APP_SWIPE = KEYBALL_SAFE_RANGE, */
+/*     VOL_SWIPE, */
+/*     BROWSE_SWIPE, */
+/*     TAB_SWIPE, */
+/*     MAG_SWIPE, */
+/*     /1* L_ARROW, // <- *1/ */
+/*     /1* L_D_ARR, // <= *1/ */
+/*     /1* SPD_UP, *1/ */
+/*     R_ARROW, // -> */
+/*     R_D_ARR, // <= */
+/*     S_M_CLICK, */
+/*     Esc_NumP, // my_keycodeの中でmacro key設定用 */
+/*     DEEPL, */
+/* }; */
 
 #include "features/swipe.h"
 #include "features/macro_key.h"
