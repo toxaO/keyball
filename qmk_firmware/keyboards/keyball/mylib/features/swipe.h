@@ -232,7 +232,6 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         click_timer = timer_read();
 
         if (my_abs(current_x) >= SWIPE_THRESHOLD || my_abs(current_y) >= SWIPE_THRESHOLD) {
-          rgblight_sethsv(HSV_PINK);
           process_swipe_gesture(current_x, current_y);
           is_swiped = true;
           state = SWIPING;
@@ -246,7 +245,6 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
   } else {
     switch (state) {
       case SWIPE:
-        rgblight_sethsv(HSV_SPRINGGREEN);
         break;
 
       case SWIPING:

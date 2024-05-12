@@ -242,7 +242,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 // キーアップ時
               state = NONE;
               canceller = false;
-              rgblight_sethsv(HSV_YELLOW);
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                   // mission control
@@ -266,7 +265,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 // キーアップ時
                 state = NONE;
-                rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code(KC_MPLY);
                 }
@@ -283,7 +281,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 // キーアップ時
                 state = NONE;
-                rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code16(G(KC_L));
                 }
@@ -300,7 +297,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 // キーアップ時
                 state = NONE;
-                rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(G(KC_T));
@@ -321,7 +317,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 // キーアップ時
                 state = NONE;
-                rgblight_sethsv(HSV_YELLOW);
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(A(C(KC_ENT)));

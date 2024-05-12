@@ -22,35 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 #include "my_keycode.h"
-
-
-/* // layer_names------------------------------ */
-/* enum layer_names { */
-/*     _Def = 0, */
-/*     _Sym, */
-/*     _Cur, */
-/*     _NumP, */
-/*     _Mou, */
-/*     _Scr, */
-/* }; */
-
-/* // カスタムキーコード------------------------------ */
-/* enum custom_keycodes { */
-/*     APP_SWIPE = KEYBALL_SAFE_RANGE, */
-/*     VOL_SWIPE, */
-/*     BROWSE_SWIPE, */
-/*     TAB_SWIPE, */
-/*     MAG_SWIPE, */
-/*     /1* L_ARROW, // <- *1/ */
-/*     /1* L_D_ARR, // <= *1/ */
-/*     /1* SPD_UP, *1/ */
-/*     R_ARROW, // -> */
-/*     R_D_ARR, // <= */
-/*     S_M_CLICK, */
-/*     Esc_NumP, // my_keycodeの中でmacro key設定用 */
-/*     DEEPL, */
-/* }; */
-
 #include "features/swipe.h"
 #include "features/macro_key.h"
 
@@ -169,27 +140,35 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     switch (layer) {
         case _Def:
             rgblight_sethsv(HSV_CYAN);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Sym:
             rgblight_sethsv(HSV_PURPLE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mCur:
-            rgblight_sethsv(HSV_BLUE);
+            rgblight_sethsv(HSV_GREEN);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _wCur:
-            rgblight_sethsv(HSV_BLUE);
+            rgblight_sethsv(HSV_GREEN);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mMou:
-            rgblight_sethsv(HSV_YELLOW);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _wMou:
-            rgblight_sethsv(HSV_YELLOW);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _NumP:
             rgblight_sethsv(HSV_WHITE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Scr:
-            rgblight_sethsv(HSV_ORANGE);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_SNAKE + 3);
             break;
     }
 

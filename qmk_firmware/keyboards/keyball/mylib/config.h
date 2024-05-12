@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_EFFECT_BREATHING
 #    undef RGBLIGHT_EFFECT_RAINBOW_MOOD
 #    undef RGBLIGHT_EFFECT_RAINBOW_SWIRL
-#    undef RGBLIGHT_EFFECT_SNAKE
+#    define RGBLIGHT_EFFECT_SNAKE
 #    undef RGBLIGHT_EFFECT_KNIGHT
 #    undef RGBLIGHT_EFFECT_CHRISTMAS
 #    undef RGBLIGHT_EFFECT_STATIC_GRADIENT
