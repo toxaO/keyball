@@ -27,24 +27,11 @@
 /* }; */
 /* enum arrow_held arrow_held = NO_DIR; */
 
-#include "os_detection.h"
-
 // mod override用変数
 uint8_t mod_state;
 static bool bspckey_registered = false;
 static bool delkey_registered = false;
 static bool tabkey_registered = false;
-static bool ctrl_pressed = false;
-static bool sft_pressed = false;
-
-// oledでデバッグしたい時は以下のように
-/* void oled_test(void) { */
-/*   if (ctrl_pressed) { */
-/*     oled_write_P(PSTR("ctrl:+"), false); */
-/*   } else { */
-/*     oled_write_P(PSTR("ctrl:-"), false); */
-/*   } */
-/* } */
 
 
 // マクロキーを設定
@@ -73,20 +60,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 if (bspckey_registered) {
                     unregister_code(KC_BSPC);
-                    unregister_code(KC_LCTL);
+                    register_code(KC_LCTL);
                     bspckey_registered = false;
+                    return false;
                 }
                 if (delkey_registered) {
                     unregister_code(KC_DEL);
-                    unregister_code(KC_LCTL);
-                    unregister_code(KC_LSFT);
-                    delkey_registered = false;
-                }
-                if (ctrl_pressed) {
                     register_code(KC_LCTL);
-                }
-                if (sft_pressed) {
                     register_code(KC_LSFT);
+                    delkey_registered = false;
+                    return false;
                 }
             }
             return true;
@@ -102,30 +85,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else { // on release of KC_BSPC
                 if (tabkey_registered) {
                     unregister_code(KC_TAB);
-                    unregister_code(KC_LCTL);
+                    register_code(KC_LCTL);
                     tabkey_registered = false;
-                    if (ctrl_pressed) {
-                        register_code(KC_LCTL);
-                    }
+                    return false;
                 }
-            }
-            return true;
-
-        case KC_LCTL:
-        case KANA_C:
-            if (record->event.pressed) {
-              ctrl_pressed = true;
-            } else {
-              ctrl_pressed = false;
-            }
-            return true;
-
-        case KC_LSFT:
-        case EISU_S:
-            if (record->event.pressed) {
-              sft_pressed = true;
-            } else {
-              sft_pressed = false;
             }
             return true;
 
@@ -188,25 +151,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case APP_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-              swipe_timer = timer_read();
-              is_swiped = false;
-              canceller = false;
-              state = SWIPE;
+                swipe_timer = timer_read();
+                is_swiped = false;
+                canceller = false;
+                state = SWIPE;
             } else {
                 // キーアップ時
-              state = NONE;
-              canceller = false;
-              rgblight_sethsv(HSV_YELLOW);
-              if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                  // mission control
-                  tap_code16(C(KC_UP));
-                } else {
-                  // task control
-                  tap_code16(C(KC_TAB));
+                // mission control
+                state = NONE;
+                canceller = false;
+                rgblight_sethsv(HSV_YELLOW);
+                if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
+                    tap_code16(C(KC_UP));
                 }
-              }
-              repeat_speed = NORMAL;
+                repeat_speed = NORMAL;
             }
             break;
 
