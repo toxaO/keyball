@@ -33,9 +33,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  //,--------------------------------------------------------------------------.                                  ,--------------------------------------------------------------------------.
      KC_Q         , KC_W         , KC_E         , KC_R         , KC_T         ,                                    KC_Y         , KC_U         , KC_I         , KC_O         , KC_P         ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     KC_A         , KC_S         , KC_D         , KC_F         , KC_G         ,                                    KC_H         , KC_J         , KC_K         , KC_L         , _Mou_SCLN    ,
+     ALT_T(KC_A)  , GUI_T(KC_S)  , CTL_T(KC_D)  , SFT_T(KC_F)  , KC_G         ,                                    KC_H         , KC_J         , KC_K         , KC_L         , _Mou_SCLN    ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     ALT_T(KC_Z)  , GUI_T(KC_X)  , KC_C         , KC_V         , KC_B         ,                                    KC_N         , KC_M         , KC_COMM      , GUI_T(KC_DOT), ALT_T(KC_SLSH),
+     KC_Z         , KC_X         , KC_C         , KC_V         , KC_B         ,                                    KC_N         , KC_M         , KC_COMM      , GUI_T(KC_DOT), ALT_T(KC_SLSH),
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
      KC_MINUS     , XXX          , XXX          , CTL_T(KC_MINUS) , EISU_S       , _Sym_SPC     ,      _Cur_ENT     , KANA_C       , XXXXXXX      , XXXXXXX      , XXXXXXX      , _Esc_NumP
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.
@@ -142,27 +142,35 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     switch (layer) {
         case _Def:
             rgblight_sethsv(HSV_CYAN);
-            break;
-        case _NumP:
-            rgblight_sethsv(HSV_WHITE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Sym:
             rgblight_sethsv(HSV_PURPLE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mCur:
-            rgblight_sethsv(HSV_BLUE);
+            rgblight_sethsv(HSV_GREEN);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _wCur:
-            rgblight_sethsv(HSV_BLUE);
+            rgblight_sethsv(HSV_GREEN);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mMou:
-            rgblight_sethsv(HSV_YELLOW);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _wMou:
-            rgblight_sethsv(HSV_YELLOW);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
+            break;
+        case _NumP:
+            rgblight_sethsv(HSV_WHITE);
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Scr:
-            rgblight_sethsv(HSV_ORANGE);
+            rgblight_sethsv(HSV_BLUE);
+            rgblight_mode(RGBLIGHT_MODE_SNAKE + 3);
             break;
     }
 
