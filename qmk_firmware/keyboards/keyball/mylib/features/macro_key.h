@@ -73,7 +73,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     layer_on(_mMou);
                 } else {
-                    layer_off(_wMou);
+                    layer_on(_wMou);
                 }
                 return false;
             } else {

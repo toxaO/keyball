@@ -160,6 +160,7 @@ HSV_YELLOW
 #define Z_GUI MT(MOD_LGUI, KC_Z)
 #define CHAPP_AC MT(MOD_LCTL | MOD_LALT, KC_NO)
 #define CHWIN_Fn MT(MOD_RCTL, KC_NO)
+#define B5_ALT MT(MOD_LALT, KC_NO)
 
 // mousekey
 #define L_CLICK KC_BTN1
