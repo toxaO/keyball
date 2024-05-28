@@ -38,12 +38,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_DEFAULT_HUE 127
 #    define RGBLIGHT_DEFAULT_SAT 255
 #    define RGBLIGHT_DEFAULT_VAL 100
+#    undef RGBLIGHT_LIMIT_VAL
+#    define RGBLIGHT_LIMIT_VAL 125
 #    define RGBLIGHT_LAYERS
 #    define RGBLIGHT_LAYERS_RETAIN_VAL
 #endif
 
 // repeat key macro用
 /* #define M_REPEAT_TH 300 */
+
+// scroll snap
+#undef KEYBALL_SCROLLSNAP_ENABLE
+#define KEYBALL_SCROLLSNAP_ENABLE 1
 
 // 水平方向の閾値
 #undef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
