@@ -146,7 +146,7 @@ HSV_YELLOW
 #define w_L_DESK G(S(KC_LEFT))
 
 // mod tap
-#define MINUS_A MT(MOD_LALT, KC_MINUS)
+#define MINUS_G MT(MOD_LGUI, KC_MINUS)
 #define KANA_C MT(MOD_LCTL, KC_LNG1)
 #define EISU_S MT(MOD_LSFT, KC_LNG2)
 #define TAB_C MT(MOD_LCTL, KC_TAB)
