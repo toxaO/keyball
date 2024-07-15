@@ -36,7 +36,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //,-----------------------------------------------------------------------.                             ,-----------------------------------------------------------------------.
     XXX       , KC_Z      , KC_X      , KC_C      , KC_V      , KC_B      ,                               KC_N      , KC_M      , KC_COMM   ,GUI_T(KC_DOT),ALT_T(KC_SLSH),XXX     ,
 //,-----------+-----------+-----------+-----------+-----------+-----------+-----------.     ,-----------+-----------+-----------+-----------+-----------+-----------+-----------.
-                            XXX       , XXX       ,CTL_T(KC_MINUS), EISU_S    , _Sym_SPC  ,       _Cur_ENT  , KANA_C    , XXXXXXX   , XXXXXXX   ,             _Esc_NumP
+                            KC_LALT   , KC_LGUI   , MINUS_G   , EISU_S    , _Sym_SPC  ,       _Cur_ENT  , KANA_C    , XXXXXXX   , XXXXXXX   ,             _Esc_NumP
 //,-----------------------------------------------------------------------------------.     ,-----------------------------------------------------------------------------------.
   ),
 
@@ -192,16 +192,16 @@ void oled_render_layer_state(void) {
             oled_write_ln_P(PSTR("Sym / Num "), false);
             break;
         case _mCur:
-            oled_write_ln_P(PSTR("Cur / Func"), false);
+            oled_write_ln_P(PSTR("Cur/Func m"), false);
             break;
         case _wCur:
-            oled_write_ln_P(PSTR("Cur / Func"), false);
+            oled_write_ln_P(PSTR("Cur/Func w"), false);
             break;
         case _mMou:
-            oled_write_ln_P(PSTR("Mouse     "), false);
+            oled_write_ln_P(PSTR("Mouse    m"), false);
             break;
         case _wMou:
-            oled_write_ln_P(PSTR("Mouse     "), false);
+            oled_write_ln_P(PSTR("Mouse    w"), false);
             break;
         case _Scr:
             oled_write_ln_P(PSTR("Scroll    "), false);
