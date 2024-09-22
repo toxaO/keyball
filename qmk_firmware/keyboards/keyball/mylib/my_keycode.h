@@ -44,6 +44,7 @@ HSV_YELLOW
 #define _Mou_NumP LT(_Mou, KC_NO)
 #define _Mou_SCLN LT(0, KC_SCLN)
 #define _Esc_NumP LT(0, Esc_NumP)
+#define _MIN_NumP LT(_NumP, KC_MINUS)
 
 // mod + kc *JIS
 #define MINUS KC_MINUS // "-"
@@ -65,7 +66,7 @@ HSV_YELLOW
 #define BSLSH LALT(KC_INT3) // "\"
 #define EQL LSFT(KC_MINUS) // "="
 #define TILDE LSFT(KC_EQL) // "~"
-#define U_BAR KC_INT1 // "_"
+#define U_BAR LSFT(KC_INT1) // "_"
 #define CARET KC_EQL // "^"
 #define YEN KC_INT3 // "¥"
 #define V_BAR LSFT(KC_INT3) // "|"
@@ -219,6 +220,7 @@ enum custom_keycodes {
     R_D_ARR, // <=
     S_M_CLICK,
     Esc_NumP, // my_keycodeの中でmacro key設定用
-    DEEPL,
+    MULTI_A,
+    MULTI_B,
 };
 

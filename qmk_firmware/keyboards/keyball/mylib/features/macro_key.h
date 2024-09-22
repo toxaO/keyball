@@ -50,7 +50,7 @@ static bool sft_pressed = false;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    current_keycode = keycode;
+    /* swipemode = keycode; */
     mod_state = get_mods();
 
     switch (keycode) {
@@ -203,19 +203,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case DEEPL:
-            if (record->event.pressed) {
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                  tap_code16(G(KC_C));
-                  tap_code16(G(KC_C));
-                } else {
-                  tap_code16(C(KC_C));
-                  tap_code16(C(KC_C));
-                }
-                return false;
-            }
-            break;
-
         // 単押しでesc、長押しでNumP
         case _Esc_NumP:
             if (record->event.pressed && !record->tap.count) {
@@ -234,22 +221,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case APP_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
+              swipemode = APP_SW;
               swipe_timer = timer_read();
               is_swiped = false;
               canceller = false;
               state = SWIPE;
             } else {
                 // キーアップ時
+              swipemode = NO_SW;
               state = NONE;
               canceller = false;
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                   // mission control
-                  /* tap_code16(C(KC_UP)); */
                   tap_code16(m_MIS_CON);
                 } else {
                   // task control
-                  tap_code16(C(KC_TAB));
+                  tap_code16(G(KC_TAB));
                 }
               }
               repeat_speed = NORMAL;
@@ -259,11 +247,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case VOL_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
+                swipemode = VOL_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
+                swipemode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code(KC_MPLY);
@@ -275,11 +265,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case BROWSE_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
+                swipemode = BRO_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
+                swipemode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code16(G(KC_L));
@@ -291,11 +283,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case TAB_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
+                swipemode = TAB_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
+                swipemode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -311,11 +305,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case WIN_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
+                swipemode = WIN_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
+                swipemode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -328,6 +324,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
+        // アロー使わないから消しとく
         /* // <- */
         /* case L_ARROW: */
         /*     if (record->event.pressed) { */
@@ -341,6 +338,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         /*     } */
         /*     break; */
 
+        // ダブルアローも使わないから消しとく
         /* // <= */
         /* case L_D_ARR: */
         /*     if (record->event.pressed) { */
@@ -354,6 +352,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         /*     } */
         /*     break; */
 
+        // 長押しでマウスレイヤー、単押しでnumpadレイヤー
+        // 使わないので消しとく
         /*     // _Mou_NumP */
         /* case LT(_Mou, KC_NO): */
         /*     if (record->tap.count && record->event.pressed){ */
@@ -362,6 +362,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         /*     } */
         /*     return true; */
 
+        // 矢印キーの加速装置
+        // 使わないけど何かの参考になるかもしれないから残しとく
+        // 他にもコメントアウトを外さなきゃいけないところあるはず
         /* case SPD_UP: */
         /*     if (record->event.pressed) { */
         /*         spd_up = true; */
@@ -444,6 +447,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 
 //-------------------------------------------------------------
+// 矢印キーの加速装置部分
 //  matrix_scan_user関数の中でフラグをチェックして必要なマクロを実行する。
 //  この関数はQMKががキーの押下をチェックするたび実行される。
 //  https://gist.github.com/ypsilon-takai/c4a249087ea19eabd1deb3f9f273de52
