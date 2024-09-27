@@ -28,11 +28,63 @@ void oled_render_layer_state(void) {
     }
 }
 
+static const char *format_4d(int d) {
+    static char buf[5] = {0}; // max width (4) + NUL (1)
+    char        lead   = ' ';
+    if (d < 0) {
+        d    = -d;
+        lead = '-';
+    }
+    buf[3] = (d % 10) + '0';
+    d /= 10;
+    if (d == 0) {
+        buf[2] = lead;
+        lead   = ' ';
+    } else {
+        buf[2] = (d % 10) + '0';
+        d /= 10;
+    }
+    if (d == 0) {
+        buf[1] = lead;
+        lead   = ' ';
+    } else {
+        buf[1] = (d % 10) + '0';
+        d /= 10;
+    }
+    buf[0] = lead;
+    return buf;
+}
+
+
+// ctrl+hのテストに使用したコード
+/* void oled_test(void) { */
+/*     if (l_ctrl_pressed) { */
+/*         oled_write_P(PSTR("L:on  "), false); */
+/*     } else { */
+/*         oled_write_P(PSTR("L:off "), false); */
+/*     } */
+/*     if (kana_c_pressed) { */
+/*         oled_write_ln_P(PSTR("C:on"), false); */
+/*     } else { */
+/*         oled_write_ln_P(PSTR("C:off"), false); */
+/*     } */
+/* } */
+
+void oled_set_info(void) {
+    oled_write_P(PSTR("CPI:"), false);
+    oled_write(format_4d(keyball_get_cpi()) + 1, false);
+    oled_write_P(PSTR(" / DVI: "), false);
+    oled_write_char('0' + keyball_get_scroll_div(), false);
+    oled_write_ln_P(PSTR(""), false);
+}
+
 // OLEDの実装
 void oledkit_render_info_user(void) {
     /* keyball_oled_render_keyinfo(); */
     /* keyball_oled_render_ballinfo(); */
     /* keyball_oled_render_layerinfo(); */
+    /* oled_test(); */
+    oled_set_info();
     oled_render_layer_state();
 }
 
@@ -50,32 +102,5 @@ void oledkit_render_info_user(void) {
 /*             oled_write_ln_P(PSTR("VERY_HIGH"), false); */
 /*             break; */
 /*     } */
-/* } */
-
-/* static const char *format_4d(int d) { */
-/*     static char buf[5] = {0}; // max width (4) + NUL (1) */
-/*     char        lead   = ' '; */
-/*     if (d < 0) { */
-/*         d    = -d; */
-/*         lead = '-'; */
-/*     } */
-/*     buf[3] = (d % 10) + '0'; */
-/*     d /= 10; */
-/*     if (d == 0) { */
-/*         buf[2] = lead; */
-/*         lead   = ' '; */
-/*     } else { */
-/*         buf[2] = (d % 10) + '0'; */
-/*         d /= 10; */
-/*     } */
-/*     if (d == 0) { */
-/*         buf[1] = lead; */
-/*         lead   = ' '; */
-/*     } else { */
-/*         buf[1] = (d % 10) + '0'; */
-/*         d /= 10; */
-/*     } */
-/*     buf[0] = lead; */
-/*     return buf; */
 /* } */
 

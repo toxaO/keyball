@@ -101,26 +101,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               // KANA_CとLCTLが両方押下されていたら+ctrl
               if (kana_c_pressed && l_ctrl_pressed) {
                 if (mod_state & MOD_MASK_SHIFT) {
+                  // +SFT
+                  unregister_code(KC_LSFT);
                   register_code(KC_DEL);
                   delkey_registered = true;
                   return false;
                 } else {
-                  unregister_code(KC_LSFT);
+                  // SFTなし
                   register_code(KC_BSPC);
-                  delkey_registered = true;
+                  bspckey_registered = true;
                   return false;
                 }
               }
 
               if (kana_c_pressed || l_ctrl_pressed) {
                 if (mod_state & MOD_MASK_SHIFT) {
+                  unregister_code(KC_LCTL);
                   unregister_code(KC_LSFT);
                   register_code(KC_DEL);
                   bspckey_registered = true;
                   return false;
                 } else {
                   unregister_code(KC_LCTL);
-                  unregister_code(KC_LSFT);
                   register_code(KC_BSPC);
                   bspckey_registered = true;
                   return false;
@@ -193,6 +195,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
 
         case KC_LCTL:
+            case CTL_T(KC_ESC):
             if (record->event.pressed) {
               l_ctrl_pressed = true;
             } else {
@@ -219,18 +222,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         // macro key
         // SFT + M_CLICK
-        case S_M_CLICK:
-            if (record->event.pressed) {
-                register_code(KC_LSFT);
-                tap_code_delay(KC_NO, 3); // delayを入れないとshiftが後に入力される
-                register_code(KC_BTN3);
-                return false;        // Return false to ignore further processing of key
-            } else {
-                unregister_code(KC_BTN3);
-                unregister_code(KC_LSFT);
-                return false;        // Return false to ignore further processing of key
-            }
-            break;
+        /* case S_M_CLICK: */
+        /*     if (record->event.pressed) { */
+        /*         register_code(KC_LSFT); */
+        /*         tap_code_delay(KC_NO, 3); // delayを入れないとshiftが後に入力される */
+        /*         register_code(KC_BTN3); */
+        /*         return false;        // Return false to ignore further processing of key */
+        /*     } else { */
+        /*         unregister_code(KC_BTN3); */
+        /*         unregister_code(KC_LSFT); */
+        /*         return false;        // Return false to ignore further processing of key */
+        /*     } */
+        /*     break; */
 
         /* // -> */
         /* case R_ARROW: */
