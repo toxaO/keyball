@@ -55,7 +55,6 @@ static const char *format_4d(int d) {
     return buf;
 }
 
-
 // ctrl+hのテストに使用したコード
 /* void oled_test(void) { */
 /*     if (l_ctrl_pressed) { */
@@ -87,20 +86,3 @@ void oledkit_render_info_user(void) {
     oled_set_info();
     oled_render_layer_state();
 }
-
-// swipeの反応速度のテストに使用したコード
-/* void oled_render_repeat_speed(void) { */
-/*     oled_write_P(PSTR("re_sp: "), false); */
-/*     switch (repeat_speed) { */
-/*         case NORMAL: */
-/*             oled_write_ln_P(PSTR("NORMAL"), false); */
-/*             break; */
-/*         case HIGH: */
-/*             oled_write_ln_P(PSTR("HIGH"), false); */
-/*             break; */
-/*         case VERY_HIGH: */
-/*             oled_write_ln_P(PSTR("VERY_HIGH"), false); */
-/*             break; */
-/*     } */
-/* } */
-
