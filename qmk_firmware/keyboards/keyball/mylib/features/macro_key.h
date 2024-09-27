@@ -35,12 +35,13 @@ uint8_t mod_state;
 static bool bspckey_registered = false;
 static bool delkey_registered = false;
 static bool tabkey_registered = false;
-static bool ctrl_pressed = false;
+static bool kana_c_pressed = false;
+static bool l_ctrl_pressed = false;
 static bool sft_pressed = false;
 
 // oledでデバッグしたい時は以下のように
 /* void oled_test(void) { */
-/*   if (ctrl_pressed) { */
+/*   if (kana_c_pressed) { */
 /*     oled_write_P(PSTR("ctrl:+"), false); */
 /*   } else { */
 /*     oled_write_P(PSTR("ctrl:-"), false); */
@@ -97,20 +98,48 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case KC_H:
             if (record->event.pressed) {
-                if (mod_state & MOD_MASK_CTRL) {
-                    if (mod_state & MOD_MASK_SHIFT) {
-                        unregister_code(KC_LCTL);
-                        unregister_code(KC_LSFT);
-                        register_code(KC_DEL);
-                        delkey_registered = true;
-                    return false;
-                    } else {
-                        unregister_code(KC_LCTL);
-                        register_code(KC_BSPC);
-                        bspckey_registered = true;
-                        return false;
-                    }
+              // KANA_CとLCTLが両方押下されていたら+ctrl
+              if (kana_c_pressed && l_ctrl_pressed) {
+                if (mod_state & MOD_MASK_SHIFT) {
+                  register_code(KC_DEL);
+                  delkey_registered = true;
+                  return false;
+                } else {
+                  unregister_code(KC_LSFT);
+                  register_code(KC_BSPC);
+                  delkey_registered = true;
+                  return false;
                 }
+              }
+
+              if (kana_c_pressed || l_ctrl_pressed) {
+                if (mod_state & MOD_MASK_SHIFT) {
+                  unregister_code(KC_LSFT);
+                  register_code(KC_DEL);
+                  bspckey_registered = true;
+                  return false;
+                } else {
+                  unregister_code(KC_LCTL);
+                  unregister_code(KC_LSFT);
+                  register_code(KC_BSPC);
+                  bspckey_registered = true;
+                  return false;
+                }
+              }
+                /* if (mod_state & MOD_MASK_CTRL) { */
+                /*     if (mod_state & MOD_MASK_SHIFT) { */
+                /*         unregister_code(KC_LCTL); */
+                /*         unregister_code(KC_LSFT); */
+                /*         register_code(KC_DEL); */
+                /*         delkey_registered = true; */
+                /*         return false; */
+                /*     } else { */
+                /*         unregister_code(KC_LCTL); */
+                /*         register_code(KC_BSPC); */
+                /*         bspckey_registered = true; */
+                /*         return false; */
+                /*     } */
+                /* } */
             } else {
                 if (bspckey_registered) {
                     unregister_code(KC_BSPC);
@@ -123,7 +152,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     unregister_code(KC_LSFT);
                     delkey_registered = false;
                 }
-                if (ctrl_pressed) {
+                if (kana_c_pressed || l_ctrl_pressed) {
                     register_code(KC_LCTL);
                 }
                 if (sft_pressed) {
@@ -134,18 +163,29 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case KC_I:
             if (record->event.pressed) {
-                if (mod_state & MOD_MASK_CTRL) {
-                    unregister_code(KC_LCTL);
-                    register_code(KC_TAB);
-                    tabkey_registered = true;
-                    return false;
+                if (l_ctrl_pressed && kana_c_pressed) {
+                  register_code(KC_TAB);
+                  tabkey_registered = true;
+                  return false;
                 }
+                if (l_ctrl_pressed || kana_c_pressed) {
+                  unregister_code(KC_LCTL);
+                  register_code(KC_TAB);
+                  tabkey_registered = true;
+                  return false;
+                }
+                /* if (mod_state & MOD_MASK_CTRL) { */
+                /*     unregister_code(KC_LCTL); */
+                /*     register_code(KC_TAB); */
+                /*     tabkey_registered = true; */
+                /*     return false; */
+                /* } */
             } else { // on release of KC_BSPC
                 if (tabkey_registered) {
                     unregister_code(KC_TAB);
                     unregister_code(KC_LCTL);
                     tabkey_registered = false;
-                    if (ctrl_pressed) {
+                    if (kana_c_pressed || l_ctrl_pressed) {
                         register_code(KC_LCTL);
                     }
                 }
@@ -153,11 +193,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
 
         case KC_LCTL:
+            if (record->event.pressed) {
+              l_ctrl_pressed = true;
+            } else {
+              l_ctrl_pressed = false;
+            }
+            return true;
+
         case KANA_C:
             if (record->event.pressed) {
-              ctrl_pressed = true;
+              kana_c_pressed = true;
             } else {
-              ctrl_pressed = false;
+              kana_c_pressed = false;
             }
             return true;
 
@@ -185,23 +232,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        // ->
-        case R_ARROW:
-            if (record->event.pressed) {
-                tap_code(KC_MINUS);
-                tap_code16(S(KC_DOT));
-                return false;        // Return false to ignore further processing of key
-            }
-            break;
+        /* // -> */
+        /* case R_ARROW: */
+        /*     if (record->event.pressed) { */
+        /*         tap_code(KC_MINUS); */
+        /*         tap_code16(S(KC_DOT)); */
+        /*         return false;        // Return false to ignore further processing of key */
+        /*     } */
+        /*     break; */
 
-        // =>
-        case R_D_ARR:
-            if (record->event.pressed) {
-                tap_code16(S(KC_MINUS));
-                tap_code16(S(KC_DOT));
-                return false;        // Return false to ignore further processing of key
-            }
-            break;
+        /* // => */
+        /* case R_D_ARR: */
+        /*     if (record->event.pressed) { */
+        /*         tap_code16(S(KC_MINUS)); */
+        /*         tap_code16(S(KC_DOT)); */
+        /*         return false;        // Return false to ignore further processing of key */
+        /*     } */
+        /*     break; */
 
         // 単押しでesc、長押しでNumP
         case _Esc_NumP:

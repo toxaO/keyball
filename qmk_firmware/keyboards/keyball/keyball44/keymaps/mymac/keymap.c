@@ -24,6 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "my_keycode.h"
 #include "features/swipe.h"
 #include "features/macro_key.h"
+#include "features/layer.h"
+#ifdef OLED_ENABLE
+#include "lib/oledkit/oledkit.h"
+#include "features/oled.h"
+#endif
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -126,125 +131,4 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 };
 
-
 // clang-format on
-
-// layer state setting ------------------------------
-layer_state_t layer_state_set_user(layer_state_t state) {
-
-    // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == 7);
-
-    //LED------------------------------
-    uint8_t layer = biton32(state);
-    switch (layer) {
-        case _Def:
-            rgblight_sethsv(HSV_CYAN);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
-            break;
-        case _Sym:
-            rgblight_sethsv(HSV_PURPLE);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _mCur:
-            rgblight_sethsv(HSV_GREEN);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _wCur:
-            rgblight_sethsv(HSV_GREEN);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _mMou:
-            rgblight_sethsv(HSV_BLUE);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
-            break;
-        case _wMou:
-            rgblight_sethsv(HSV_BLUE);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
-            break;
-        case _NumP:
-            rgblight_sethsv(HSV_WHITE);
-            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
-            break;
-        case _Scr:
-            rgblight_sethsv(HSV_BLUE);
-            rgblight_mode(RGBLIGHT_MODE_SNAKE + 3);
-            break;
-    }
-
-    return state;
-}
-
-
-// oled setting ------------------------------
-//デバッグ時にコメント解除するとOLEDのhighlightが適応される
-//#define OLED_ENABLE
-#ifdef OLED_ENABLE
-
-void oled_render_layer_state(void) {
-    oled_write_P(PSTR("Layer: "), false);
-    switch (get_highest_layer(layer_state)) {
-        case _Def:
-            oled_write_ln_P(PSTR("Default   "), false);
-            break;
-        case _NumP:
-            oled_write_ln_P(PSTR("NumPad  "), false);
-            break;
-        case _Sym:
-            oled_write_ln_P(PSTR("Sym / Num "), false);
-            break;
-        case _mCur:
-            oled_write_ln_P(PSTR("Cur/Func m"), false);
-            break;
-        case _wCur:
-            oled_write_ln_P(PSTR("Cur/Func w"), false);
-            break;
-        case _mMou:
-            oled_write_ln_P(PSTR("Mouse    m"), false);
-            break;
-        case _wMou:
-            oled_write_ln_P(PSTR("Mouse    w"), false);
-            break;
-        case _Scr:
-            oled_write_ln_P(PSTR("Scroll    "), false);
-            break;
-    }
-}
-
-#    include "lib/oledkit/oledkit.h"
-
-void oledkit_render_info_user(void) {
-    keyball_oled_render_keyinfo();
-    keyball_oled_render_ballinfo();
-    /* keyball_oled_render_layerinfo(); */
-    oled_render_layer_state();
-}
-
-/* static const char *format_4d(int d) { */
-/*     static char buf[5] = {0}; // max width (4) + NUL (1) */
-/*     char        lead   = ' '; */
-/*     if (d < 0) { */
-/*         d    = -d; */
-/*         lead = '-'; */
-/*     } */
-/*     buf[3] = (d % 10) + '0'; */
-/*     d /= 10; */
-/*     if (d == 0) { */
-/*         buf[2] = lead; */
-/*         lead   = ' '; */
-/*     } else { */
-/*         buf[2] = (d % 10) + '0'; */
-/*         d /= 10; */
-/*     } */
-/*     if (d == 0) { */
-/*         buf[1] = lead; */
-/*         lead   = ' '; */
-/*     } else { */
-/*         buf[1] = (d % 10) + '0'; */
-/*         d /= 10; */
-/*     } */
-/*     buf[0] = lead; */
-/*     return buf; */
-/* } */
-
-#endif
