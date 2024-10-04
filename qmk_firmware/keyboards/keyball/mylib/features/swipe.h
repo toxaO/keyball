@@ -14,6 +14,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// swipe implement
+/* int16_t swipemode; */
+#include <stdint.h>
+const int16_t SWIPE_THRESHOLD = 10;
+const int16_t DIRECTION_THRESHOLD = 5;
+bool is_swiped = false;
+bool canceller = false;
+enum { NORMAL = 0, HIGH, VERY_HIGH } repeat_speed = NORMAL;
+enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } swipemode = NO_SW;
+enum { SW_UP = 0, SW_DOWN, SW_RIGHT, SW_LEFT };
+
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.
 int16_t my_abs(int16_t num) {
   if (num < 0) {
@@ -30,15 +41,24 @@ int16_t mmouse_move_y_sign(int16_t num) {
   return 1;
 }
 
-
-// swipe implement
-/* int16_t swipemode; */
-const int16_t SWIPE_THRESHOLD = 10;
-const int16_t DIRECTION_THRESHOLD = 10;
-bool is_swiped = false;
-bool canceller = false;
-enum { NORMAL = 0, HIGH, VERY_HIGH } repeat_speed = NORMAL;
-enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } swipemode = NO_SW;
+// スワイプの方向を判断する関数
+int swipe_direction(int16_t x, int16_t y) {
+  if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
+    if (y < 0) { // swipe up
+      return SW_UP;
+    } else { // swipe down
+      return SW_DOWN;
+    }
+  }
+  // ここでelseを使ってしまうとポインターが動いていない時にも反応してしまう
+  if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
+    if (x < 0) { // swipe left
+      return SW_LEFT;
+    } else { // swipe right
+      return SW_RIGHT;
+    }
+  }
+};
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数
 // 上、下、左、右、スワイプなしの5つのオプションがあります
@@ -47,7 +67,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   // APP_SWIPE
   // desktop control
   if (swipemode == APP_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y))) {
+    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
       if (y < 0) { // swipe up
         if (canceller) {
             tap_code(KC_ESC);
@@ -75,7 +95,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
       }
     }
     // ここでelseを使ってしまうとポインターが動いていない時にも反応してしまう
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x))) {
+    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
       if (x < 0) { // swipe left
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(m_R_DESK); // spotlight
@@ -94,7 +114,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
 
   // VOL_SWIPE
   if (swipemode == VOL_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y))) {
+    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
       if (y < 0) { // swipe up
         tap_code(KC_VOLU);
         repeat_speed = VERY_HIGH;
@@ -103,7 +123,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
         repeat_speed = VERY_HIGH;
       }
     }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x))) {
+    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
       if (x < 0) { // swipe left
         tap_code(KC_MNXT);
       } else { // swipe right
@@ -115,7 +135,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   // BROWSE_SWIPE
   // browse control
   if (swipemode == BRO_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y))) {
+    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
       if (y < 0) { // swipe up
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(G(KC_C)); // copy
@@ -130,7 +150,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
         }
       }
     }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x))) {
+    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
       if (x < 0) { // swipe left
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(G(KC_LEFT)); // browse back
@@ -150,12 +170,12 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   // TAB_SWIPE
   // TAB
   if (swipemode == TAB_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y))) {
+    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
       if (y < 0) { // swipe up
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(m_NEW_TAB); // browse back
+          tap_code16(S(G(KC_T))); // browse back
         } else {
-          tap_code16(w_NEW_TAB); // windows key
+          tap_code16(S(C(KC_T))); // windows key
         }
       } else { // swipe down
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -165,7 +185,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
         }
       }
     }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x))) {
+    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
       if (x < 0) { // swipe left
         tap_code16(S(C(KC_TAB))); // next tab
         repeat_speed = HIGH;
@@ -179,7 +199,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   // WIN_SWIPE
   // MEGNET
   if (swipemode == WIN_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y))) {
+    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
       if (y < 0) { // swipe up
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(MGN_U); // browse back
@@ -194,7 +214,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
         }
       }
     }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x))) {
+    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
       if (x < 0) { // swipe left
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(MGN_L); // browse back
@@ -258,7 +278,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
             break;
 
           case HIGH:
-            if (timer_elapsed(click_timer) > 150) {
+            if (timer_elapsed(click_timer) > 120) {
               state = SWIPE;
             }
             break;
