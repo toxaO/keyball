@@ -21,15 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Key matrix parameters
 #define MATRIX_ROWS         (4 * 2)  // split keyboard
 #define MATRIX_COLS         6
-#define MATRIX_ROW_PINS     { 29U, 28U, 27U, 26U }
-#define MATRIX_COL_PINS     { 4U, 5U, 6U, 7U, 8U, 9U }
+#define MATRIX_ROW_PINS     { GP29, GP28, GP27, GP26 }
+#define MATRIX_COL_PINS     { GP4, GP5, GP6, GP7, GP8, GP9 }
 #define MATRIX_MASKED
 #define DEBOUNCE            5
 #define DIODE_DIRECTION     COL2ROW
 
 // Split parameters
-#define SERIAL_USART_TX_PIN 1U
-#define SPLIT_HAND_MATRIX_GRID  26U, 4U
+#define SERIAL_USART_TX_PIN GP1
+#define SPLIT_HAND_MATRIX_GRID  GP26, GP4
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 //#define SPLIT_USB_DETECT
 //#define SPLIT_USB_TIMEOUT       500
@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPLIT_TRANSACTION_IDS_KB KEYBALL_GET_INFO, KEYBALL_GET_MOTION, KEYBALL_SET_CPI
 
 // RGB LED settings
-#define WS2812_DI_PIN       0U
+#define WS2812_DI_PIN       GP0
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLED_NUM      60
 #    define RGBLED_SPLIT    { 30, 30 }  // (30 + 29)
@@ -74,6 +74,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define SPI_DRIVER SPID0
-#define SPI_SCK_PIN 22U
-#define SPI_MISO_PIN 20U
-#define SPI_MOSI_PIN 23U
+#define SPI_SCK_PIN GP22
+#define SPI_MISO_PIN GP20
+#define SPI_MOSI_PIN GP23

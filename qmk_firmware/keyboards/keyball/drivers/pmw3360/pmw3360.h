@@ -24,8 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Configurations
 
 #ifndef PMW3360_NCS_PIN
-// #    define PMW3360_NCS_PIN GP21
-#    define PMW3360_NCS_PIN 21U
+#    define PMW3360_NCS_PIN GP21
 #endif
 
 /// DEBUG_PMW3360_SCAN_RATE enables scan performance counter.
