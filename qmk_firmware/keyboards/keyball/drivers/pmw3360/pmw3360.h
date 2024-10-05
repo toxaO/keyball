@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include "spi_master.h"
-#include "pin_defs.h"
+#include "_pin_defs.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
