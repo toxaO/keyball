@@ -18,14 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <stdint.h>
-#include "_pin_defs.h"
 #include "spi_master.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
 
 #ifndef PMW3360_NCS_PIN
-#    define PMW3360_NCS_PIN GP21
+// #    define PMW3360_NCS_PIN GP21
+#    define PMW3360_NCS_PIN 21U
 #endif
 
 /// DEBUG_PMW3360_SCAN_RATE enables scan performance counter.
