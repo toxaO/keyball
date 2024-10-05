@@ -2,7 +2,8 @@
 
 set -eu
 
-max=28672
+# max=28672
+max=99999999
 
 echo "name	size	diff	check"
 for f in "$@" ; do

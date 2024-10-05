@@ -1,3 +1,9 @@
+# MCU name
+MCU = RP2040
+
+# Bootloader selection
+BOOTLOADER = rp2040
+
 # Link Time Optimization required for size.
 # LTO_ENABLE = yes
 
@@ -11,6 +17,8 @@ BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 AUDIO_ENABLE = no           # Audio output
 
 # Keyball44 is split keyboard.
+SPLIT_KEYBOARD = yes
+
 SERIAL_DRIVER = vendor
 
 # Optical sensor driver for trackball.

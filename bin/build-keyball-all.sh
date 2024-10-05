@@ -33,4 +33,4 @@ done
 
 wait
 
-$(dirname "$0")/hexsize.sh keyball_*.hex | tee "${logdir}/size.tsv"
+$(dirname "$0")/hexsize.sh keyball_*.uf2 | tee "${logdir}/size.tsv"
