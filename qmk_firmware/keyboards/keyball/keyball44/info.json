@@ -1,4 +1,6 @@
 {
+    "processor": "RP2040",
+    "bootloader": "rp2040",
     "usb": {
         "vid": "0x5957",
         "pid": "0x0400",
