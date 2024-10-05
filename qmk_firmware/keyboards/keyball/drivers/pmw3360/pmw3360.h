@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include "spi_master.h"
+#include "gpio.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
