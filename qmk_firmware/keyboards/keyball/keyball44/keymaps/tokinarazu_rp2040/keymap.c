@@ -54,17 +54,17 @@ enum custom_keycodes {
   M_UPDIR,
 };
 
-// #include "features/sm_td.h"
+#include "features/sm_td.h"
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_ESC        , KC_Q  , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I     , KC_O     , KC_P     , KC_BSPC   ,
-    LCTL_T(KC_ESC), LGUI_T(KC_A), LALT_T(KC_S), LSFT_T(KC_D) , LCTL_T(KC_F) , KC_G ,                         KC_H     , LCTL_T(KC_J)  , RSFT_T(KC_K) , LALT_T(KC_L) , LT(1,KC_SCLN) , KC_MINUS ,
-    LSFT_T(KC_LSFT), KC_Z , KC_X    , KC_C     , KC_V     , KC_B     ,                                       KC_N     , KC_M          , KC_COMM  , KC_DOT   , LT(3,KC_SLSH), LT(3,KC_QUOT) ,
-                  KC_LALT , KC_TAB  , LT(2,KC_LNG2)   , LT(3,KC_SPC) , LT(1,KC_LNG1) ,            QK_REP   , LT(2,KC_ENT) , XXXXXXX   , XXXXXXX  , A2J_TOGG
-  ),
+    KC_ESC        , KC_Q  , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I     , KC_O     , KC_P     , KC_BSPC  ,
+    CKC_ESC       , CKC_A , CKC_S   , CKC_D    , CKC_F    , KC_G     ,                                       KC_H     , CKC_J         , CKC_K    , CKC_L    , CKC_SCLN , KC_MINUS ,
+    LSFT_T(KC_LSFT), KC_Z , KC_X    , KC_C     , KC_V     , KC_B     ,                                       KC_N     , KC_M          , KC_COMM  , KC_DOT   , CKC_SLSH , CKC_QUOT ,
+                  KC_LALT , KC_TAB  , CKC_LNG2 , CKC_SPC  , CKC_LNG1 ,                            QK_REP   , CKC_ENT  , XXXXXXX       , XXXXXXX  , A2J_TOGG
+ ),
 
   [1] = LAYOUT_universal(
     _______  ,  KC_PGUP , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                     SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  , XXXXXXX  ,
@@ -319,7 +319,6 @@ void set_disable_ime(void) {
   tap_code16(KC_LNG2);
 }
 
-/*
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch (keycode) {
         SMTD_MT(CKC_ESC, KC_ESC, KC_LEFT_CTRL)
@@ -340,12 +339,11 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         SMTD_LT(CKC_ENT, KC_ENT, 2) 
     }
 }
-*/
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-//   if (!process_smtd(keycode, record)) {
-//       return false;
-//   }
+  if (!process_smtd(keycode, record)) {
+    return false;
+  }
 
   if (record->event.pressed) {
     static uint32_t last_key_pressed = 0;
