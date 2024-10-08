@@ -55,17 +55,12 @@ static const char *format_4d(int d) {
     return buf;
 }
 
-// ctrl+hのテストに使用したコード
+// test
 /* void oled_test(void) { */
-/*     if (l_ctrl_pressed) { */
-/*         oled_write_P(PSTR("L:on  "), false); */
+/*     if (double_state) { */
+/*         oled_write_P(PSTR("on  "), false); */
 /*     } else { */
-/*         oled_write_P(PSTR("L:off "), false); */
-/*     } */
-/*     if (kana_c_pressed) { */
-/*         oled_write_ln_P(PSTR("C:on"), false); */
-/*     } else { */
-/*         oled_write_ln_P(PSTR("C:off"), false); */
+/*         oled_write_P(PSTR("off "), false); */
 /*     } */
 /* } */
 

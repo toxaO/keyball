@@ -58,7 +58,8 @@ int swipe_direction(int16_t x, int16_t y) {
       return SW_RIGHT;
     }
   }
-};
+  return 0;
+}
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数
 // 上、下、左、右、スワイプなしの5つのオプションがあります
@@ -66,172 +67,199 @@ int swipe_direction(int16_t x, int16_t y) {
 void process_swipe_gesture(int16_t x, int16_t y) {
   // APP_SWIPE
   // desktop control
-  if (swipemode == APP_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-      if (y < 0) { // swipe up
-        if (canceller) {
-            tap_code(KC_ESC);
-            canceller = false;
-        } else {
-            if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-              tap_code16(G(KC_SPACE)); // spotlight
-            } else {
-              tap_code16(KC_LGUI); // windows key
-            }
-            canceller = true;
-        }
-      } else { // swipe down
-        if (canceller) {
-            tap_code(KC_ESC);
-            canceller = false;
-        } else {
-            if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-              tap_code16(C(KC_DOWN)); // spotlight
-            } else {
-              tap_code16(G(KC_TAB)); // windows key
-            }
-            canceller = true;
-        }
-      }
-    }
-    // ここでelseを使ってしまうとポインターが動いていない時にも反応してしまう
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-      if (x < 0) { // swipe left
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(m_R_DESK); // spotlight
-        } else {
-          tap_code16(w_R_DESK); // windows key
-        }
-      } else { // swipe right
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(m_L_DESK); // spotlight
-        } else {
-          tap_code16(w_L_DESK); // windows key
-        }
-      }
-    }
-  }
+  switch (swipemode) {
 
-  // VOL_SWIPE
-  if (swipemode == VOL_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-      if (y < 0) { // swipe up
-        tap_code(KC_VOLU);
-        repeat_speed = VERY_HIGH;
-      } else { // swipe down
-        tap_code(KC_VOLD);
-        repeat_speed = VERY_HIGH;
-      }
-    }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-      if (x < 0) { // swipe left
-        tap_code(KC_MNXT);
-      } else { // swipe right
-        tap_code(KC_MPRV);
-      }
-    }
-  }
+    case APP_SW:
+      switch (swipe_direction( x, y)) {
+        case SW_UP:
+          if (canceller) {
+              tap_code(KC_ESC);
+              canceller = false;
+          } else {
+              if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                tap_code16(G(KC_SPACE)); // spotlight
+              } else {
+                tap_code16(KC_LGUI); // windows key
+              }
+              canceller = true;
+          }
+          break;
 
-  // BROWSE_SWIPE
-  // browse control
-  if (swipemode == BRO_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-      if (y < 0) { // swipe up
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(G(KC_C)); // copy
-        } else {
-          tap_code16(C(KC_C)); // windows key
-        }
-      } else { // swipe down
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(G(KC_V)); // copy
-        } else {
-          tap_code16(C(KC_V)); // windows key
-        }
+        case SW_DOWN:
+          if (canceller) {
+              tap_code(KC_ESC);
+              canceller = false;
+          } else {
+              if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                tap_code16(C(KC_DOWN)); // spotlight
+              } else {
+                tap_code16(G(KC_TAB)); // windows key
+              }
+              canceller = true;
+          }
+          break;
+
+        case SW_LEFT:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(m_R_DESK); // spotlight
+          } else {
+            tap_code16(w_R_DESK); // windows key
+          }
+          break;
+
+        case SW_RIGHT:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(m_L_DESK); // spotlight
+          } else {
+            tap_code16(w_L_DESK); // windows key
+          }
+          break;
+
+        default:
+          break;
+
       }
-    }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-      if (x < 0) { // swipe left
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(G(KC_LEFT)); // browse back
-        } else {
-          tap_code16(KC_WBAK); // windows key
-        }
-      } else { // swipe right
+      break;
+
+    case VOL_SW:
+      switch (swipe_direction( x, y)) {
+        case SW_UP:
+          tap_code(KC_VOLU);
+          repeat_speed = VERY_HIGH;
+          break;
+
+        case SW_DOWN:
+          tap_code(KC_VOLD);
+          repeat_speed = VERY_HIGH;
+          break;
+
+        case SW_LEFT:
+          tap_code(KC_MNXT);
+          break;
+
+        case SW_RIGHT:
+          tap_code(KC_MPRV);
+          break;
+
+        default:
+          break;
+      }
+      break;
+
+    case BRO_SW:
+      switch (swipe_direction( x, y)) {
+        case SW_UP:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(G(KC_C)); // copy
+          } else {
+            tap_code16(C(KC_C)); // windows key
+          }
+          break;
+
+        case SW_DOWN:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(G(KC_V)); // copy
+          } else {
+            tap_code16(C(KC_V)); // windows key
+          }
+          break;
+
+        case SW_LEFT:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(G(KC_LEFT)); // browse back
+          } else {
+            tap_code16(KC_WBAK); // windows key
+          }
+          break;
+
+        case SW_RIGHT:
         if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
           tap_code16(G(KC_RIGHT)); // browse back
         } else {
           tap_code16(KC_WFWD); // windows key
         }
-      }
-    }
-  }
+          break;
 
-  // TAB_SWIPE
-  // TAB
-  if (swipemode == TAB_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-      if (y < 0) { // swipe up
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(S(G(KC_T))); // browse back
-        } else {
-          tap_code16(S(C(KC_T))); // windows key
-        }
-      } else { // swipe down
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(m_CLOSE); // browse back
-        } else {
-          tap_code16(w_CLOSE); // windows key
-        }
+        default:
+          break;
       }
-    }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-      if (x < 0) { // swipe left
-        tap_code16(S(C(KC_TAB))); // next tab
-        repeat_speed = HIGH;
-      } else { // swipe right
-        tap_code16(C(KC_TAB)); // previous tab
-        repeat_speed = HIGH;
-      }
-    }
-  }
+      break;
 
-  // WIN_SWIPE
-  // MEGNET
-  if (swipemode == WIN_SW) {
-    if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-      if (y < 0) { // swipe up
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(MGN_U); // browse back
-        } else {
-          tap_code16(G(KC_UP)); // windows key
-        }
-      } else { // swipe down
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(MGN_D); // browse back
-        } else {
-          tap_code16(G(KC_DOWN)); // windows key
-        }
+    case TAB_SW:
+      switch (swipe_direction( x, y)) {
+        case SW_UP:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(S(G(KC_T))); // browse back
+          } else {
+            tap_code16(S(C(KC_T))); // windows key
+          }
+          break;
+
+        case SW_DOWN:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(m_CLOSE); // browse back
+          } else {
+            tap_code16(w_CLOSE); // windows key
+          }
+          break;
+
+        case SW_LEFT:
+          tap_code16(S(C(KC_TAB))); // next tab
+          repeat_speed = HIGH;
+          break;
+
+        case SW_RIGHT:
+          tap_code16(C(KC_TAB)); // previous tab
+          repeat_speed = HIGH;
+          break;
+
+        default:
+          break;
       }
-    }
-    if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-      if (x < 0) { // swipe left
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(MGN_L); // browse back
-        } else {
-          tap_code16(G(KC_LEFT)); // windows key
-        }
-      } else { // swipe right
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(MGN_R); // browse back
-        } else {
-          tap_code16(G(KC_RIGHT)); // windows key
-        }
+      break;
+
+    case WIN_SW:
+      switch (swipe_direction( x, y)) {
+        case SW_UP:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(MGN_U); // browse back
+          } else {
+            tap_code16(G(KC_UP)); // windows key
+          }
+          break;
+
+        case SW_DOWN:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(MGN_D); // browse back
+          } else {
+            tap_code16(G(KC_DOWN)); // windows key
+          }
+          break;
+
+        case SW_LEFT:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(MGN_L); // browse back
+          break;
+
+        case SW_RIGHT:
+          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+            tap_code16(MGN_R); // browse back
+          } else {
+            tap_code16(G(KC_RIGHT)); // windows key
+          }
+          break;
+
+        default:
+          break;
       }
+      break;
     }
+
+    default:
+      break;
+
   }
 }
-
 
 // swipe mode
 enum ball_state {
@@ -265,10 +293,8 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     }
 
   } else {
+    // swipe中はmouse.reportの値を0にしている（下記のコード参照）
     switch (state) {
-      case SWIPE:
-        break;
-
       case SWIPING:
         switch (repeat_speed) {
           case NORMAL:

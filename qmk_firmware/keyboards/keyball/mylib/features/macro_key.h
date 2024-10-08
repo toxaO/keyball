@@ -96,6 +96,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        /* case NumP_G: */
+        /*     if (!record->tap.count && record->event.pressed) { */
+        /*       return true; */
+        /*     } else if (record->event.pressed) { */
+        /*       layer_invert(_NumP); */
+        /*       return false; */
+        /*     } */
+        /*     return true; */
+
         case KC_H:
             if (record->event.pressed) {
               // KANA_CとLCTLが両方押下されていたら+ctrl
@@ -119,7 +128,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   unregister_code(KC_LCTL);
                   unregister_code(KC_LSFT);
                   register_code(KC_DEL);
-                  bspckey_registered = true;
+                  delkey_registered = true;
                   return false;
                 } else {
                   unregister_code(KC_LCTL);
@@ -128,20 +137,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   return false;
                 }
               }
-                /* if (mod_state & MOD_MASK_CTRL) { */
-                /*     if (mod_state & MOD_MASK_SHIFT) { */
-                /*         unregister_code(KC_LCTL); */
-                /*         unregister_code(KC_LSFT); */
-                /*         register_code(KC_DEL); */
-                /*         delkey_registered = true; */
-                /*         return false; */
-                /*     } else { */
-                /*         unregister_code(KC_LCTL); */
-                /*         register_code(KC_BSPC); */
-                /*         bspckey_registered = true; */
-                /*         return false; */
-                /*     } */
-                /* } */
             } else {
                 if (bspckey_registered) {
                     unregister_code(KC_BSPC);
@@ -176,12 +171,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   tabkey_registered = true;
                   return false;
                 }
-                /* if (mod_state & MOD_MASK_CTRL) { */
-                /*     unregister_code(KC_LCTL); */
-                /*     register_code(KC_TAB); */
-                /*     tabkey_registered = true; */
-                /*     return false; */
-                /* } */
             } else { // on release of KC_BSPC
                 if (tabkey_registered) {
                     unregister_code(KC_TAB);
@@ -195,7 +184,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
 
         case KC_LCTL:
-            case CTL_T(KC_ESC):
+        case CTL_T(KC_ESC):
             if (record->event.pressed) {
               l_ctrl_pressed = true;
             } else {
@@ -375,6 +364,88 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   }
                 }
                 repeat_speed = NORMAL;
+            }
+            break;
+
+        case MULTI_A:
+            if (record->event.pressed) {
+              switch(swipemode) {
+                case APP_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(m_L_DESK); // spotlight
+                  } else {
+                    tap_code16(w_L_DESK); // windows key
+                  }
+                  break;
+
+                /* case VOL_SW: */
+                /*   break; */
+
+                case TAB_SW:
+                  tap_code16(S(C(KC_TAB))); // next tab
+                  break;
+
+                case BRO_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(G(KC_LEFT)); // browse back
+                  } else {
+                    tap_code16(KC_WBAK); // windows key
+                  }
+                  break;
+
+                case WIN_SW:
+                  break;
+
+                default:
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  tap_code16(G(KC_Z));
+                } else {
+                  tap_code16(C(KC_Z));
+                }
+                  break;
+              }
+            } else {
+            }
+            break;
+
+        case MULTI_B:
+            if (record->event.pressed) {
+              switch(swipemode) {
+                case APP_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(m_R_DESK); // spotlight
+                  } else {
+                    tap_code16(w_R_DESK); // windows key
+                  }
+                  break;
+
+                /* case VOL_SW: */
+                /*   break; */
+
+                case TAB_SW:
+                  tap_code16(C(KC_TAB)); // previous tab
+                  break;
+
+                case BRO_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(G(KC_RIGHT)); // browse back
+                  } else {
+                    tap_code16(KC_WFWD); // windows key
+                  }
+                  break;
+
+                case WIN_SW:
+                  break;
+
+                default:
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  tap_code16(S(G(KC_Z)));
+                } else {
+                  tap_code16(S(C(KC_Z)));
+                }
+                  break;
+              }
+            } else {
             }
             break;
 

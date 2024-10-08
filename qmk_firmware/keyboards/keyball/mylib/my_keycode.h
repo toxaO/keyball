@@ -150,18 +150,9 @@ HSV_YELLOW
 #define MINUS_G MT(MOD_LGUI, KC_MINUS)
 #define KANA_C MT(MOD_LCTL, KC_LNG1)
 #define EISU_S MT(MOD_LSFT, KC_LNG2)
-#define TAB_C MT(MOD_LCTL, KC_TAB)
-#define SLSH_GUI MT(MOD_LGUI, KC_SLSH)
-#define AT_A LALT_T((AT))
 #define CLN_C MT(MOD_LCTL, CLN)
 #define MINUS_S MT(MOD_LSFT, KC_MINUS)
-#define ESC_A LALT_T(KC_ESC)
-#define ESC_G LGUI_T(KC_ESC)
-#define UNDERB_S LSFT_T(UNDERBAR)
-#define Z_GUI MT(MOD_LGUI, KC_Z)
-#define CHAPP_AC MT(MOD_LCTL | MOD_LALT, KC_NO)
-#define CHWIN_Fn MT(MOD_RCTL, KC_NO)
-#define B5_ALT MT(MOD_LALT, KC_NO)
+#define NumP_A MT(MOD_LALT, KC_NO)
 
 // mousekey
 #define L_CLICK KC_BTN1
@@ -216,9 +207,9 @@ enum custom_keycodes {
     /* L_ARROW, // <- */
     /* L_D_ARR, // <= */
     /* SPD_UP, */
-    R_ARROW, // ->
-    R_D_ARR, // <=
-    S_M_CLICK,
+    /* R_ARROW, // -> */
+    /* R_D_ARR, // <= */
+    /* S_M_CLICK, */
     Esc_NumP, // my_keycodeの中でmacro key設定用
     MULTI_A,
     MULTI_B,
