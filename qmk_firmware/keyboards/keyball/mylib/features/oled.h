@@ -57,11 +57,11 @@ static const char *format_4d(int d) {
 
 // test
 /* void oled_test(void) { */
-/*     if (double_state) { */
-/*         oled_write_P(PSTR("on  "), false); */
-/*     } else { */
-/*         oled_write_P(PSTR("off "), false); */
-/*     } */
+/*   if (first_pressed) { */
+/*     oled_write_P(PSTR("first: on"), false); */
+/*   } else { */
+/*     oled_write_P(PSTR("first: off"), false); */
+/*   } */
 /* } */
 
 void oled_set_info(void) {

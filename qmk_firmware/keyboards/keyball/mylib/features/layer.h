@@ -37,7 +37,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             break;
         case _Scr:
             rgblight_sethsv(HSV_BLUE);
-            rgblight_mode(RGBLIGHT_MODE_SNAKE + 3);
+            rgblight_mode(RGBLIGHT_MODE_SNAKE + 2);
             break;
     }
 

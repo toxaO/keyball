@@ -39,15 +39,8 @@ static bool kana_c_pressed = false;
 static bool l_ctrl_pressed = false;
 static bool sft_pressed = false;
 
-// oledでデバッグしたい時は以下のように
-/* void oled_test(void) { */
-/*   if (kana_c_pressed) { */
-/*     oled_write_P(PSTR("ctrl:+"), false); */
-/*   } else { */
-/*     oled_write_P(PSTR("ctrl:-"), false); */
-/*   } */
-/* } */
-
+static uint16_t first_tap_time = 0;
+static bool first_pressed = false;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -95,15 +88,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               layer_off(_wMou);
             }
             return false;
-
-        /* case NumP_G: */
-        /*     if (!record->tap.count && record->event.pressed) { */
-        /*       return true; */
-        /*     } else if (record->event.pressed) { */
-        /*       layer_invert(_NumP); */
-        /*       return false; */
-        /*     } */
-        /*     return true; */
 
         case KC_H:
             if (record->event.pressed) {
@@ -209,6 +193,94 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return true;
 
+        case EISU_S_N:
+            if (record->event.pressed) {
+              // 押下した時
+              if (!first_pressed) {
+                // 1回目の押下
+                // この時点でホールドの判定はできないので、1回目のホールドはここで登録
+                register_code(KC_LSFT);
+                sft_pressed = true;
+                first_tap_time = record->event.time;
+              } else {
+                // 2回目判定の押下
+                layer_on(_NumP);
+                // 2回目になってしまえば1回目の判定はいらないのでfirst_pressedをオフにする
+                // ↑訂正　ここでオフにしてしまうとキーを離した時に1回目の判定になってしまうので
+                // キーを離した時の方で判定をオフにする
+              }
+            } else {
+              // 離した時
+              if (!first_pressed) {
+                // 1回目でかつ、キーを離した時
+                // シフトを解除
+                unregister_code(KC_LSFT);
+                sft_pressed = false;
+                if (TIMER_DIFF_16(record->event.time, first_tap_time) < 200 ) {
+                  // 1度目の短いタップを離した時
+                  // 仕様の問題でキーを離した時に英数キーをタップ
+                  tap_code(KC_LNG2);
+                  // 1度目のタップの時だけ1回目の判定をオンにする(他の時は逐次解除)
+                  first_pressed = true;
+                } else {
+                  // 1度目の長いホールドを離した時
+                  // ホールドの際は判定をキャンセル
+                  // ここでキャンセルしないと1回目のホールドの仕様上キャンセルができない
+                  // キャンセルしておかないと次の押下時に2回目の扱いになってしまう
+                  first_pressed = false;
+                }
+              } else {
+                // 2回目でかつ、キーを離した時
+                layer_off(_NumP);
+                first_pressed = false;
+              }
+            }
+            return false;
+
+        /* case KANA_C_N: */
+        /*     if (record->event.pressed) { */
+        /*       // 押下した時 */
+        /*       if (!first_pressed) { */
+        /*         // 1回目の押下 */
+        /*         // この時点でホールドの判定はできないので、1回目のホールドはここで登録 */
+        /*         register_code(KC_LCTL); */
+        /*         kana_c_pressed = true; */
+        /*         first_tap_time = record->event.time; */
+        /*       } else { */
+        /*         // 2回目判定の押下 */
+        /*         layer_on(_NumP); */
+        /*         // 2回目になってしまえば1回目の判定はいらないのでfirst_pressedをオフにする */
+        /*         // ↑訂正　ここでオフにしてしまうとキーを離した時に1回目の判定になってしまうので */
+        /*         // キーを離した時の方で判定をオフにする */
+        /*       } */
+        /*     } else { */
+        /*       // 離した時 */
+        /*       if (!first_pressed) { */
+        /*         // 1回目でかつ、キーを離した時 */
+        /*         // シフトを解除 */
+        /*         unregister_code(KC_LCTL); */
+        /*         kana_c_pressed = false; */
+        /*         if (TIMER_DIFF_16(record->event.time, first_tap_time) < 200 ) { */
+        /*           // 1度目の短いタップを離した時 */
+        /*           // 仕様の問題でキーを離した時に英数キーをタップ */
+        /*           tap_code(KC_LNG2); */
+        /*           // 1度目のタップの時だけ1回目の判定をオンにする(他の時は逐次解除) */
+        /*           first_pressed = true; */
+        /*         } else { */
+        /*           // 1度目の長いホールドを離した時 */
+        /*           // ホールドの際は判定をキャンセル */
+        /*           // ここでキャンセルしないと1回目のホールドの仕様上キャンセルができない */
+        /*           // キャンセルしておかないと次の押下時に2回目の扱いになってしまう */
+        /*           first_pressed = false; */
+        /*         } */
+        /*       } else { */
+        /*         // 2回目でかつ、キーを離した時 */
+        /*         layer_off(_NumP); */
+        /*         first_pressed = false; */
+        /*       } */
+        /*     } */
+        /*     return false; */
+
         // macro key
         // SFT + M_CLICK
         /* case S_M_CLICK: */
@@ -220,24 +292,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         /*     } else { */
         /*         unregister_code(KC_BTN3); */
         /*         unregister_code(KC_LSFT); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } */
-        /*     break; */
-
-        /* // -> */
-        /* case R_ARROW: */
-        /*     if (record->event.pressed) { */
-        /*         tap_code(KC_MINUS); */
-        /*         tap_code16(S(KC_DOT)); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } */
-        /*     break; */
-
-        /* // => */
-        /* case R_D_ARR: */
-        /*     if (record->event.pressed) { */
-        /*         tap_code16(S(KC_MINUS)); */
-        /*         tap_code16(S(KC_DOT)); */
         /*         return false;        // Return false to ignore further processing of key */
         /*     } */
         /*     break; */
@@ -448,44 +502,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
             }
             break;
-
-        // アロー使わないから消しとく
-        /* // <- */
-        /* case L_ARROW: */
-        /*     if (record->event.pressed) { */
-        /*         register_code(KC_LSFT); */
-        /*         register_code(KC_COMM); */
-        /*         unregister_code(KC_COMM); */
-        /*         unregister_code(KC_LSFT); */
-        /*         register_code(KC_MINUS); */
-        /*         unregister_code(KC_MINUS); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } */
-        /*     break; */
-
-        // ダブルアローも使わないから消しとく
-        /* // <= */
-        /* case L_D_ARR: */
-        /*     if (record->event.pressed) { */
-        /*         register_code(KC_LSFT); */
-        /*         register_code(KC_COMM); */
-        /*         unregister_code(KC_COMM); */
-        /*         register_code(KC_MINUS); */
-        /*         unregister_code(KC_MINUS); */
-        /*         unregister_code(KC_LSFT); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } */
-        /*     break; */
-
-        // 長押しでマウスレイヤー、単押しでnumpadレイヤー
-        // 使わないので消しとく
-        /*     // _Mou_NumP */
-        /* case LT(_Mou, KC_NO): */
-        /*     if (record->tap.count && record->event.pressed){ */
-        /*         layer_invert(_NumP); */
-        /*         return false; */
-        /*     } */
-        /*     return true; */
 
         // 矢印キーの加速装置
         // 使わないけど何かの参考になるかもしれないから残しとく
