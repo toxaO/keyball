@@ -31,9 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SERIAL_USART_TX_PIN GP1
 #define SPLIT_HAND_MATRIX_GRID  GP26, GP4
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
-#define SPLIT_USB_DETECT
-#define SPLIT_USB_TIMEOUT       7000
-#define SPLIT_USB_TIMEOUT_POLL  25
+// #define SPLIT_USB_DETECT
+// #define SPLIT_USB_TIMEOUT       7000
+// #define SPLIT_USB_TIMEOUT_POLL  25
 
 // If your PC does not recognize Keyball, try setting this macro. This macro
 // increases the firmware size by 200 bytes, so it is disabled by default, but
