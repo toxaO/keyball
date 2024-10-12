@@ -24,33 +24,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "features/select_word.h"
 
 enum custom_keycodes {
-  MY_MACRO_0 = SAFE_RANGE,  // 0x7E40
-  MY_MACRO_1,  // 0x7E41
-  MY_MACRO_2,  // 0x7E42
-  MY_MACRO_3,  // 0x7E43
-  MY_MACRO_4,  // 0x7E44
-  MY_MACRO_5,  // 0x7E45
-  A2J_TOGG,    // 0x7E46
-  SELWORD,     // 0x7E47
-  ARROW,       // 0x7E48
-  SMTD_KEYCODES_BEGIN,  // 0x7E49
-  CKC_ESC,  // 0x7E4A
-  CKC_A,    // 0x7E4B
-  CKC_S,    // 0x7E4C
-  CKC_D,    // 0x7E4D
-  CKC_F,    // 0x7E4E
-  CKC_J,    // 0x7E4F
-  CKC_K,    // 0x7E50
-  CKC_L,    // 0x7E51
-  CKC_MINUS, // 0x7E52
-  CKC_LNG2, // 0x7E53
-  CKC_SPC,  // 0x7E54
-  CKC_LNG1, // 0x7E55
-  CKC_ENT,  // 0x7E56
-  CKC_Q,    // 0x7E57
-  CKC_P,    // 0x7E58
-  SMTD_KEYCODES_END, // 0x7E59
-  MY_USER_0 = KEYBALL_SAFE_RANGE + 32,  // 0x7E60
+  MY_MACRO_0 = SAFE_RANGE,  // 0x7E40  User0
+  MY_MACRO_1,  // 0x7E41  User1
+  MY_MACRO_2,  // 0x7E42  User2
+  MY_MACRO_3,  // 0x7E43  User3
+  MY_MACRO_4,  // 0x7E44  User4
+  MY_MACRO_5,  // 0x7E45  User5
+  A2J_TOGG,    // 0x7E46  User6
+  SELWORD,     // 0x7E47  User7
+  ARROW,       // 0x7E48  User8
+  SMTD_KEYCODES_BEGIN,  // 0x7E49  User9
+  CKC_ESC,  // 0x7E4A  User10
+  CKC_A,    // 0x7E4B  User11
+  CKC_S,    // 0x7E4C  User12
+  CKC_D,    // 0x7E4D  User13
+  CKC_F,    // 0x7E4E  User14
+  CKC_J,    // 0x7E4F  User15
+  CKC_K,    // 0x7E50  User16
+  CKC_L,    // 0x7E51  User17
+  CKC_MINUS, // 0x7E52  User18
+  CKC_LNG2, // 0x7E53  User19
+  CKC_SPC,  // 0x7E54  User20
+  CKC_LNG1, // 0x7E55  User21
+  CKC_ENT,  // 0x7E56  User22
+  CKC_Q,    // 0x7E57  User23
+  CKC_P,    // 0x7E58  User24
+  SMTD_KEYCODES_END, // 0x7E59  User25
+  MY_USER_0 = KEYBALL_SAFE_RANGE + 32,  // 0x7E60  User31の次
   M_UPDIR,
 };
 
