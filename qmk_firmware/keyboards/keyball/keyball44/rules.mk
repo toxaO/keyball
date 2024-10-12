@@ -19,6 +19,7 @@ AUDIO_ENABLE = no           # Audio output
 # Keyball44 is split keyboard.
 SPLIT_KEYBOARD = yes
 
+WS2812_DRIVER = vendor
 SERIAL_DRIVER = vendor
 
 # Optical sensor driver for trackball.

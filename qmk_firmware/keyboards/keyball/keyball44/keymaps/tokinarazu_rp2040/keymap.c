@@ -42,13 +42,13 @@ enum custom_keycodes {
   CKC_J,    // 0x7E4F
   CKC_K,    // 0x7E50
   CKC_L,    // 0x7E51
-  CKC_SCLN, // 0x7E52
-  CKC_SLSH, // 0x7E53
-  CKC_QUOT, // 0x7E54
-  CKC_LNG2, // 0x7E55
-  CKC_SPC,  // 0x7E56
-  CKC_LNG1, // 0x7E57
-  CKC_ENT,  // 0x7E58
+  CKC_MINUS, // 0x7E52
+  CKC_LNG2, // 0x7E53
+  CKC_SPC,  // 0x7E54
+  CKC_LNG1, // 0x7E55
+  CKC_ENT,  // 0x7E56
+  CKC_Q,    // 0x7E57
+  CKC_P,    // 0x7E58
   SMTD_KEYCODES_END, // 0x7E59
   MY_USER_0 = KEYBALL_SAFE_RANGE + 32,  // 0x7E60
   M_UPDIR,
@@ -60,24 +60,24 @@ enum custom_keycodes {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_ESC        , KC_Q  , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I     , KC_O     , KC_P     , KC_BSPC  ,
-    CKC_ESC       , CKC_A , CKC_S   , CKC_D    , CKC_F    , KC_G     ,                                       KC_H     , CKC_J         , CKC_K    , CKC_L    , CKC_SCLN , KC_MINUS ,
-    LSFT_T(KC_LSFT), KC_Z , KC_X    , KC_C     , KC_V     , KC_B     ,                                       KC_N     , KC_M          , KC_COMM  , KC_DOT   , CKC_SLSH , CKC_QUOT ,
-                  KC_LALT , KC_TAB  , CKC_LNG2 , CKC_SPC  , CKC_LNG1 ,                            QK_REP   , CKC_ENT  , XXXXXXX       , XXXXXXX  , A2J_TOGG
+    KC_ESC        , CKC_Q , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I     , KC_O     , CKC_P     , KC_BSPC  ,
+    CKC_ESC       , CKC_A , CKC_S   , CKC_D    , CKC_F    , KC_G     ,                                       KC_H     , CKC_J         , CKC_K    , CKC_L    , CKC_MINUS , KC_SCLN ,
+    LSFT_T(KC_LSFT), KC_Z , KC_X    , KC_C     , KC_V     , KC_B     ,                                       KC_N     , KC_M          , KC_COMM  , KC_DOT   , KC_SLSH   , KC_QUOT ,
+                  LSFT_T(KC_LSFT) , KC_TAB  , CKC_LNG2 , CKC_SPC  , CKC_LNG1 ,                            KC_BSPC   , CKC_ENT  , XXXXXXX       , XXXXXXX  , A2J_TOGG
  ),
 
   [1] = LAYOUT_universal(
-    _______  ,  KC_PGUP , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                     SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  , XXXXXXX  ,
-    _______  ,  KC_HOME , MY_MACRO_1, KC_PGDN , MY_MACRO_3, MY_MACRO_4 ,                                     KC_BSPC  , KC_LEFT  , KC_DOWN  , KC_RGHT  , XXXXXXX  , XXXXXXX  ,
-    _______  ,  XXXXXXX , XXXXXXX   , XXXXXXX , XXXXXXX   , ARROW ,                                          KC_DEL   , KC_BTN1  , KC_BTN3  , KC_BTN2  , KC_BTN4  , KC_BTN5  ,
-                  _______  , _______ , _______  ,         _______  , _______  ,                   _______  , _______  , _______       , _______  , KC_MUTE
+    _______  ,  KC_Q    , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                     SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  , XXXXXXX  ,
+    _______  ,  KC_HOME , MY_MACRO_1, KC_PGUP , MY_MACRO_3, MY_MACRO_4 ,                                     KC_BSPC  , KC_LEFT  , KC_DOWN  , KC_RGHT  , XXXXXXX  , XXXXXXX  ,
+    _______  ,  XXXXXXX , XXXXXXX   , KC_PGDN , XXXXXXX   , ARROW ,                                          KC_DEL   , KC_BTN1  , KC_BTN3  , KC_BTN2  , KC_BTN4  , KC_BTN5  ,
+                  _______  , _______ , _______  ,         _______  , _______  ,                   QK_REP   , _______  , _______       , _______  , KC_MUTE
   ),
 
   [2] = LAYOUT_universal(
-    _______  , KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10  ,                                          S(KC_8)  , KC_7    , KC_8     , KC_9     , KC_SLSH  , KC_BSPC  ,
-    _______  , KC_PSCR  , KC_F2    , KC_F3    , KC_F4    , KC_F5   ,                                          S(KC_EQL), KC_4    , KC_5     , KC_6     , KC_MINUS , XXXXXXX  ,
-    _______  , _______  , _______  , _______  , KC_F11   , KC_F12  ,                                          KC_0     , KC_1    , KC_2     , KC_3     , KC_DOT   , XXXXXXX  ,
-                  _______  , _______ , _______  ,         _______  , _______  ,                   QK_AREP  , _______  , _______       , _______  , S(KC_SCLN)
+    _______  , KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10  ,                                          S(KC_8)  , KC_7    , KC_8     , KC_9     , KC_0  , KC_BSPC  ,
+    _______  , KC_PSCR  , KC_F2    , KC_F3    , KC_F4    , KC_F5   ,                                          S(KC_EQL), KC_4    , KC_5     , KC_6     , S(KC_SCLN) , XXXXXXX  ,
+    _______  , DM_REC1  , DM_RSTP  , DM_PLY1  , KC_F11   , KC_F12  ,                                          KC_DOT   , KC_1    , KC_2     , KC_3     , KC_SLSH   , XXXXXXX  ,
+                  _______  , _______ , _______  ,         _______  , _______  ,                   QK_AREP  , _______  , _______       , _______  , KC_MINUS
   ),
 
   [3] = LAYOUT_universal(
@@ -321,22 +321,51 @@ void set_disable_ime(void) {
 
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch (keycode) {
-        SMTD_MT(CKC_ESC, KC_ESC, KC_LEFT_CTRL)
-        SMTD_MT(CKC_A, KC_A, KC_LEFT_GUI)
-        SMTD_MT(CKC_S, KC_S, KC_LEFT_ALT)
-        SMTD_MT(CKC_D, KC_D, KC_LSFT)
-        SMTD_MT(CKC_F, KC_F, KC_LEFT_CTRL)
-        SMTD_MT(CKC_J, KC_J, KC_LEFT_CTRL)
-        SMTD_MT(CKC_K, KC_K, KC_RSFT)
-        SMTD_MT(CKC_L, KC_L, KC_LEFT_ALT)
+      SMTD_MT(CKC_ESC, KC_ESC, KC_LEFT_CTRL)
+      SMTD_MT(CKC_A, KC_A, KC_LEFT_GUI)
+      SMTD_MT(CKC_S, KC_S, KC_LEFT_ALT)
+      SMTD_MT(CKC_D, KC_D, KC_LSFT)
+      SMTD_MT(CKC_F, KC_F, KC_LEFT_CTRL)
+      SMTD_MT(CKC_J, KC_J, KC_LEFT_CTRL)
+      SMTD_MT(CKC_K, KC_K, KC_RSFT)
+      SMTD_MT(CKC_L, KC_L, KC_LEFT_ALT)
 
-        SMTD_LT(CKC_SCLN, KC_SCLN, 1)
-        SMTD_LT(CKC_SLSH, KC_SLSH, 3)
-        SMTD_LT(CKC_QUOT, KC_QUOT, 3)
-        SMTD_LT(CKC_LNG2, KC_LNG2, 2)
-        SMTD_LT(CKC_SPC, KC_SPC, 3)
-        SMTD_LT(CKC_LNG1, KC_LNG1, 1)
-        SMTD_LT(CKC_ENT, KC_ENT, 2) 
+      SMTD_LT(CKC_MINUS, KC_MINUS, 1)
+      SMTD_LT(CKC_P, KC_P, 3)
+      SMTD_LT(CKC_LNG2, KC_LNG2, 2)
+      SMTD_LT(CKC_SPC, KC_SPC, 3)
+      SMTD_LT(CKC_LNG1, KC_LNG1, 1)
+      SMTD_LT(CKC_ENT, KC_ENT, 2) 
+
+      case CKC_Q: {
+        switch (action) {
+          case SMTD_ACTION_TOUCH:
+            break;
+          case SMTD_ACTION_TAP:
+            switch (tap_count) {
+              case 0:
+                tap_code16(KC_ESC);
+                break;
+              case 1:
+                tap_code16(KC_Q);
+                break;
+              case 2:
+                tap_code16(KC_BSPC);
+                tap_code16(KC_ESC);
+                break;
+              default:
+                tap_code16(KC_ESC);
+                break;
+            }
+            break;
+          case SMTD_ACTION_HOLD:
+            register_code16(KC_ESC);
+            break;
+          case SMTD_ACTION_RELEASE:
+            unregister_code16(KC_ESC);
+            break;
+        }
+      break;    
     }
 }
 

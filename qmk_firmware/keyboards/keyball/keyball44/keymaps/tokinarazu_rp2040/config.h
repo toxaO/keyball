@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 1
 
 #define TAPPING_TERM 180
-#define QUICK_TAP_TERM 0
+#define QUICK_TAP_TERM 180
 #define PERMISSIVE_HOLD
 #define AUTO_MOUSE_TIME 450  /* マウスが止まってから元のレイヤーに戻るまでの時間(ms) */
 // for CAPS WORD
@@ -49,3 +49,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_DEFERRED_EXECUTORS 10
 
 #define AUTO_DISABLE_IME_TIME 300000  /* 自動的に IMEが無効化されるまでの時間(ms) */
+
+#define SMTD_GLOBAL_RELEASE_TERM 75
