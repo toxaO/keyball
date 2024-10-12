@@ -365,7 +365,8 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
             unregister_code16(KC_ESC);
             break;
         }
-      break;    
+        break;
+      }
     }
 }
 
