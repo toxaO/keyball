@@ -56,11 +56,15 @@ enum custom_keycodes {
 
 // #include "features/sm_td.h"
 
+enum {
+  TD_Q_ESC,
+};
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_Q        , KC_ESC  , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I      , KC_O     , LT(3,KC_P)   , KC_BSPC ,
+    KC_ESC        , TD(TD_Q_ESC)  , KC_W    , KC_E     , KC_R     , KC_T     ,                                       KC_Y     , KC_U          , KC_I      , KC_O     , LT(3,KC_P)   , KC_BSPC   ,
     LCTL_T(KC_ESC), LGUI_T(KC_A), LALT_T(KC_S), LSFT_T(KC_D) , LCTL_T(KC_F) , KC_G ,                         KC_H     , LCTL_T(KC_J)  , RSFT_T(KC_K) , LALT_T(KC_L) , LT(1,KC_MINUS) , KC_SCLN ,
     LSFT_T(KC_LSFT), KC_Z , KC_X    , KC_C     , KC_V     , KC_B     ,                                       KC_N     , KC_M          , KC_COMM   , KC_DOT   , KC_SLSH      , KC_QUOT ,
                   LSFT_T(KC_LSFT) , KC_TAB  , LT(2,KC_LNG2)   , LT(3,KC_SPC) , LT(1,KC_LNG1) ,               KC_BSPC  , LT(2,KC_ENT)  , XXXXXXX   , XXXXXXX  , A2J_TOGG
@@ -318,6 +322,27 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
 void set_disable_ime(void) {
   tap_code16(KC_LNG2);
 }
+
+// [q]二回押しで[Esc]
+void dance_q_finished(qk_tap_dance_state_t *state, void *user_data) {
+  if (state->count == 1) {
+    register_code16(KC_Q);
+  } else {
+    register_code(KC_ESCAPE);
+  }
+}
+
+void dance_q_reset(qk_tap_dance_state_t *state, void *user_data) {
+  if (state->count == 1) {
+    unregister_code16(KC_Q);
+  } else {
+    unregister_code(KC_ESCAPE);
+  }
+}
+
+qk_tap_dance_action_t tap_dance_actions[] = {
+  [TD_Q_ESC] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_q_finished, dance_q_reset),
+};
 
 /*
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
