@@ -51,3 +51,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_DISABLE_IME_TIME 300000  /* 自動的に IMEが無効化されるまでの時間(ms) */
 
 // #define SMTD_GLOBAL_RELEASE_TERM 75
+
+#define COMBO_TERM 50  /* default: 50 */
