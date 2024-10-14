@@ -99,7 +99,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [1] = LAYOUT_universal(
-    _______  ,  KC_Q    , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                     SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  , XXXXXXX  ,
+    _______  ,  KC_ESC  , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                     SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  , XXXXXXX  ,
     _______  ,  KC_HOME , MY_MACRO_1, KC_PGUP , MY_MACRO_3, MY_MACRO_4 ,                                     KC_BSPC  , KC_LEFT  , KC_DOWN  , KC_RGHT  , XXXXXXX  , XXXXXXX  ,
     _______  ,  XXXXXXX , XXXXXXX   , KC_PGDN , XXXXXXX   , ARROW ,                                          KC_DEL   , KC_BTN1  , KC_BTN3  , KC_BTN2  , KC_BTN4  , KC_BTN5  ,
                   _______  , _______ , _______  ,         _______  , _______  ,                   QK_REP   , _______  , _______       , _______  , KC_MUTE
@@ -409,8 +409,7 @@ tap_dance_action_t tap_dance_actions[] = {
 // COMBO
 const uint16_t PROGMEM combo_esc[] = {TD(TD_Q), KC_W, COMBO_END};
 combo_t key_combos[] = {
-    COMBO(combo_esc, KC_ESC),
-    NULL
+  COMBO(combo_esc, KC_ESC),
 };
 
 /*
