@@ -153,6 +153,7 @@ HSV_YELLOW
 #define CLN_C MT(MOD_LCTL, CLN)
 #define MINUS_S MT(MOD_LSFT, KC_MINUS)
 #define NumP_A MT(MOD_LALT, KC_NO)
+#define BSPC_G MT(MOD_LGUI, KC_BSPC)
 
 // mousekey
 #define L_CLICK KC_BTN1

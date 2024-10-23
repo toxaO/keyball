@@ -32,7 +32,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             rgblight_mode(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _NumP:
-            rgblight_sethsv(HSV_WHITE);
+            rgblight_sethsv(HSV_ORANGE);
             rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Scr:
