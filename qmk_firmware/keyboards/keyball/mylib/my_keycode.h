@@ -204,11 +204,7 @@ enum custom_keycodes {
     BROWSE_SWIPE,
     TAB_SWIPE,
     WIN_SWIPE,
-    /* L_ARROW, // <- */
-    /* L_D_ARR, // <= */
     /* SPD_UP, */
-    /* R_ARROW, // -> */
-    /* R_D_ARR, // <= */
     /* S_M_CLICK, */
     Esc_NumP, // my_keycodeの中でmacro key設定用
     MULTI_A,
