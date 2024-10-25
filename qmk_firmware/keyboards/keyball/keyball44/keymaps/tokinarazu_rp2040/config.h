@@ -53,3 +53,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define SMTD_GLOBAL_RELEASE_TERM 75
 
 #define COMBO_TERM 50  /* default: 50 */
+
+#define DEBOUNCE 50
