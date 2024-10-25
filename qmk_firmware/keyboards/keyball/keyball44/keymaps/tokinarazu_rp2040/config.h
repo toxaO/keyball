@@ -54,4 +54,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define COMBO_TERM 50  /* default: 50 */
 
+// for DEBOUNCE_TYPE = sym_eager_pk
+#undef DEBOUNCE
 #define DEBOUNCE 50
