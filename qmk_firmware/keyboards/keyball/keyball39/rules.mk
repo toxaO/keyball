@@ -1,3 +1,8 @@
+MCU = RP2040
+
+# Bootloader selection
+BOOTLOADER = rp2040
+
 # Link Time Optimization required for size.
 # LTO_ENABLE = yes
 
@@ -11,6 +16,9 @@ BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 AUDIO_ENABLE = no           # Audio output
 
 # Keyball39 is split keyboard.
+SPLIT_KEYBOARD = yes
+
+WS2812_DRIVER = vendor
 SERIAL_DRIVER = vendor
 
 # Optical sensor driver for trackball.
@@ -39,5 +47,4 @@ SRC += lib/keyball/keyball.c
 
 # Disable other features to squeeze firmware size
 SPACE_CADET_ENABLE = no
-GRAVE_ESC_ENABLE = no
 MAGIC_ENABLE = no
