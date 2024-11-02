@@ -80,6 +80,7 @@ typedef struct {
 // Tap dance enums
 enum {
   TD_Q,
+  TD_P,
 };
 
 td_state_t cur_dance(tap_dance_state_t *state);
@@ -87,15 +88,17 @@ td_state_t cur_dance(tap_dance_state_t *state);
 // For the x tap dance. Put it here so it can be used in any keymap
 void dance_q_finished(tap_dance_state_t *state, void *user_data);
 void dance_q_reset(tap_dance_state_t *state, void *user_data);
+void dance_p_finished(tap_dance_state_t *state, void *user_data);
+void dance_p_reset(tap_dance_state_t *state, void *user_data);
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    TD(TD_Q) , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , LT(3,KC_P) ,
+    TD(TD_Q) , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , TD(TD_P) ,
     LGUI_T(KC_A), LALT_T(KC_S), LSFT_T(KC_D) , LCTL_T(KC_F) , KC_G ,                              KC_H     , LCTL_T(KC_J)  , RSFT_T(KC_K) , LALT_T(KC_L) , LT(1,KC_MINUS) ,
     KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                                        KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  ,
-    LSFT_T(KC_LSFT) , KC_ESC , KC_TAB , LT(2,KC_LNG2) , LT(3,KC_SPC) , LT(1,KC_LNG1) ,            KC_BSPC  , LT(2,KC_ENT) , XXXXXXX   , XXXXXXX  , XXXXXXX , A2J_TOGG
+    KC_ESC , LSFT_T(KC_LSFT) , KC_TAB , LT(2,KC_LNG2) , LT(3,KC_SPC) , LT(1,KC_LNG1) ,            KC_BSPC  , LT(2,KC_ENT) , XXXXXXX   , XXXXXXX  , XXXXXXX , A2J_TOGG
   ),
 
   [1] = LAYOUT_universal(
@@ -117,6 +120,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     S(KC_1)   , KC_MINS     , S(KC_EQL) , KC_EQL     , S(KC_QUOT) ,                               S(KC_BSLS) , S(KC_9)    , S(KC_0)    , S(KC_SCLN) , S(KC_SLSH) ,
     S(KC_6)   , KC_SLSH     , S(KC_8)   , KC_BSLS    , KC_QUOT ,                                  S(KC_GRV)  , S(KC_LBRC) , S(KC_RBRC) , S(KC_4)    , S(KC_2)    ,
     _______   , _______     , _______   , QK_BOOT    , _______ , KBC_SAVE ,                       QK_BOOT    , _______    , _______    , _______    , _______ , A2J_TOGG
+  ),
+
+  [4] = LAYOUT_universal(
+    RGB_TOG  , AML_TO   , AML_I50  , AML_D50  , _______  ,                            _______  , _______  , SSNP_HOR , SSNP_VRT , SSNP_FRE ,
+    RGB_MOD  , RGB_HUI  , RGB_SAI  , RGB_VAI  , SCRL_DVI ,                            _______  , _______  , _______  , _______  , _______  ,
+    RGB_RMOD , RGB_HUD  , RGB_SAD  , RGB_VAD  , SCRL_DVD ,                            CPI_D1K  , CPI_D100 , CPI_I100 , CPI_I1K  , KBC_SAVE ,
+    QK_BOOT  , KBC_RST  , _______  , _______  , _______  , _______  ,      _______  , _______  , _______  , _______  , KBC_RST  , QK_BOOT
   ),
 };
 // clang-format on
@@ -372,6 +382,20 @@ td_state_t cur_dance(tap_dance_state_t *state) {
     }
 }
 
+td_state_t cur_dance2(tap_dance_state_t *state) {
+    if (state->count == 1) {
+        if (!state->pressed) {
+          return TD_SINGLE_TAP;
+        } else {
+          return TD_SINGLE_HOLD;
+        }
+    } else if (state->count == 2) {
+      return TD_DOUBLE_TAP;
+    } else {
+      return TD_UNKNOWN;
+    }
+}
+
 // TD_Q
 static td_tap_t TD_Q_tap_state = {
     .is_press_action = true,
@@ -402,8 +426,47 @@ void dance_q_reset(tap_dance_state_t *state, void *user_data) {
     TD_Q_tap_state.state = TD_NONE;
 }
 
+// TD_P
+static td_tap_t TD_P_tap_state = {
+    .is_press_action = true,
+    .state = TD_NONE
+};
+
+void dance_p_finished(tap_dance_state_t *state, void *user_data) {
+    TD_P_tap_state.state = cur_dance2(state);
+    switch (TD_P_tap_state.state) {
+        case TD_SINGLE_TAP:
+            tap_code(KC_P);
+            break;
+        case TD_SINGLE_HOLD:
+            layer_on(3);
+            break;
+        case TD_DOUBLE_TAP:
+            // Check to see if the layer is already set
+            if (layer_state_is(3)) {
+                // If already set, then switch it off
+                layer_off(3);
+            } else {
+                // If not already set, then switch the layer on
+                layer_on(3);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void dance_p_reset(tap_dance_state_t *state, void *user_data) {
+  // If the key was held down and now is released then switch off the layer
+  if (TD_P_tap_state.state == TD_SINGLE_HOLD) {
+    layer_off(3);
+  }
+  TD_P_tap_state.state = TD_NONE;
+}
+
 tap_dance_action_t tap_dance_actions[] = {
   [TD_Q] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_q_finished, dance_q_reset),
+  [TD_P] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_p_finished, dance_p_reset),
 };
 
 // COMBO
@@ -464,6 +527,29 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     }
 }
 */
+
+// CAPS WORD
+bool caps_word_press_user(uint16_t keycode) {
+  switch (keycode) {
+    // Keycodes that continue Caps Word, with shift applied.
+    case KC_A ... KC_Z:
+    case KC_MINS:
+    case TD(TD_Q):
+    case TD(TD_P):
+      add_weak_mods(MOD_BIT(KC_LSFT));  // Apply shift to next key.
+      return true;
+
+    // Keycodes that continue Caps Word, without shifting.
+    case KC_1 ... KC_0:
+    case KC_BSPC:
+    case KC_DEL:
+    case KC_UNDS:
+      return true;
+
+    default:
+      return false;  // Deactivate Caps Word.
+  }
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 //  if (!process_smtd(keycode, record)) {
