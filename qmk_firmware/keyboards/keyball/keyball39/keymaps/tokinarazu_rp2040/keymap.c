@@ -435,24 +435,17 @@ static td_tap_t TD_P_tap_state = {
 void dance_p_finished(tap_dance_state_t *state, void *user_data) {
     TD_P_tap_state.state = cur_dance2(state);
     switch (TD_P_tap_state.state) {
-        case TD_SINGLE_TAP:
-            tap_code(KC_P);
-            break;
-        case TD_SINGLE_HOLD:
-            layer_on(3);
-            break;
-        case TD_DOUBLE_TAP:
-            // Check to see if the layer is already set
-            if (layer_state_is(3)) {
-                // If already set, then switch it off
-                layer_off(3);
-            } else {
-                // If not already set, then switch the layer on
-                layer_on(3);
-            }
-            break;
-        default:
-            break;
+      case TD_SINGLE_TAP:
+        tap_code(KC_P);
+        break;
+      case TD_SINGLE_HOLD:
+        layer_on(3);
+        break;
+      case TD_DOUBLE_TAP:
+        tap_code(KC_BSPC);
+        break;
+      default:
+        break;
     }
 }
 
