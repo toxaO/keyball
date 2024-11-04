@@ -37,6 +37,9 @@ jobs:
     - name: Install a link to own source
       run: ln -s $(pwd)/qmk_firmware/keyboards/keyball __qmk__/keyboards/keyball
 
+    - name: Install install required python dependencies
+      run: /usr/bin/python3 -m pip install -r /__w/keyball_rp2040/keyball_rp2040/__qmk__/requirements.txt`
+
     - name: Compile and link
 #      run: qmk compile -j 4 -kb keyball/${{ inputs.keyboard }} -km ${{ inputs.keymap }} -e CONVERT_TO=rp2040_ce
       run: qmk compile -j 4 -kb keyball/${{ inputs.keyboard }} -km ${{ inputs.keymap }}
