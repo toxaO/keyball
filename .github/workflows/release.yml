@@ -13,8 +13,8 @@ jobs:
 
   deploy:
     name: Deploy firmwares
-#    runs-on: ubuntu-latest
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+#    runs-on: ubuntu-22.04
     needs:
     - build
 

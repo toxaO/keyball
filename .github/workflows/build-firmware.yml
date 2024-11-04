@@ -21,8 +21,8 @@ jobs:
 
     name: Build a firmware ${{ inputs.keyboard }}:${{ inputs.keymap }}
 
-#    runs-on: ubuntu-latest
-    runs-on:  ubuntu-22.04
+    runs-on: ubuntu-latest
+#    runs-on:  ubuntu-22.04
     container:
       image: ghcr.io/qmk/qmk_cli:latest
 
