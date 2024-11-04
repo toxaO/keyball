@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLED_NUM      60
 #    define RGBLED_SPLIT    { 30, 30 }  // (30 + 29)
 #    ifndef RGBLIGHT_LIMIT_VAL
-#        define RGBLIGHT_LIMIT_VAL  150 // limitated for power consumption
+#        define RGBLIGHT_LIMIT_VAL  125 // limitated for power consumption
 #    endif
 #    ifndef RGBLIGHT_VAL_STEP
 #        define RGBLIGHT_VAL_STEP   15
