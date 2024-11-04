@@ -15,7 +15,7 @@ TAP_DANCE_ENABLE = yes
 COMBO_ENABLE = yes
 DEBOUNCE_TYPE = sym_eager_pk
 
-BACKLIGHT_ENABLE = yes
+# BACKLIGHT_ENABLE = yes
 RGBLIGHT_ENABLE = yes
 
 SRC += lib/keyball/keyball.c
