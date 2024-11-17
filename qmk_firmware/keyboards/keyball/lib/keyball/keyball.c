@@ -191,7 +191,16 @@ static void adjust_mouse_speed(keyball_motion_t *m){
   m->y = clip2int8((int16_t)(m->y * speed_multiplier));
 }
 
+/* // angle control4 */
+/* const double cos_340 = 0.94; */
+/* const double sin_340 = -0.342 ; */
+/* static void adjust_mouse_angle(keyball_motion_t *m){ */
+/*   m->x = clip2int8((int16_t)(m->x * cos_340 - m->y * sin_340 )); */
+/*   m->y = clip2int8((int16_t)(m->x * sin_340 + m->y * cos_340 )); */
+/* } */
+
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
+  /* adjust_mouse_angle(m); */
   adjust_mouse_speed(m);
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
     r->x = clip2int8(m->y);

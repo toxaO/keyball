@@ -40,7 +40,6 @@ static bool l_ctrl_pressed = false;
 static bool sft_pressed = false;
 
 static uint16_t first_tap_time = 0;
-static bool first_pressed = false;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -195,91 +194,41 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case EISU_S_N:
             if (record->event.pressed) {
-              // 押下した時
-              if (!first_pressed) {
-                // 1回目の押下
-                // この時点でホールドの判定はできないので、1回目のホールドはここで登録
+              if (TIMER_DIFF_16(record->event.time, first_tap_time) < 500) {
+                layer_on(_NumP);
+              } else {
                 register_code(KC_LSFT);
                 sft_pressed = true;
                 first_tap_time = record->event.time;
-              } else {
-                // 2回目判定の押下
-                layer_on(_NumP);
-                // 2回目になってしまえば1回目の判定はいらないのでfirst_pressedをオフにする
-                // ↑訂正　ここでオフにしてしまうとキーを離した時に1回目の判定になってしまうので
-                // キーを離した時の方で判定をオフにする
               }
             } else {
-              // 離した時
-              if (!first_pressed) {
-                // 1回目でかつ、キーを離した時
-                // シフトを解除
-                unregister_code(KC_LSFT);
-                sft_pressed = false;
-                if (TIMER_DIFF_16(record->event.time, first_tap_time) < 200 ) {
-                  // 1度目の短いタップを離した時
-                  // 仕様の問題でキーを離した時に英数キーをタップ
-                  tap_code(KC_LNG2);
-                  // 1度目のタップの時だけ1回目の判定をオンにする(他の時は逐次解除)
-                  first_pressed = true;
-                } else {
-                  // 1度目の長いホールドを離した時
-                  // ホールドの際は判定をキャンセル
-                  // ここでキャンセルしないと1回目のホールドの仕様上キャンセルができない
-                  // キャンセルしておかないと次の押下時に2回目の扱いになってしまう
-                  first_pressed = false;
-                }
-              } else {
-                // 2回目でかつ、キーを離した時
-                layer_off(_NumP);
-                first_pressed = false;
+              unregister_code(KC_LSFT);
+              sft_pressed = false;
+              if (TIMER_DIFF_16(record->event.time, first_tap_time) < TAPPING_TERM) {
+                tap_code(KC_LNG2);
               }
+              layer_off(_NumP);
             }
             return false;
 
-        /* case KANA_C_N: */
-        /*     if (record->event.pressed) { */
-        /*       // 押下した時 */
-        /*       if (!first_pressed) { */
-        /*         // 1回目の押下 */
-        /*         // この時点でホールドの判定はできないので、1回目のホールドはここで登録 */
-        /*         register_code(KC_LCTL); */
-        /*         kana_c_pressed = true; */
-        /*         first_tap_time = record->event.time; */
-        /*       } else { */
-        /*         // 2回目判定の押下 */
-        /*         layer_on(_NumP); */
-        /*         // 2回目になってしまえば1回目の判定はいらないのでfirst_pressedをオフにする */
-        /*         // ↑訂正　ここでオフにしてしまうとキーを離した時に1回目の判定になってしまうので */
-        /*         // キーを離した時の方で判定をオフにする */
-        /*       } */
-        /*     } else { */
-        /*       // 離した時 */
-        /*       if (!first_pressed) { */
-        /*         // 1回目でかつ、キーを離した時 */
-        /*         // シフトを解除 */
-        /*         unregister_code(KC_LCTL); */
-        /*         kana_c_pressed = false; */
-        /*         if (TIMER_DIFF_16(record->event.time, first_tap_time) < 200 ) { */
-        /*           // 1度目の短いタップを離した時 */
-        /*           // 仕様の問題でキーを離した時に英数キーをタップ */
-        /*           tap_code(KC_LNG2); */
-        /*           // 1度目のタップの時だけ1回目の判定をオンにする(他の時は逐次解除) */
-        /*           first_pressed = true; */
-        /*         } else { */
-        /*           // 1度目の長いホールドを離した時 */
-        /*           // ホールドの際は判定をキャンセル */
-        /*           // ここでキャンセルしないと1回目のホールドの仕様上キャンセルができない */
-        /*           // キャンセルしておかないと次の押下時に2回目の扱いになってしまう */
-        /*           first_pressed = false; */
-        /*         } */
-        /*       } else { */
-        /*         // 2回目でかつ、キーを離した時 */
-        /*         layer_off(_NumP); */
-        /*         first_pressed = false; */
-        /*       } */
-        /*     } */
-        /*     return false; */
+        case KANA_C_N:
+            if (record->event.pressed) {
+              if (TIMER_DIFF_16(record->event.time, first_tap_time) < 500) {
+                layer_on(_NumP);
+              } else {
+                register_code(KC_LCTL);
+                kana_c_pressed = true;
+                first_tap_time = record->event.time;
+              }
+            } else {
+              unregister_code(KC_LCTL);
+              kana_c_pressed = false;
+              if (TIMER_DIFF_16(record->event.time, first_tap_time) < TAPPING_TERM) {
+                tap_code(KC_LNG1);
+              }
+              layer_off(_NumP);
+            }
+            return false;
 
         // macro key
         // SFT + M_CLICK
@@ -297,15 +246,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         /*     break; */
 
         // 単押しでesc、長押しでNumP
-        case _Esc_NumP:
-            if (record->event.pressed && !record->tap.count) {
-                layer_on(_NumP);
-                return false;
-            } else if (record->event.pressed) {
-                tap_code(KC_ESC);
-                return false;
-            }
-            break;
+        /* case _Esc_NumP: */
+        /*     if (record->event.pressed && !record->tap.count) { */
+        /*         layer_on(_NumP); */
+        /*         return false; */
+        /*     } else if (record->event.pressed) { */
+        /*         tap_code(KC_ESC); */
+        /*         return false; */
+        /*     } */
+        /*     break; */
+
+        /* case ESC_EISU: */
+        /*     if (record->event.time) { */
+        /*       tap_code(KC_ESC); */
+        /*       tap_code(KC_LNG2); */
+        /*     } */
+        /*     break; */
 
 
         // 以下スワイプジェスチャー
@@ -439,16 +395,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   tap_code16(S(C(KC_TAB))); // next tab
                   break;
 
-                case BRO_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    tap_code16(G(KC_LEFT)); // browse back
-                  } else {
-                    tap_code16(KC_WBAK); // windows key
-                  }
-                  break;
+                /* case BRO_SW: */
+                /*   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                /*     tap_code16(G(KC_LEFT)); // browse back */
+                /*   } else { */
+                /*     tap_code16(KC_WBAK); // windows key */
+                /*   } */
+                /*   break; */
 
-                case WIN_SW:
-                  break;
+                /* case WIN_SW: */
+                /*   break; */
 
                 default:
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -480,16 +436,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   tap_code16(C(KC_TAB)); // previous tab
                   break;
 
-                case BRO_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    tap_code16(G(KC_RIGHT)); // browse back
-                  } else {
-                    tap_code16(KC_WFWD); // windows key
-                  }
-                  break;
+                /* case BRO_SW: */
+                /*   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                /*     tap_code16(G(KC_RIGHT)); // browse back */
+                /*   } else { */
+                /*     tap_code16(KC_WFWD); // windows key */
+                /*   } */
+                /*   break; */
 
-                case WIN_SW:
-                  break;
+                /* case WIN_SW: */
+                /*   break; */
 
                 default:
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){

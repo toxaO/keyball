@@ -207,10 +207,11 @@ enum custom_keycodes {
     WIN_SWIPE,
     /* SPD_UP, */
     /* S_M_CLICK, */
-    Esc_NumP, // my_keycodeの中でmacro key設定用
+    /* Esc_NumP, // my_keycodeの中でmacro key設定用 */
     MULTI_A,
     MULTI_B,
     EISU_S_N,
-    /* KANA_C_N, */
+    KANA_C_N,
+    /* ESC_EISU, */
 };
 
