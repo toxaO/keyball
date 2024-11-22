@@ -17,13 +17,12 @@
 // swipe implement
 /* int16_t swipemode; */
 #include <stdint.h>
-const int16_t SWIPE_THRESHOLD = 10;
-const int16_t DIRECTION_THRESHOLD = 5;
+const int16_t SWIPE_THRESHOLD = 7;
 bool is_swiped = false;
 bool canceller = false;
 enum { NORMAL = 0, HIGH, VERY_HIGH } repeat_speed = NORMAL;
 enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } swipemode = NO_SW;
-enum { SW_UP = 0, SW_DOWN, SW_RIGHT, SW_LEFT };
+enum { SW_UP = 1, SW_DOWN, SW_RIGHT, SW_LEFT };
 
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.
 int16_t my_abs(int16_t num) {
@@ -43,22 +42,22 @@ int16_t mmouse_move_y_sign(int16_t num) {
 
 // スワイプの方向を判断する関数
 int swipe_direction(int16_t x, int16_t y) {
-  if ((my_abs(x) < my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(y) - my_abs(x))) {
-    if (y < 0) { // swipe up
-      return SW_UP;
-    } else { // swipe down
-      return SW_DOWN;
+
+    int16_t abs_x = my_abs(x);
+    int16_t abs_y = my_abs(y);
+
+    if ( (abs_y / abs_x) < 0.83 || 1.2 < (abs_y / abs_x) ) {
+        if (abs_x > abs_y) {
+            // x方向のスワイプ
+            return (x < 0) ? SW_LEFT : SW_RIGHT;
+        } else {
+            // y方向のスワイプ
+            return (y < 0) ? SW_UP : SW_DOWN;
+        }
     }
-  }
-  // ここでelseを使ってしまうとポインターが動いていない時にも反応してしまう
-  if (( my_abs(x) > my_abs(y)) && (DIRECTION_THRESHOLD < my_abs(x) - my_abs(y))) {
-    if (x < 0) { // swipe left
-      return SW_LEFT;
-    } else { // swipe right
-      return SW_RIGHT;
-    }
-  }
-  return 0;
+
+    // 閾値を超えない場合
+    return 0;
 }
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数

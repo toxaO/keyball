@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_CPI_DEFAULT 1100
 
 #undef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 7
+#define KEYBALL_SCROLL_DIV_DEFAULT 4
 
 // scroll_inv
 //#define KEYBALL_SCROLL_INV 1

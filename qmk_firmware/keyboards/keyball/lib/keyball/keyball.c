@@ -166,6 +166,25 @@ void pointing_device_driver_set_cpi(uint16_t cpi) {
     keyball_set_cpi(cpi);
 }
 
+// cursor velocity adjuster
+// sample
+/* void cusor_report(report_mouse_t *mouse_report, float delta_x, float delta_y, float speed_adjust, uint_t cpi) { */
+/*   float x = -delta_x; */
+/*   float y = delta_y; */
+
+/*   int sign_x = (x > 0) - (x < 0); */
+/*   int sign_y = (y > 0) - (y < 0); */
+
+/*   x  = pow(fabs(x), speed_adjust) / (pow(cpi / 3 , speed_adjust)) * cpi / 3 * sign_x; */
+/*   y  = pow(fabs(y), speed_adjust) / (pow(cpi / 3 , speed_adjust)) * cpi / 3 * sign_y; */
+
+/*   x = x / XSCALE_FACTOR; */
+/*   y = y / YSCALE_FACTOR; */
+
+/*   mouse_report->x = constrain_hid(mouse_report->x + (int8_t)roundf(x)); */
+/*   mouse_report->y = constrain_hid(mouse_report->y + (int8_t)roundf(y)); */
+/* } */
+
 // speed controll
 static void adjust_mouse_speed(keyball_motion_t *m){
   int16_t movement_size = abs(m->x) + abs(m->y);
@@ -222,9 +241,14 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_
 
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
     // consume motion of trackball.
+    /* int16_t div = 1 << (keyball_get_scroll_div() - 1); */
+    /* int16_t div = 1 << (keyball_get_scroll_div() + 1); */
+    /* int16_t x = divmod16(&m->x, div); */
+    /* int16_t y = divmod16(&m->y, div); */
+
     int16_t div = 1 << (keyball_get_scroll_div() - 1);
-    int16_t x = divmod16(&m->x, div);
-    int16_t y = divmod16(&m->y, div);
+    int16_t x = div * divmod16(&m->x, 100);
+    int16_t y = div * divmod16(&m->y, 100);
 
     // apply to mouse report.
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
