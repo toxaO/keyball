@@ -59,3 +59,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBOUNCE 50
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 5
+
+#undef KEYBALL_SCROLL_DIV_DEFAULT
+#define KEYBALL_SCROLL_DIV_DEFAULT 5 // スクロール速度 (default: 4)
