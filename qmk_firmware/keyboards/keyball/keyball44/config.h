@@ -28,7 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIODE_DIRECTION     COL2ROW
 
 // Split parameters
-#define SERIAL_USART_TX_PIN GP1
+// #define SERIAL_USART_TX_PIN GP1
+#define SOFT_SERIAL_PIN GP1
 #define SPLIT_HAND_MATRIX_GRID  GP26, GP4
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 // #define SPLIT_USB_DETECT
