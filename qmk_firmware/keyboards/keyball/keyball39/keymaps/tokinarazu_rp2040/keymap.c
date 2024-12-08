@@ -88,8 +88,8 @@ td_state_t cur_dance(tap_dance_state_t *state);
 // For the x tap dance. Put it here so it can be used in any keymap
 void dance_q_finished(tap_dance_state_t *state, void *user_data);
 void dance_q_reset(tap_dance_state_t *state, void *user_data);
-void dance_p_finished(tap_dance_state_t *state, void *user_data);
-void dance_p_reset(tap_dance_state_t *state, void *user_data);
+void dance_fn_finished(tap_dance_state_t *state, void *user_data);
+void dance_fn_reset(tap_dance_state_t *state, void *user_data);
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
