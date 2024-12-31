@@ -105,7 +105,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_ESC  , MY_MACRO_0, KC_END  , MY_MACRO_2, MY_MACRO_5 ,                                      SELWORD  , KC_HOME  , KC_UP    , KC_END   , XXXXXXX  ,
     KC_HOME , MY_MACRO_1, KC_PGUP , MY_MACRO_3, MY_MACRO_4 ,                                      KC_BSPC  , KC_LEFT  , KC_DOWN  , KC_RGHT  , XXXXXXX  ,
     XXXXXXX , XXXXXXX   , KC_PGDN , XXXXXXX   , ARROW ,                                           KC_DEL   , KC_BTN1  , KC_BTN3  , KC_BTN2  , KC_BTN4  ,
-    _______ , _______   , _______ , _______   , _______  , _______  ,                             QK_REP   , _______  , _______  , _______  , _______  , KC_MUTE
+    KC_LCTL , _______   , _______ , _______   , _______  , _______  ,                             QK_REP   , _______  , _______  , _______  , _______  , KC_MUTE
   ),
 
   [2] = LAYOUT_universal(
