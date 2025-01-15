@@ -17,6 +17,7 @@
 // swipe implement
 /* int16_t swipemode; */
 #include <stdint.h>
+#include "util.h"
 const int16_t SWIPE_THRESHOLD = 7;
 bool is_swiped = false;
 bool canceller = false;
@@ -75,11 +76,24 @@ void process_swipe_gesture(int16_t x, int16_t y) {
               tap_code(KC_ESC);
               canceller = false;
           } else {
-              if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                tap_code16(G(KC_SPACE)); // spotlight
-              } else {
-                tap_code16(KC_LGUI); // windows key
+              /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+              /*   tap_code16(G(KC_SPACE)); // spotlight */
+              /* } else { */
+              /*   tap_code16(KC_LGUI); // windows key */
+              /* } */
+              switch (host_os) {
+
+                case OS_MACOS:
+                case OS_IOS:
+                  tap_code16(G(KC_SPACE)); // spotlight
+                  break;
+
+                default:
+                  tap_code16(w_Ueli); // windows key
+                  break;
+
               }
+
               canceller = true;
           }
           break;

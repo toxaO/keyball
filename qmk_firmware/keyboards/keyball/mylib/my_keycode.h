@@ -143,8 +143,10 @@ HSV_YELLOW
 #define w_FIND C(KC_F)
 #define w_SAVE C(KC_S)
 #define w_TASK C(KC_TAB)
-#define w_R_DESK G(S(KC_RIGHT))
-#define w_L_DESK G(S(KC_LEFT))
+#define w_R_DESK G(C(KC_RIGHT))
+#define w_L_DESK G(C(KC_LEFT))
+#define w_DESK G(KC_D)
+#define w_Ueli G(KC_1)
 
 // mod tap
 #define MINUS_G MT(MOD_LGUI, KC_MINUS)
@@ -214,4 +216,3 @@ enum custom_keycodes {
     KANA_C_N,
     /* ESC_EISU, */
 };
-
