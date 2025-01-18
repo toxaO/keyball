@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "keyball.h"
+#include "os_detection.h"
 #include "drivers/pmw3360/pmw3360.h"
 
 #include <string.h>
@@ -233,6 +234,13 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
             break;
     }
 #endif
+
+    // windowsOSでスクロール方向反転
+    if (detected_host_os() == OS_WINDOWS || detected_host_os() == OS_LINUX){
+      r->h = -r->h;
+      r->v = -r->v;
+    }
+
 }
 
 static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
