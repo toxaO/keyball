@@ -39,7 +39,8 @@ static bool kana_c_pressed = false;
 static bool l_ctrl_pressed = false;
 static bool sft_pressed = false;
 
-static uint16_t first_tap_time = 0;
+static uint16_t first_ctrl_tap_time = 0;
+static uint16_t first_shift_tap_time = 0;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -194,17 +195,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case EISU_S_N:
             if (record->event.pressed) {
-              if (TIMER_DIFF_16(record->event.time, first_tap_time) < 500) {
+              if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < 500) {
                 layer_on(_NumP);
               } else {
                 register_code(KC_LSFT);
                 sft_pressed = true;
-                first_tap_time = record->event.time;
+                first_shift_tap_time = record->event.time;
               }
             } else {
               unregister_code(KC_LSFT);
               sft_pressed = false;
-              if (TIMER_DIFF_16(record->event.time, first_tap_time) < TAPPING_TERM) {
+              if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < TAPPING_TERM) {
                 tap_code(KC_LNG2);
               }
               layer_off(_NumP);
@@ -213,17 +214,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case KANA_C_N:
             if (record->event.pressed) {
-              if (TIMER_DIFF_16(record->event.time, first_tap_time) < 500) {
+              if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < 500) {
+                tap_code(KC_LNG2);
                 layer_on(_NumP);
               } else {
                 register_code(KC_LCTL);
                 kana_c_pressed = true;
-                first_tap_time = record->event.time;
+                first_ctrl_tap_time = record->event.time;
               }
             } else {
               unregister_code(KC_LCTL);
               kana_c_pressed = false;
-              if (TIMER_DIFF_16(record->event.time, first_tap_time) < TAPPING_TERM) {
+              if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < TAPPING_TERM) {
                 tap_code(KC_LNG1);
               }
               layer_off(_NumP);
