@@ -15,34 +15,30 @@
  */
 
 // swipe implement
-/* int16_t swipemode; */
 #include <stdint.h>
 #include "util.h"
+
 const int16_t SWIPE_THRESHOLD = 7;
 bool is_swiped = false;
 bool canceller = false;
-enum { NORMAL = 0, HIGH, VERY_HIGH } repeat_speed = NORMAL;
-enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } swipemode = NO_SW;
-enum { SW_UP = 1, SW_DOWN, SW_RIGHT, SW_LEFT };
 
-// 自前の絶対数を返す関数。 Functions that return absolute numbers.
-int16_t my_abs(int16_t num) {
-  if (num < 0) {
-    num = -num;
-  }
-  return num;
-}
+typedef enum { NORMAL = 0, HIGH, VERY_HIGH } RepeatSpeed;
+typedef enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } SwipeMode;
+typedef enum { SW_NO = 0, SW_UP, SW_DOWN, SW_RIGHT, SW_LEFT } SwipeDirection;
+// swipe mode
+typedef enum {
+  NONE = 0,
+  SWIPE,      // スワイプモードが有効になりスワイプ入力が取れる。 Swipe mode is enabled to take swipe input.
+  SWIPING     // スワイプ動作中。 swiping.
+} SwipeState;
 
-// 自前の符号を返す関数。 Function to return the sign.
-int16_t mmouse_move_y_sign(int16_t num) {
-  if (num < 0) {
-    return -1;
-  }
-  return 1;
-}
+
+RepeatSpeed repeat_speed = NORMAL;
+SwipeMode swipe_mode = NO_SW;
+SwipeState state = NONE;
 
 // スワイプの方向を判断する関数
-int swipe_direction(int16_t x, int16_t y) {
+SwipeDirection get_swipe_dirction(int16_t x, int16_t y) {
 
     int16_t abs_x = my_abs(x);
     int16_t abs_y = my_abs(y);
@@ -58,7 +54,7 @@ int swipe_direction(int16_t x, int16_t y) {
     }
 
     // 閾値を超えない場合
-    return 0;
+    return SW_NO;
 }
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数
@@ -67,65 +63,36 @@ int swipe_direction(int16_t x, int16_t y) {
 void process_swipe_gesture(int16_t x, int16_t y) {
   // APP_SWIPE
   // desktop control
-  switch (swipemode) {
+  switch (swipe_mode) {
 
     case APP_SW:
-      switch (swipe_direction( x, y)) {
+      switch (get_swipe_dirction( x, y)) {
         case SW_UP:
           if (canceller) {
-              tap_code(KC_ESC);
-              canceller = false;
+            tap_code(KC_ESC);
+            canceller = false;
           } else {
-              /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-              /*   tap_code16(G(KC_SPACE)); // spotlight */
-              /* } else { */
-              /*   tap_code16(KC_LGUI); // windows key */
-              /* } */
-              switch (host_os) {
-
-                case OS_MACOS:
-                case OS_IOS:
-                  tap_code16(G(KC_SPACE)); // spotlight
-                  break;
-
-                default:
-                  tap_code16(w_Ueli); // windows key
-                  break;
-
-              }
-
-              canceller = true;
+            tap_code16_os(w_Ueli, G(KC_SPACE), G(KC_SPACE), KC_NO, KC_NO);
+            canceller = true;
           }
           break;
 
         case SW_DOWN:
           if (canceller) {
-              tap_code(KC_ESC);
-              canceller = false;
+            tap_code(KC_ESC);
+            canceller = false;
           } else {
-              if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                tap_code16(C(KC_DOWN)); // spotlight
-              } else {
-                tap_code16(G(KC_TAB)); // windows key
-              }
-              canceller = true;
+            tap_code16_os(G(KC_TAB), C(KC_DOWN), C(KC_DOWN), KC_NO, KC_NO);
+            canceller = true;
           }
           break;
 
         case SW_LEFT:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(m_R_DESK); // spotlight
-          } else {
-            tap_code16(w_R_DESK); // windows key
-          }
+          tap_code16_os(w_R_DESK, m_R_DESK, m_R_DESK, KC_NO, KC_NO);
           break;
 
         case SW_RIGHT:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(m_L_DESK); // spotlight
-          } else {
-            tap_code16(w_L_DESK); // windows key
-          }
+          tap_code16_os(w_L_DESK, m_L_DESK, m_L_DESK, KC_NO, KC_NO);
           break;
 
         default:
@@ -135,7 +102,7 @@ void process_swipe_gesture(int16_t x, int16_t y) {
       break;
 
     case VOL_SW:
-      switch (swipe_direction( x, y)) {
+      switch (get_swipe_dirction(x, y)) {
         case SW_UP:
           tap_code(KC_VOLU);
           repeat_speed = VERY_HIGH;
@@ -160,37 +127,21 @@ void process_swipe_gesture(int16_t x, int16_t y) {
       break;
 
     case BRO_SW:
-      switch (swipe_direction( x, y)) {
+      switch (get_swipe_dirction(x, y)) {
         case SW_UP:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(G(KC_C)); // copy
-          } else {
-            tap_code16(C(KC_C)); // windows key
-          }
+          tap_code16_os(C(KC_C), G(KC_C), G(KC_C), KC_NO, KC_NO);
           break;
 
         case SW_DOWN:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(G(KC_V)); // copy
-          } else {
-            tap_code16(C(KC_V)); // windows key
-          }
+          tap_code16_os(C(KC_V), G(KC_V), G(KC_V), KC_NO, KC_NO);
           break;
 
         case SW_LEFT:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(G(KC_LEFT)); // browse back
-          } else {
-            tap_code16(KC_WBAK); // windows key
-          }
+          tap_code16_os(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO);
           break;
 
         case SW_RIGHT:
-        if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-          tap_code16(G(KC_RIGHT)); // browse back
-        } else {
-          tap_code16(KC_WFWD); // windows key
-        }
+          tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO);
           break;
 
         default:
@@ -199,21 +150,13 @@ void process_swipe_gesture(int16_t x, int16_t y) {
       break;
 
     case TAB_SW:
-      switch (swipe_direction( x, y)) {
+      switch (get_swipe_dirction(x, y)) {
         case SW_UP:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(S(G(KC_T))); // browse back
-          } else {
-            tap_code16(S(C(KC_T))); // windows key
-          }
+          tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
           break;
 
         case SW_DOWN:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(m_CLOSE); // browse back
-          } else {
-            tap_code16(w_CLOSE); // windows key
-          }
+          tap_code16_os(w_CLOSE, m_CLOSE, m_CLOSE, KC_NO, KC_NO);
           break;
 
         case SW_LEFT:
@@ -232,33 +175,60 @@ void process_swipe_gesture(int16_t x, int16_t y) {
       break;
 
     case WIN_SW:
-      switch (swipe_direction( x, y)) {
+      switch (get_swipe_dirction(x, y)) {
         case SW_UP:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(MGN_U); // browse back
-          } else {
-            tap_code16(G(KC_UP)); // windows key
+          switch (host_os) {
+            case OS_MACOS:
+            case OS_IOS:
+              tap_code16(MGN_U); // browse back
+              break;
+
+            case OS_WINDOWS:
+              register_code(KC_LGUI);
+              tap_code(KC_UP);
+              break;
           }
           break;
 
         case SW_DOWN:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(MGN_D); // browse back
-          } else {
-            tap_code16(G(KC_DOWN)); // windows key
+          switch (host_os) {
+            case OS_MACOS:
+            case OS_IOS:
+              tap_code16(MGN_D); // browse back
+              break;
+
+            case OS_WINDOWS:
+              register_code(KC_LGUI);
+              tap_code(KC_DOWN);
+              break;
           }
           break;
 
         case SW_LEFT:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(MGN_L); // browse back
+          switch (host_os) {
+            case OS_MACOS:
+            case OS_IOS:
+              tap_code16(MGN_L); // browse back
+              break;
+
+            case OS_WINDOWS:
+              register_code(KC_LGUI);
+              tap_code(KC_LEFT);
+              break;
+          }
           break;
 
         case SW_RIGHT:
-          if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-            tap_code16(MGN_R); // browse back
-          } else {
-            tap_code16(G(KC_RIGHT)); // windows key
+          switch (host_os) {
+            case OS_MACOS:
+            case OS_IOS:
+              tap_code16(MGN_R); // browse back
+              break;
+
+            case OS_WINDOWS:
+              register_code(KC_LGUI);
+              tap_code(KC_RIGHT);
+              break;
           }
           break;
 
@@ -266,22 +236,13 @@ void process_swipe_gesture(int16_t x, int16_t y) {
           break;
       }
       break;
-    }
 
     default:
       break;
-
   }
 }
 
-// swipe mode
-enum ball_state {
-  NONE = 0,
-  SWIPE,      // スワイプモードが有効になりスワイプ入力が取れる。 Swipe mode is enabled to take swipe input.
-  SWIPING     // スワイプ中。 swiping.
-};
-
-enum ball_state state;  // 現在のクリック入力受付の状態 Current click input reception status
+/* enum ball_state state;  // 現在のクリック入力受付の状態 Current click input reception status */
 uint16_t click_timer;   // タイマー。状態に応じて時間で判定する。 Timer. Time to determine the state of the system.
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 

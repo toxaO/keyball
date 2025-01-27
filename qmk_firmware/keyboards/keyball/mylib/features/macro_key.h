@@ -44,7 +44,7 @@ static uint16_t first_shift_tap_time = 0;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    /* swipemode = keycode; */
+    /* swipe_mode = keycode; */
     mod_state = get_mods();
 
     switch (keycode) {
@@ -272,14 +272,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case APP_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-              swipemode = APP_SW;
+              swipe_mode = APP_SW;
               swipe_timer = timer_read();
               is_swiped = false;
               canceller = false;
               state = SWIPE;
             } else {
                 // キーアップ時
-              swipemode = NO_SW;
+              swipe_mode = NO_SW;
               state = NONE;
               canceller = false;
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
@@ -298,13 +298,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case VOL_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-                swipemode = VOL_SW;
+                swipe_mode = VOL_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
-                swipemode = NO_SW;
+                swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code(KC_MPLY);
@@ -316,13 +316,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case BROWSE_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-                swipemode = BRO_SW;
+                swipe_mode = BRO_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
-                swipemode = NO_SW;
+                swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -338,13 +338,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case TAB_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-                swipemode = TAB_SW;
+                swipe_mode = TAB_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
-                swipemode = NO_SW;
+                swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -360,19 +360,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case WIN_SWIPE:
             if (record->event.pressed) {
                 // キーダウン時
-                swipemode = WIN_SW;
+                swipe_mode = WIN_SW;
                 swipe_timer = timer_read();
                 is_swiped = false;
                 state = SWIPE;
             } else {
                 // キーアップ時
-                swipemode = NO_SW;
+                swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(A(C(KC_ENT)));
                   } else {
-                    tap_code16(G(KC_UP));
+                    tap_code16(G(KC_Z));
+                  }
+                  if (host_os == OS_WINDOWS){
+                    unregister_code(KC_LGUI);
                   }
                 }
                 repeat_speed = NORMAL;
@@ -381,7 +384,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case MULTI_A:
             if (record->event.pressed) {
-              switch(swipemode) {
+              switch(swipe_mode) {
                 case APP_SW:
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(m_L_DESK); // spotlight
@@ -422,7 +425,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case MULTI_B:
             if (record->event.pressed) {
-              switch(swipemode) {
+              switch(swipe_mode) {
                 case APP_SW:
                   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
                     tap_code16(m_R_DESK); // spotlight

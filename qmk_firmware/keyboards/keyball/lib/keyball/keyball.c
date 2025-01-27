@@ -188,9 +188,12 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_
 
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
     // consume motion of trackball.
+    /* int16_t div = 1 << (keyball_get_scroll_div() - 1); */
+    /* int16_t x = divmod16(&m->x, div); */
+    /* int16_t y = divmod16(&m->y, div); */
     int16_t div = 1 << (keyball_get_scroll_div() - 1);
-    int16_t x = divmod16(&m->x, div);
-    int16_t y = divmod16(&m->y, div);
+    int16_t x = div * divmod16(&m->x, 50);
+    int16_t y = div * divmod16(&m->y, 50);
 
     // apply to mouse report.
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
