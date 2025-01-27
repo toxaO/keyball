@@ -14,18 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// マクロ用変数------------------------------
-// SPD_UP用
-/* static bool spd_up = false; */
-/* static int arrow_count = 0; */
-/* enum arrow_held { */
-/*     NO_DIR = 0, */
-/*     UP, */
-/*     RIGHT, */
-/*     LEFT, */
-/*     DOWN */
-/* }; */
-/* enum arrow_held arrow_held = NO_DIR; */
 
 #include "os_detection.h"
 #include "my_keycode.h"
@@ -232,40 +220,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        // macro key
-        // SFT + M_CLICK
-        /* case S_M_CLICK: */
-        /*     if (record->event.pressed) { */
-        /*         register_code(KC_LSFT); */
-        /*         tap_code_delay(KC_NO, 3); // delayを入れないとshiftが後に入力される */
-        /*         register_code(KC_BTN3); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } else { */
-        /*         unregister_code(KC_BTN3); */
-        /*         unregister_code(KC_LSFT); */
-        /*         return false;        // Return false to ignore further processing of key */
-        /*     } */
-        /*     break; */
-
-        // 単押しでesc、長押しでNumP
-        /* case _Esc_NumP: */
-        /*     if (record->event.pressed && !record->tap.count) { */
-        /*         layer_on(_NumP); */
-        /*         return false; */
-        /*     } else if (record->event.pressed) { */
-        /*         tap_code(KC_ESC); */
-        /*         return false; */
-        /*     } */
-        /*     break; */
-
-        /* case ESC_EISU: */
-        /*     if (record->event.time) { */
-        /*       tap_code(KC_ESC); */
-        /*       tap_code(KC_LNG2); */
-        /*     } */
-        /*     break; */
-
-
         // 以下スワイプジェスチャー
         // クリックすると state が SWIPE になり、離したら NONE になる
         // SWIPEの実装はswipe.hに記載する
@@ -283,13 +237,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               state = NONE;
               canceller = false;
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                  // mission control
-                  tap_code16(m_MIS_CON);
-                } else {
-                  // task control
-                  tap_code16(G(KC_TAB));
-                }
+                tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
+                /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                /*   // mission control */
+                /*   tap_code16(m_MIS_CON); */
+                /* } else { */
+                /*   // task control */
+                /*   tap_code16(G(KC_TAB)); */
+                /* } */
               }
               repeat_speed = NORMAL;
             }
@@ -325,11 +280,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    tap_code16(G(KC_L));
-                  } else {
-                    tap_code16(C(KC_L));
-                  }
+                  tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                  /*   tap_code16(G(KC_L)); */
+                  /* } else { */
+                  /*   tap_code16(C(KC_L)); */
+                  /* } */
                 }
                 repeat_speed = NORMAL;
             }
@@ -347,11 +303,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    tap_code16(G(KC_T));
-                  } else {
-                    tap_code16(C(KC_T));
-                  }
+                  tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                  /*   tap_code16(G(KC_T)); */
+                  /* } else { */
+                  /*   tap_code16(C(KC_T)); */
+                  /* } */
                 }
                 repeat_speed = NORMAL;
             }
@@ -369,11 +326,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 swipe_mode = NO_SW;
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    tap_code16(A(C(KC_ENT)));
-                  } else {
-                    tap_code16(G(KC_Z));
-                  }
+                  tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
+                  /*   tap_code16(A(C(KC_ENT))); */
+                  /* } else { */
+                  /*   tap_code16(G(KC_Z)); */
+                  /* } */
                   if (host_os == OS_WINDOWS){
                     unregister_code(KC_LGUI);
                   }
@@ -393,23 +351,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   }
                   break;
 
-                /* case VOL_SW: */
-                /*   break; */
+                case VOL_SW:
+                  break;
 
                 case TAB_SW:
                   tap_code16(S(C(KC_TAB))); // next tab
                   break;
 
-                /* case BRO_SW: */
-                /*   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                /*     tap_code16(G(KC_LEFT)); // browse back */
-                /*   } else { */
-                /*     tap_code16(KC_WBAK); // windows key */
-                /*   } */
-                /*   break; */
+                case BRO_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(G(KC_LEFT)); // browse back
+                  } else {
+                    tap_code16(KC_WBAK); // windows key
+                  }
+                  break;
 
-                /* case WIN_SW: */
-                /*   break; */
+                case WIN_SW:
+                  break;
 
                 default:
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -434,23 +392,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   }
                   break;
 
-                /* case VOL_SW: */
-                /*   break; */
+                case VOL_SW:
+                  break;
 
                 case TAB_SW:
                   tap_code16(C(KC_TAB)); // previous tab
                   break;
 
-                /* case BRO_SW: */
-                /*   if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                /*     tap_code16(G(KC_RIGHT)); // browse back */
-                /*   } else { */
-                /*     tap_code16(KC_WFWD); // windows key */
-                /*   } */
-                /*   break; */
+                case BRO_SW:
+                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                    tap_code16(G(KC_RIGHT)); // browse back
+                  } else {
+                    tap_code16(KC_WFWD); // windows key
+                  }
+                  break;
 
-                /* case WIN_SW: */
-                /*   break; */
+                case WIN_SW:
+                  break;
 
                 default:
                 if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
@@ -464,117 +422,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        // 矢印キーの加速装置
-        // 使わないけど何かの参考になるかもしれないから残しとく
-        // 他にもコメントアウトを外さなきゃいけないところあるはず
-        /* case SPD_UP: */
-        /*     if (record->event.pressed) { */
-        /*         spd_up = true; */
-        /*     } else { */
-        /*         spd_up = false; */
-        /*         switch(arrow_held) { */
-        /*             case RIGHT: */
-        /*                 register_code(KC_RIGHT); */
-        /*             break; */
-        /*             case LEFT: */
-        /*                 register_code(KC_LEFT); */
-        /*             break; */
-        /*             case UP: */
-        /*                 register_code(KC_UP); */
-        /*             break; */
-        /*             case DOWN: */
-        /*                 register_code(KC_DOWN); */
-        /*             break; */
-        /*             case NO_DIR: */
-        /*             break; */
-        /*         } */
-        /*     } */
-        /*     break; */
-        /* case KC_RIGHT: */
-        /*     if (record->event.pressed){ */
-        /*         arrow_held = RIGHT; */
-        /*         arrow_count++; */
-        /*             return true; */
-        /*     } else { */
-        /*         arrow_count--; */
-        /*         unregister_code(KC_RIGHT); */
-        /*         if (arrow_count == 0){ */
-        /*             arrow_held = NO_DIR; */
-        /*         } */
-        /*     } */
-        /*     break; */
-        /* case KC_LEFT: */
-        /*     if (record->event.pressed){ */
-        /*         arrow_held = LEFT; */
-        /*         arrow_count++; */
-        /*             return true; */
-        /*     } else { */
-        /*         arrow_count--; */
-        /*         unregister_code(KC_LEFT); */
-        /*         if (arrow_count == 0){ */
-        /*             arrow_held = NO_DIR; */
-        /*         } */
-        /*     } */
-        /*     break; */
-        /* case KC_UP: */
-        /*     if (record->event.pressed){ */
-        /*         arrow_held = UP; */
-        /*         arrow_count++; */
-        /*             return true; */
-        /*     } else { */
-        /*         arrow_count--; */
-        /*         unregister_code(KC_UP); */
-        /*         if (arrow_count == 0){ */
-        /*             arrow_held = NO_DIR; */
-        /*         } */
-        /*     } */
-        /*     break; */
-        /* case KC_DOWN: */
-        /*     if (record->event.pressed){ */
-        /*         arrow_held = DOWN; */
-        /*         arrow_count++; */
-        /*             return true; */
-        /*     } else { */
-        /*         arrow_count--; */
-        /*         unregister_code(KC_DOWN); */
-        /*         if (arrow_count == 0){ */
-        /*             arrow_held = NO_DIR; */
-        /*         } */
-        /*     } */
-        /*     break; */
-
     }
     return true;
 }
-
-
-//-------------------------------------------------------------
-// 矢印キーの加速装置部分
-//  matrix_scan_user関数の中でフラグをチェックして必要なマクロを実行する。
-//  この関数はQMKががキーの押下をチェックするたび実行される。
-//  https://gist.github.com/ypsilon-takai/c4a249087ea19eabd1deb3f9f273de52
-//
-
-// Runs constantly in the background, in a loop.
-/* void matrix_scan_user(void) { */
-
-/*     if (spd_up) { */
-/*         switch(arrow_held) { */
-/*             case RIGHT: */
-/*                 SEND_STRING(SS_TAP(X_RIGHT)SS_TAP(X_RIGHT)SS_DELAY(20)); */
-/*             break; */
-/*             case LEFT: */
-/*                 SEND_STRING(SS_TAP(X_LEFT)SS_TAP(X_LEFT)SS_DELAY(20)); */
-/*             break; */
-/*             case UP: */
-/*                 SEND_STRING(SS_TAP(X_UP)SS_TAP(X_UP)SS_DELAY(20)); */
-/*             break; */
-/*             case DOWN: */
-/*                 SEND_STRING(SS_TAP(X_DOWN)SS_TAP(X_DOWN)SS_DELAY(20)); */
-/*             break; */
-/*             case NO_DIR: */
-/*             break; */
-/*         } */
-/*     } */
-
-/* }; */

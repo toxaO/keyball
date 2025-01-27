@@ -21,6 +21,8 @@
 const int16_t SWIPE_THRESHOLD = 7;
 bool is_swiped = false;
 bool canceller = false;
+/* extern bool canceller; */
+/* extern bool is_swiped; */
 
 typedef enum { NORMAL = 0, HIGH, VERY_HIGH } RepeatSpeed;
 typedef enum { NO_SW = 0, APP_SW, VOL_SW, BRO_SW, TAB_SW, WIN_SW } SwipeMode;
@@ -242,7 +244,6 @@ void process_swipe_gesture(int16_t x, int16_t y) {
   }
 }
 
-/* enum ball_state state;  // 現在のクリック入力受付の状態 Current click input reception status */
 uint16_t click_timer;   // タイマー。状態に応じて時間で判定する。 Timer. Time to determine the state of the system.
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 
