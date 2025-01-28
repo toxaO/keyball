@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef MYLIB_UTIL_H
+#define MYLIB_UTIL_H
 
 
 extern int host_os;

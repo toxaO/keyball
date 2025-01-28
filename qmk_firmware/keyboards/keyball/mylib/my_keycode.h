@@ -2,6 +2,7 @@
 // mymap2.0
 #pragma once
 
+#include "quantum.h"
 /*
 #HSV_COLOR_CODE
 ------------------------------
@@ -202,17 +203,14 @@ enum layer_names {
 
 // custom keycode --------------------
 enum custom_keycodes {
-    APP_SWIPE = KEYBALL_SAFE_RANGE,
+    /* APP_SWIPE = KEYBALL_SAFE_RANGE, */
+    APP_SWIPE = QK_USER,
     VOL_SWIPE,
     BROWSE_SWIPE,
     TAB_SWIPE,
     WIN_SWIPE,
-    /* SPD_UP, */
-    /* S_M_CLICK, */
-    /* Esc_NumP, // my_keycodeの中でmacro key設定用 */
     MULTI_A,
     MULTI_B,
     EISU_S_N,
     KANA_C_N,
-    /* ESC_EISU, */
 };
