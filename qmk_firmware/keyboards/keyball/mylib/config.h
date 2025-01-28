@@ -24,15 +24,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_EFFECT_BREATHING
-#    undef RGBLIGHT_EFFECT_RAINBOW_MOOD
-#    undef RGBLIGHT_EFFECT_RAINBOW_SWIRL
+#    define RGBLIGHT_EFFECT_RAINBOW_MOOD
+#    define RGBLIGHT_EFFECT_RAINBOW_SWIRL
 #    define RGBLIGHT_EFFECT_SNAKE
-#    undef RGBLIGHT_EFFECT_KNIGHT
-#    undef RGBLIGHT_EFFECT_CHRISTMAS
-#    undef RGBLIGHT_EFFECT_STATIC_GRADIENT
-#    undef RGBLIGHT_EFFECT_RGB_TEST
-#    undef RGBLIGHT_EFFECT_ALTERNATING
-#    undef RGBLIGHT_EFFECT_TWINKLE
+#    define RGBLIGHT_EFFECT_KNIGHT
+#    define RGBLIGHT_EFFECT_CHRISTMAS
+#    define RGBLIGHT_EFFECT_STATIC_GRADIENT
+#    define RGBLIGHT_EFFECT_RGB_TEST
+#    define RGBLIGHT_EFFECT_ALTERNATING
+#    define RGBLIGHT_EFFECT_TWINKLE
 
 #    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
 #    define RGBLIGHT_DEFAULT_HUE 127
@@ -68,7 +68,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* #define TAP_CODE_DELAY 5 */
 
 // レイヤー数増加させたい時はundefして16bitを追加
-/* #define LAYER_STATE_8BIT */
+#undef LAYER_STATE_8BIT
+#define LAYER_STATE_16BIT
 
 // 容量削減
 #undef LOCKING_SUPPORT_ENABLE

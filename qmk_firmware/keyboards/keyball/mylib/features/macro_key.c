@@ -2,6 +2,7 @@
 #include "swipe.h"
 #include "os_detection.h"
 #include "my_keycode.h"
+#include "util.h"
 
 // mod override用変数
 uint8_t mod_state;
@@ -23,42 +24,64 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case _Cur_ENT:
             if (!record->tap.count && record->event.pressed) {
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    layer_on(_mCur);
-                } else {
-                    layer_on(_wCur);
-                }
+              switch (host_os) {
+                case OS_MACOS:
+                case OS_IOS:
+                  layer_on(_mCur);
+                  break;
+
+                case OS_WINDOWS:
+                  layer_on(_wCur);
+                  break;
+
+              }
                 return false;
+
             } else {
               layer_off(_mCur);
               layer_off(_wCur);
+
             }
             return true;
 
         case _Mou_SCLN:
             if (!record->tap.count && record->event.pressed) {
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    layer_on(_mMou);
-                } else {
-                    layer_on(_wMou);
-                }
+              switch (host_os) {
+                case OS_MACOS:
+                case OS_IOS:
+                  layer_on(_mMou);
+                  break;
+
+                case OS_WINDOWS:
+                  layer_on(_wMou);
+                  break;
+
+              }
                 return false;
             } else {
               layer_off(_mMou);
               layer_off(_wMou);
+
             }
             return true;
 
         case MO(_mMou):
             if (record->event.pressed) {
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
-                    layer_on(_mMou);
-                } else {
-                    layer_on(_wMou);
-                }
+              switch (host_os) {
+                case OS_MACOS:
+                case OS_IOS:
+                  layer_on(_mMou);
+                  break;
+
+                case OS_WINDOWS:
+                  layer_on(_wMou);
+                  break;
+
+              }
             } else {
               layer_off(_mMou);
               layer_off(_wMou);
+
             }
             return false;
 
