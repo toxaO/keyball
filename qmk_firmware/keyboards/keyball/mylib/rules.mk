@@ -21,3 +21,4 @@ SRC += mylib/features/macro_key.c
 SRC += mylib/features/oled.c
 SRC += mylib/features/swipe.c
 SRC += mylib/features/util.c
+SRC += mylib/features/combo.c

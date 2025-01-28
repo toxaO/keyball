@@ -67,6 +67,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* #define TAP_CODE_DELAY 5 */
 
+// tap dance
+#define TAPPING_TERM 175
+#define TAPPING_TERM_PER_KEY
+
 // レイヤー数増加させたい時はundefして16bitを追加
 #undef LAYER_STATE_8BIT
 #define LAYER_STATE_16BIT
