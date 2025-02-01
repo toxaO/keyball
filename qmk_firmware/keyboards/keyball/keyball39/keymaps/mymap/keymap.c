@@ -22,11 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 #include "my_keycode.h"
-#include "os_detection.h"
-/* #include "features/util.h" */
-/* #include "features/swipe.h" */
-/* #include "features/macro_key.h" */
-/* #include "features/layer.h" */
+#include "features/combo.h"
 #ifdef OLED_ENABLE
 #include "lib/oledkit/oledkit.h"
 #include "features/oled.h"
@@ -44,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
      KC_Z         , KC_X         , KC_C         , KC_V         , KC_B         ,                                    KC_N         , KC_M         , GUI_T(KC_COMM),ALT_T(KC_DOT), SFT_T(KC_SLSH),
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
-     CTL_T(KC_ESC), KC_LALT      , KC_LGUI      , MINUS_G      , EISU_S_N     , _Sym_SPC     ,      _Cur_ENT     , KANA_C_N     , XXXXXXX      , XXXXXXX      , XXXXXXX      , KC_ESC
+     CTL_T(KC_ESC), KC_LALT      , KC_GLOBE     , MINUS_G      , EISU_S_N     , _Sym_SPC     ,      _Cur_ENT     , KANA_C_N     , XXXXXXX      , XXXXXXX      , XXXXXXX      , KC_ESC
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.
   ),
 
@@ -56,7 +52,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
      AT           , AST          , CARET        , V_BAR        , B_QUO        ,                                    L_BRC        , R_BRC        , L_SQBR       , R_SQBR       , CLN          ,
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
-    _______       , _______      , _______      , EQL          , KC_BSPC      , _______      ,      U_BAR        , YEN          , XXXXXXX      , XXXXXXX      , XXXXXXX      , BSLSH
+     _______      , _______      , _______      , EQL          , KC_BSPC      , _______      ,      U_BAR        , YEN          , XXXXXXX      , XXXXXXX      , XXXXXXX      , BSLSH
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.
   ),
 

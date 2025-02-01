@@ -22,11 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 #include "my_keycode.h"
-#include "os_detection.h"
-#include "features/util.h"
-#include "features/swipe.h"
-#include "features/macro_key.h"
-#include "features/layer.h"
+#include "features/combo.h"
 #ifdef OLED_ENABLE
 #include "lib/oledkit/oledkit.h"
 #include "features/oled.h"
