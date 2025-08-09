@@ -1,11 +1,20 @@
 #include "quantum.h"
 #include "util.h"
 #include "os_detection.h"
+#include "lib/keyball/keyball.h"
 
 int host_os;
 
 void keyboard_post_init_user(void) {
     host_os = detected_host_os();
+    switch (host_os) {
+      case OS_WINDOWS:
+        keyball_set_scroll_div(2);
+        break;
+
+      default:
+        keyball_set_scroll_div(5);
+    }
 }
 
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.

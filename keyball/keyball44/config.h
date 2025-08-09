@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // RGB LED settings
 #define WS2812_DI_PIN       GP0
 #ifdef RGBLIGHT_ENABLE
-#    define RGBLED_NUM      60
+#    define RGBLIGHT_LED_COUNT      60
 #    define RGBLED_SPLIT    { 30, 30 }  // (30 + 29)
 #    ifndef RGBLIGHT_LIMIT_VAL
 #        define RGBLIGHT_LIMIT_VAL  125 // limitated for power consumption
