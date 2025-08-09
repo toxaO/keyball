@@ -1,0 +1,936 @@
+/*
+Copyright 2022 @Yowkees
+Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// tokinarazuさんのkeyball_rp2040にてRP2024対応
+// https://github.com/tokinarazu/keyball_rp2040
+// ukoasisさんのvial-qmkにてvial対応
+// https://github.com/ukoasis/vial-qmk
+
+#include QMK_KEYBOARD_H
+
+#include "quantum.h"
+#include "lib/keyball/keyball.h"
+#include "features/translate_ansi_to_jis.h"
+#include "features/select_word.h"
+
+// OS判別用に追加
+#include "os_detection.h"
+
+// レイヤー定義
+//  Win・Macそれぞれで4レイヤー
+//  - 0/4: デフォルトレイヤー (エメラルドグリーン)
+//  - 1/5: 数値レイヤー (ホワイト)
+//  - 2/6: 記号レイヤー (黄色)
+//  - 3/7: ファンクション・その他便利機能・スクロールレイヤー (青色)
+//  - 8: AMLレイヤー (紫色) + キーボード設定
+// リモート接続ように、DF関数でのデフォルトレイヤー変更も設定する@レイヤー8。 WキーでWindowsモード、MキーでMacモードにする。
+#define _BASE_WIN 0
+#define _NUM_WIN 1
+#define _SYM_WIN 2
+#define _FUNC_WIN 3
+#define _BASE_MAC 4
+#define _NUM_MAC 5
+#define _SYM_MAC 6
+#define _FUNC_MAC 7
+#define _AML 8
+#define _KBD_SET 9
+
+//  Vialではカスタムキーコードはlib/keyball/keyball.hにて定義し、QK_KB_xxとして定義する
+//  enum custom_keycodes {
+//   MY_MACRO_0 = SAFE_RANGE,  // 0x7E40  User0
+//   MY_MACRO_1,  // 0x7E41  User1
+//   MY_MACRO_2,  // 0x7E42  User2
+//   MY_MACRO_3,  // 0x7E43  User3
+//   MY_MACRO_4,  // 0x7E44  User4
+//   MY_MACRO_5,  // 0x7E45  User5
+//   A2J_TOGG,    // 0x7E46  User6
+//   SELWORD,     // 0x7E47  User7
+//   ARROW,       // 0x7E48  User8
+//   SMTD_KEYCODES_BEGIN,  // 0x7E49  User9
+//   CKC_ESC,  // 0x7E4A  User10
+//   CKC_A,    // 0x7E4B  User11
+//   CKC_S,    // 0x7E4C  User12
+//   CKC_D,    // 0x7E4D  User13
+//   CKC_F,    // 0x7E4E  User14
+//   CKC_J,    // 0x7E4F  User15
+//   CKC_K,    // 0x7E50  User16
+//   CKC_L,    // 0x7E51  User17
+//   CKC_MINUS, // 0x7E52  User18
+//   CKC_LNG2, // 0x7E53  User19
+//   CKC_SPC,  // 0x7E54  User20
+//   CKC_LNG1, // 0x7E55  User21
+//   CKC_ENT,  // 0x7E56  User22
+//   CKC_Q,    // 0x7E57  User23
+//   CKC_P,    // 0x7E58  User24
+//   SMTD_KEYCODES_END, // 0x7E59  User25
+//   MY_USER_0 = KEYBALL_SAFE_RANGE + 32,  // 0x7E60  User31の次
+//   M_UPDIR,
+//  };
+
+// #include "features/sm_td.h"
+
+/* tap dance */
+// typedef enum {
+//     TD_NONE,
+//     TD_UNKNOWN,
+//     TD_SINGLE_TAP,
+//     TD_SINGLE_HOLD,
+//     TD_DOUBLE_TAP,
+//     TD_DOUBLE_HOLD,
+//     TD_DOUBLE_SINGLE_TAP, // Send two single taps
+//     TD_TRIPLE_TAP,
+//     TD_TRIPLE_HOLD
+// } td_state_t;
+
+// typedef struct {
+//     bool is_press_action;
+//     td_state_t state;
+// } td_tap_t;
+
+// QK_TAP_DANCE                   = 0x5700,
+// QK_TAP_DANCE_MAX               = 0x57FF,
+
+// Tap dance enums
+// enum {
+//   TD_Q,
+//   TD_FN,
+// };
+
+// td_state_t cur_dance(tap_dance_state_t *state);
+
+// 接続先のOS判別用
+os_variant_t host_os;
+
+// For the x tap dance. Put it here so it can be used in any keymap
+// void dance_q_finished(tap_dance_state_t *state, void *user_data);
+// void dance_q_reset(tap_dance_state_t *state, void *user_data);
+// void dance_fn_finished(tap_dance_state_t *state, void *user_data);
+// void dance_fn_reset(tap_dance_state_t *state, void *user_data);
+
+// clang-format off
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+  // keymap for default (yamaryu211)
+  [_BASE_WIN] = LAYOUT_universal(
+    KC_Q           , KC_W         , KC_E           , KC_R           , KC_T           ,                                  KC_Y           , KC_U        , KC_I        , KC_O           , KC_P            ,
+    LCTL_T(KC_A)   , LALT_T(KC_S) , LT(_SYM_WIN, KC_D)    , LT(_NUM_WIN, KC_F)    , KC_G           ,                                  KC_H           , LT(_NUM_WIN, KC_J) , LT(_SYM_WIN, KC_K) , LALT_T(KC_L)   , LCTL_T(KC_MINUS),
+    LSFT_T(KC_Z)   , LGUI_T(KC_X) , KC_C           , KC_V           , KC_B           ,                                  KC_N           , KC_M        , KC_COMM     , LGUI_T(KC_DOT) , LSFT_T(KC_SLSH) ,
+    LT(_NUM_WIN, KC_LNG2) , KC_ESC       , LGUI_T(KC_TAB) , KC_LALT        , LCTL_T(KC_DEL) , LSFT_T(KC_SPACE) , LT(_NUM_WIN,KC_ENT), LT(_SYM_WIN, KC_BSPC) , _______     , _______     , _______        , LT(_FUNC_WIN, KC_LNG1)
+  ),
+
+  [_NUM_WIN] = LAYOUT_universal(
+    KC_KP_SLASH , KC_7    , KC_8       , KC_9       , KC_KP_ASTERISK ,                      KC_ESC  , KC_NO   , KC_NO    , KC_NO            , LALT(KC_PSCR) ,
+    KC_KP_MINUS , KC_4    , KC_5       , KC_6       , KC_KP_PLUS     ,                      KC_LEFT , KC_DOWN , KC_UP    , LALT_T(KC_RIGHT) , _______       ,
+    KC_0        , KC_1    , KC_2       , KC_3       , KC_EQUAL       ,                      KC_HOME , KC_PGDN , KC_PGUP  , KC_END           , _______       ,
+    MO(_AML)       , _______ , S(KC_LGUI) , S(KC_LALT) , S(KC_LCTL)     , _______  , _______ , _______ , _______ , _______  , _______          , MO(_AML)
+  ),
+
+  [_SYM_WIN] = LAYOUT_universal(
+    KC_QUOT , S(KC_QUOT) , S(KC_1)    , S(KC_SLSH) , S(KC_GRAVE) ,                     KC_BSLS , S(KC_LBRC) , S(KC_RBRC) , KC_NO      , S(KC_5)  ,
+    S(KC_2) , KC_SCLN    , S(KC_4)    , S(KC_COMM) , S(KC_DOT)   ,                     S(KC_3) , S(KC_9)    , S(KC_0)    , S(KC_BSLS) , KC_EQUAL ,
+    KC_NO   , S(KC_8)    , S(KC_SCLN) , S(KC_6)    , KC_GRAVE    ,                     S(KC_7) , KC_LBRC    , KC_RBRC    , KC_NO      , KC_SLSH  ,
+    _______ , _______    , _______    , _______    , _______     , _______ , _______ , _______ , _______    , _______    , _______    , _______
+  ),
+
+  [_FUNC_WIN] = LAYOUT_universal(
+    KC_F10  , KC_F7       , KC_F8   , KC_F9   , KC_NO   ,                     LGUI(KC_TAB) , LCTL(KC_PGUP)   , LCTL(KC_PGDN)  , KC_NO      , LSG(KC_S) ,
+    KC_F11  , KC_F4       , KC_F5   , KC_F6   , KC_NO   ,                     LCTL(KC_W)   , LCTL(S(KC_TAB)) , LCTL(KC_TAB)   , LCTL(KC_T) , KC_NO     ,
+    KC_F12  , LCTL(KC_F1) , KC_F2   , KC_F3   , KC_NO   ,                     KC_NO        , LALT(KC_LEFT)   , LALT(KC_RIGHT) , KC_NO      , KC_NO     ,
+    _______ , _______     , _______ , _______ , _______ , _______ , _______ , _______      , _______         , _______        , _______    , _______
+  ),
+  [_BASE_MAC] = LAYOUT_universal(
+    KC_Q           , KC_W         , KC_E           , KC_R            , KC_T           ,                                  KC_Y           , KC_U       , KC_I        , KC_O           , KC_P            ,
+    LCTL_T(KC_A)   , LALT_T(KC_S) , LT(_SYM_MAC, KC_D)    , LT(_NUM_MAC, KC_F)     , KC_G           ,                                  KC_H           , LT(_NUM_MAC, KC_J), LT(_SYM_MAC, KC_K) , LALT_T(KC_L)   , LCTL_T(KC_MINUS),
+    LSFT_T(KC_Z)   , LGUI_T(KC_X) , KC_C           , KC_V            , KC_B           ,                                  KC_N           , KC_M       , KC_COMM     , LGUI_T(KC_DOT) , LSFT_T(KC_SLSH) ,
+    LT(_NUM_MAC, KC_LNG2) , KC_ESC       , LGUI_T(KC_TAB) , KC_LALT         , LCTL_T(KC_DEL) , LSFT_T(KC_SPACE), LT(_NUM_MAC,KC_ENT), LT(_SYM_MAC, KC_BSPC) , _______    , _______     , _______        , LT(_FUNC_MAC, KC_LNG1)
+  ),
+
+  [_NUM_MAC] = LAYOUT_universal(
+    KC_KP_SLASH , KC_7    , KC_8       , KC_9       , KC_KP_ASTERISK ,                      KC_ESC  , KC_NO   , KC_NO    , KC_NO            , LALT(KC_PSCR) ,
+    KC_KP_MINUS , KC_4    , KC_5       , KC_6       , KC_KP_PLUS     ,                      KC_LEFT , KC_DOWN , KC_UP    , LALT_T(KC_RIGHT) , _______       ,
+    KC_0        , KC_1    , KC_2       , KC_3       , KC_EQUAL       ,                      KC_HOME , KC_PGDN , KC_PGUP  , KC_END           , _______       ,
+    MO(_AML)       , _______ , S(KC_LGUI) , S(KC_LALT) , S(KC_LCTL)     , _______  , _______ , _______ , _______ , _______  , _______          , MO(_AML)
+  ),
+
+  [_SYM_MAC] = LAYOUT_universal(
+    KC_QUOT , S(KC_QUOT) , S(KC_1)    , S(KC_SLSH) , S(KC_GRAVE) ,                     KC_BSLS , S(KC_LBRC) , S(KC_RBRC) , KC_NO      , S(KC_5)  ,
+    S(KC_2) , KC_SCLN    , S(KC_4)    , S(KC_COMM) , S(KC_DOT)   ,                     S(KC_3) , S(KC_9)    , S(KC_0)    , S(KC_BSLS) , KC_EQUAL ,
+    KC_NO   , S(KC_8)    , S(KC_SCLN) , S(KC_6)    , KC_GRAVE    ,                     S(KC_7) , KC_LBRC    , KC_RBRC    , KC_NO      , KC_SLSH  ,
+    _______ , _______    , _______    , _______    , _______     , _______ , _______ , _______ , _______    , _______    , _______    , _______
+  ),
+
+  [_FUNC_MAC] = LAYOUT_universal(
+    KC_F10  , KC_F7       , KC_F8   , KC_F9   , KC_NO   ,                     LGUI(KC_TAB) , LCTL(KC_PGUP)   , LCTL(KC_PGDN)  , KC_NO      , LSG(KC_S) ,
+    KC_F11  , KC_F4       , KC_F5   , KC_F6   , KC_NO   ,                     LCTL(KC_W)   , LCTL(S(KC_TAB)) , LCTL(KC_TAB)   , LCTL(KC_T) , KC_NO     ,
+    KC_F12  , LCTL(KC_F1) , KC_F2   , KC_F3   , KC_NO   ,                     KC_NO        , LALT(KC_LEFT)   , LALT(KC_RIGHT) , KC_NO      , KC_NO     ,
+    _______ , _______     , _______ , _______ , _______ , _______ , _______ , _______      , _______         , _______        , _______    , _______
+  ),
+  [_AML] = LAYOUT_universal(
+    KC_NO    , KC_NO    , KC_NO   , DT_PRNT , SSNP_VRT ,                     KC_BRID , KC_BRIU , KC_MUTE , KC_VOLD , KC_VOLU ,
+    CPI_I100 , SCRL_DVI , AML_I50 , DT_UP   , SSNP_HOR ,                     KC_NO   , KC_BTN1 , KC_BTN2 , KC_NO   , _______ ,
+    CPI_D100 , SCRL_DVD , AML_D50 , DT_DOWN , SSNP_FRE ,                     KC_NO   , KC_NO   , KC_NO   , KC_NO   ,  EE_CLR ,
+    _______  , _______  , _______ , _______ , _______  , _______ , _______ , _______ , _______ , _______ , _______ , _______  
+  ),
+  [_KBD_SET] = LAYOUT_universal(
+    KC_NO    , KC_NO    , KC_NO   , DT_PRNT , SSNP_VRT ,                     KC_BRID , KC_BRIU , KC_MUTE , KC_VOLD , KC_VOLU ,
+    CPI_I100 , SCRL_DVI , AML_I50 , DT_UP   , SSNP_HOR ,                     KC_NO   , KC_BTN1 , KC_BTN2 , KC_NO   , _______ ,
+    CPI_D100 , SCRL_DVD , AML_D50 , DT_DOWN , SSNP_FRE ,                     KC_NO   , KC_NO   , KC_NO   , KC_NO   ,  EE_CLR ,
+    _______  , _______  , _______ , _______ , _______  , _______ , _______ , _______ , _______ , _______ , _______ , _______  
+  ),
+};
+// clang-format on
+
+// clang-format off
+/*
+
+color.h
+
+#define HSV_AZURE       132, 102, 255
+#define HSV_BLACK         0,   0,   0
+#define HSV_BLUE        170, 255, 255
+#define HSV_CHARTREUSE   64, 255, 255
+#define HSV_CORAL        11, 176, 255
+#define HSV_CYAN        128, 255, 255
+#define HSV_GOLD         36, 255, 255
+#define HSV_GOLDENROD    30, 218, 218
+#define HSV_GREEN        85, 255, 255
+#define HSV_MAGENTA     213, 255, 255
+#define HSV_ORANGE       21, 255, 255
+#define HSV_PINK        234, 128, 255
+#define HSV_PURPLE      191, 255, 255
+#define HSV_RED           0, 255, 255
+#define HSV_SPRINGGREEN 106, 255, 255
+#define HSV_TEAL        128, 255, 128
+#define HSV_TURQUOISE   123,  90, 112
+#define HSV_WHITE         0,   0, 255
+#define HSV_YELLOW       43, 255, 255
+#define HSV_OFF         HSV_BLACK
+*/
+// clang-format on
+
+// デフォルトレイヤーの切り替え
+void keyboard_post_init_user() {
+  wait_ms(400);
+  host_os = detected_host_os();
+  switch (host_os) {
+    case OS_WINDOWS:
+      default_layer_set(1UL << _BASE_WIN);
+      break;
+    case OS_MACOS:
+    case OS_IOS:
+      default_layer_set(1UL << _BASE_MAC);
+      break;
+    case OS_LINUX:
+      default_layer_set(1UL << _BASE_WIN);
+      break;
+    default:
+      default_layer_set(1UL << _BASE_WIN);
+  }
+}
+
+layer_state_t layer_state_set_user(layer_state_t state) {
+    // Auto enable scroll mode when the highest layer is 3
+    keyball_set_scroll_mode(get_highest_layer(state) == _FUNC_WIN || get_highest_layer(state) == _FUNC_MAC);
+    // AML有効時のhandler
+    #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+     // keyball_keep_auto_mouse_layer_if_needed(state);
+      keyball_handle_auto_mouse_layer_change(state);
+    #endif
+    
+    // バックライトの色の初期値定義
+    uint8_t layer = biton32(state);
+    switch (layer) {
+        case _BASE_WIN:
+            rgblight_sethsv_noeeprom(106, 255, 50); // HSV_SPRINGGREEN
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+        case _BASE_MAC:
+            rgblight_sethsv_noeeprom(132, 102, 50); // HSV_AZURE
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+        case _NUM_WIN:
+        case _NUM_MAC:
+            rgblight_sethsv_noeeprom(0, 0, 50); // HSV_WHITE
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+        case _SYM_WIN:
+        case _SYM_MAC:
+            rgblight_sethsv_noeeprom(43, 255, 50); // HSV_YELLOW
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+        case _FUNC_WIN:
+        case _FUNC_MAC:
+            rgblight_sethsv_noeeprom(170, 255, 50); // HSV_BLUE
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+        case _AML:
+            rgblight_sethsv_noeeprom(213, 255, 50); // HSV_MAGENTA
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;  
+        case _KBD_SET:
+            rgblight_sethsv_noeeprom(21, 255, 50); // HSV_WHITE
+            rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+            break;
+    }
+
+    return state;
+}
+
+// OLEDの表示内容のカスタマイズ
+#ifdef OLED_ENABLE
+
+#    include "lib/oledkit/oledkit.h"
+
+// [CUSTOM]
+static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";
+static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5";
+static bool jis_mode = false;
+
+bool is_jis_mode(void) {
+  return jis_mode;
+}
+
+void set_jis_mode(bool is_jis_mode) {
+  jis_mode = is_jis_mode;
+}
+
+static const char *format_4d(int8_t d) {
+    static char buf[5] = {0}; // max width (4) + NUL (1)
+    char        lead   = ' ';
+    if (d < 0) {
+        d    = -d;
+        lead = '-';
+    }
+    buf[3] = (d % 10) + '0';
+    d /= 10;
+    if (d == 0) {
+        buf[2] = lead;
+        lead   = ' ';
+    } else {
+        buf[2] = (d % 10) + '0';
+        d /= 10;
+    }
+    if (d == 0) {
+        buf[1] = lead;
+        lead   = ' ';
+    } else {
+        buf[1] = (d % 10) + '0';
+        d /= 10;
+    }
+    buf[0] = lead;
+    return buf;
+}
+
+static char to_1x(uint8_t x) {
+    x &= 0x0f;
+    return x < 10 ? x + '0' : x + 'a' - 10;
+}
+
+void keyball_oled_render_keyinfo_custom(void) {
+    // Format: `Key :  R{row}  C{col} K{kc} CW on/off`
+    //
+    // Where `kc` is 16 bit of keycode.
+    //
+    // `row`, `col`, and `kc` indicates the last processed key,
+    // but `name`s indicate unreleased keys in best effort.
+    //
+    // It is aligned to fit with output of keyball_oled_render_ballinfo().
+    // For example:
+    //
+    //     Key :  R2  C3 K06 CW on/off
+    //     Ball:   0   0   0   0
+
+    // "Key" Label
+    oled_write_P(PSTR("Key \xB1"), false);
+
+    // Row and column
+    oled_write_char('\xB8', false);
+    oled_write_char(to_1x(keyball.last_pos.row), false);
+    oled_write_char('\xB9', false);
+    oled_write_char(to_1x(keyball.last_pos.col), false);
+
+    // Keycode
+    oled_write_P(PSTR("\xBA\xBB:"), false);
+    oled_write_char(to_1x(keyball.last_kc >> 12), false);
+    oled_write_char(to_1x(keyball.last_kc >> 8), false);
+    oled_write_char(to_1x(keyball.last_kc >> 4), false);
+    oled_write_char(to_1x(keyball.last_kc), false);
+
+    // indicate jis mode: on/off
+    oled_write_P(PSTR(" JP"), false);
+    if (is_jis_mode()) {
+        oled_write_P(LFSTR_ON, false);
+    } else {
+        oled_write_P(LFSTR_OFF, false);
+    }
+}
+
+void keyball_oled_render_ballinfo_custom(void) {
+    // Format: `Ball:{mouse x}{mouse y}{mouse h}{mouse v}`
+    //
+    // Output example:
+    //
+    //     Ball: -12  34   0   0
+
+    // 1st line, "Ball" label, mouse x, y, h, and v.
+    oled_write_P(PSTR("Ball\xB1"), false);
+    oled_write(format_4d(keyball.last_mouse.x), false);
+    oled_write(format_4d(keyball.last_mouse.y), false);
+    // oled_write(format_4d(keyball.last_mouse.h), false);
+    // oled_write(format_4d(keyball.last_mouse.v), false);
+
+    // indicate Caps Word mode: on/off
+    oled_write_P(PSTR("    CW"), false);
+    if (is_caps_word_on()) {
+        oled_write_P(LFSTR_ON, false);
+    } else {
+        oled_write_P(LFSTR_OFF, false);
+    }
+
+    // 2nd line, empty label and CPI
+    // 接続先OS情報の表示
+    switch (host_os) {
+        case OS_MACOS:
+            oled_write_P(PSTR("Mac"), false);
+            break;
+        case OS_WINDOWS:
+            oled_write_P(PSTR("Win"), false);
+            break;
+        case OS_LINUX:
+            oled_write_P(PSTR("Lin"), false);
+            break;
+        case OS_IOS:
+            oled_write_P(PSTR("iOS"), false);
+            break;
+        default:
+            oled_write_P(PSTR("---"), false);
+            break;
+    }
+    oled_write_P(PSTR(" \xB1\xBC\xBD"), false);
+    oled_write(format_4d(keyball_get_cpi()) + 1, false);
+    oled_write_P(PSTR("00 "), false);
+
+    // indicate scroll snap mode: "VT" (vertical), "HN" (horiozntal), and "SCR" (free)
+#if 1 && KEYBALL_SCROLLSNAP_ENABLE == 2
+    switch (keyball_get_scrollsnap_mode()) {
+        case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
+            oled_write_P(PSTR("VT"), false);
+            break;
+        case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
+            oled_write_P(PSTR("HO"), false);
+            break;
+        default:
+            oled_write_P(PSTR("\xBE\xBF"), false);
+            break;
+    }
+#else
+    oled_write_P(PSTR("\xBE\xBF"), false);
+#endif
+    // indicate scroll mode: on/off
+    if (keyball.scroll_mode) {
+        oled_write_P(LFSTR_ON, false);
+    } else {
+        oled_write_P(LFSTR_OFF, false);
+    }
+
+    // indicate scroll divider:
+    oled_write_P(PSTR(" \xC0\xC1"), false);
+    oled_write_char('0' + keyball_get_scroll_div(), false);
+}
+
+#ifdef DYNAMIC_MACRO_ENABLE
+// Dynamic Macros: Record and Replay Macros in Runtime
+// https://github.com/qmk/qmk_firmware/blob/master/docs/feature_dynamic_macros.md
+
+bool isRecording = false;
+// Triggered when you start recording a macro.
+void dynamic_macro_record_start_user(int8_t direction) {
+    isRecording = true;
+}
+
+// Triggered when you play back a macro.
+void dynamic_macro_play_user(int8_t direction) {
+}
+
+// Triggered on each keypress while recording a macro.
+void dynamic_macro_record_key_user(int8_t direction, keyrecord_t *record) {
+}
+
+// Triggered when the macro recording is stopped.
+void dynamic_macro_record_end_user(int8_t direction) {
+    isRecording = false;
+}
+#endif
+
+// OLEDの表示内容のカスタマイズ
+void oledkit_render_info_user(void) {
+//    keyball_oled_render_keyinfo();
+    keyball_oled_render_keyinfo_custom();
+//    keyball_oled_render_ballinfo();
+    keyball_oled_render_ballinfo_custom();
+    keyball_oled_render_layerinfo();
+// #ifdef DYNAMIC_MACRO_ENABLE
+//     oled_write_P(PSTR("\n"), false);
+//     oled_write_P(isRecording ? PSTR("[REC]") : PSTR("[   ]"), isRecording);
+// #endif
+}
+#endif
+
+// [CUSTOM]
+// static uint16_t registered_key = KC_NO;
+
+// uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
+//     bool shifted = (mods & MOD_MASK_SHIFT);  // Was Shift held?
+//     switch (keycode) {
+//       // Same-Finger Bigrams
+//       case KC_E: return KC_D;  // For "ED" bigram.
+//       case KC_D: return KC_E;  // For "DE" bigram.
+//       case KC_C: return KC_E;  // For "CE" bigram.
+//       case KC_L: return KC_O;  // For "LO" bigram.
+//       case KC_U: return KC_N;  // For "UN" bigram.
+//       case KC_M: return KC_U;  // For "MU" bigram.
+//       case KC_J: return KC_U;  // For "JU" bigram.
+//       case KC_N: return KC_U;  // For "NU" bigram.
+//       case KC_Y: return KC_U;  // For "YU" bigram.
+//       case KC_H: return KC_U;  // For "HU" bigram.
+//       case KC_K: return KC_I;  // For "KI" bigram.
+//       case KC_R: return KC_T;  // For "RT" bigram.
+//       case KC_F: return KC_T;  // For "FT" bigram.
+//       case KC_V: return KC_T;  // For "VT" bigram.
+//       case KC_B: return KC_R;  // For "BR" bigram.
+//       case KC_G: return KC_R;  // For "GR" bigram.
+//       case KC_S: return KC_W;  // For "SW" bigram.
+//       case KC_TAB:
+//         if (shifted) {        // If the last key was Shift + Tab,
+//             return KC_TAB;    // ... the reverse is Tab.
+//         } else {              // Otherwise, the last key was Tab,
+//             return S(KC_TAB); // ... and the reverse is Shift + Tab.
+//         }
+//         break;
+
+//       case KC_DOT: 
+//         return M_UPDIR;
+//         break;
+//     }
+
+//     return KC_TRNS;
+// }
+
+// void set_disable_ime(void) {
+//   tap_code16(KC_LNG2);
+// }
+
+// TAP DANCE
+// td_state_t cur_dance(tap_dance_state_t *state) {
+//     if (state->count == 1) {
+//       if (state->interrupted || !state->pressed) {
+//         return TD_SINGLE_TAP;
+//       } else {
+//         return TD_SINGLE_HOLD;
+//       }
+//     } else if (state->count == 2) {
+//       if (state->interrupted) {
+//         return TD_DOUBLE_SINGLE_TAP;
+//       } else if (state->pressed) {
+//         return TD_DOUBLE_HOLD;
+//       } else {
+//         return TD_DOUBLE_TAP;
+//       }
+//     } else {
+//       return TD_UNKNOWN;
+//     }
+// }
+
+// td_state_t cur_dance2(tap_dance_state_t *state) {
+//     if (state->count == 1) {
+//         if (!state->pressed) {
+//           return TD_SINGLE_TAP;
+//         } else {
+//           return TD_SINGLE_HOLD;
+//         }
+//     } else if (state->count == 2) {
+//       return TD_DOUBLE_TAP;
+//     } else {
+//       return TD_UNKNOWN;
+//     }
+// }
+
+// TD_Q
+// static td_tap_t TD_Q_tap_state = {
+//     .is_press_action = true,
+//     .state = TD_NONE
+// };
+
+// void dance_q_finished(tap_dance_state_t *state, void *user_data) {
+//     TD_Q_tap_state.state = cur_dance(state);
+//     switch (TD_Q_tap_state.state) {
+//         case TD_SINGLE_TAP: register_code(KC_Q); break;
+//         case TD_SINGLE_HOLD: register_code(KC_LCTL); break;
+//         case TD_DOUBLE_TAP: register_code(KC_ESC); break;
+//         case TD_DOUBLE_HOLD: caps_word_on(); break;
+//         case TD_DOUBLE_SINGLE_TAP: tap_code(KC_Q); register_code(KC_Q); break;
+//         default: break;
+//     }
+// }
+
+// void dance_q_reset(tap_dance_state_t *state, void *user_data) {
+//     switch (TD_Q_tap_state.state) {
+//         case TD_SINGLE_TAP: unregister_code(KC_Q); break;
+//         case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+//         case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+//         case TD_DOUBLE_HOLD: break;
+//         case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_Q); break;
+//         default: break;
+//     }
+//     TD_Q_tap_state.state = TD_NONE;
+// }
+
+// TD_FN
+// static td_tap_t TD_FN_tap_state = {
+//     .is_press_action = true,
+//     .state = TD_NONE
+// };
+
+// void dance_fn_finished(tap_dance_state_t *state, void *user_data) {
+//     TD_FN_tap_state.state = cur_dance2(state);
+//     switch (TD_FN_tap_state.state) {
+//       case TD_SINGLE_TAP:
+//         set_jis_mode(!is_jis_mode());
+//         break;
+//       case TD_SINGLE_HOLD:
+//         layer_on(4);
+//         break;
+//       default:
+//         break;
+//     }
+// }
+
+// void dance_fn_reset(tap_dance_state_t *state, void *user_data) {
+//   // If the key was held down and now is released then switch off the layer
+//   if (TD_FN_tap_state.state == TD_SINGLE_HOLD) {
+//     layer_off(4);
+//   }
+//   TD_FN_tap_state.state = TD_NONE;
+// }
+
+// tap_dance_action_t tap_dance_actions[] = {
+//   [TD_Q] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_q_finished, dance_q_reset),
+//   [TD_FN] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_fn_finished, dance_fn_reset),
+// };
+
+// COMBO
+// 元コード
+// const uint16_t PROGMEM combo_esc[] = {TD(TD_Q), KC_W, COMBO_END};
+// combo_t key_combos[] = {
+//   COMBO(combo_esc, KC_ESC),
+// };
+// 以下はyamaryu211バージョン
+// #ifdef COMBO_ENABLE
+//   const uint16_t PROGMEM combo_esc[] = {KC_Q, KC_W, COMBO_END};
+//   const uint16_t PROGMEM combo_tab[] = {KC_A, KC_S, COMBO_END};
+//   const uint16_t PROGMEM combo_tab_alt[] = {KC_S, KC_D, COMBO_END};
+//   const uint16_t PROGMEM combo_left_click[] = {KC_J, KC_K, COMBO_END};
+//   const uint16_t PROGMEM combo_right_click[] = {KC_K, KC_L, COMBO_END};
+//   const uint16_t PROGMEM combo_middle_click[] = {KC_J, KC_L, COMBO_END};
+//   // レイヤー・モディファイアキーを含むコンボキーの設定
+//   const uint16_t PROGMEM combo_esc2[] = {MT(MOD_LGUI, KC_Q), KC_W, COMBO_END};
+//   const uint16_t PROGMEM combo_tab2[] = {MT(MOD_LCTL, KC_A), MT(MOD_LALT, KC_S), COMBO_END};
+//   const uint16_t PROGMEM combo_tab2_alt[] = {MT(MOD_LALT, KC_S), LT(2, KC_D), COMBO_END};
+//   const uint16_t PROGMEM combo_left_click2[] = {LT(1, KC_J), LT(2, KC_K), COMBO_END};
+//   const uint16_t PROGMEM combo_right_click2[] = {LT(2, KC_K), MT(MOD_LALT, KC_L), COMBO_END};
+//   const uint16_t PROGMEM combo_middle_click2[] = {LT(1, KC_J), MT(MOD_LALT, KC_L), COMBO_END};
+//   // 大西配列用のコンボキーの設定
+//   const uint16_t PROGMEM combo_esc3[] = {KC_Q, KC_L, COMBO_END}; 
+//   const uint16_t PROGMEM combo_tab3[] = {MT(MOD_LCTL, KC_E), MT(MOD_LALT, KC_I), COMBO_END};
+//   const uint16_t PROGMEM combo_tab3_alt[] = {MT(MOD_LALT, KC_I), LT(2, KC_A), COMBO_END};
+//   const uint16_t PROGMEM combo_left_click3[] = {LT(1, KC_T), LT(2, KC_N), COMBO_END};
+//   const uint16_t PROGMEM combo_right_click3[] = {LT(2, KC_N), MT(MOD_LALT, KC_S), COMBO_END};
+//   const uint16_t PROGMEM combo_middle_click3[] = {LT(1, KC_T), MT(MOD_LALT, KC_S), COMBO_END};
+
+  // combo_t key_combos[] = {
+  //     COMBO(combo_esc, KC_ESC),
+  //     COMBO(combo_tab, KC_TAB),
+  //     COMBO(combo_left_click, KC_BTN1),
+  //     COMBO(combo_right_click, KC_BTN2),
+  //     COMBO(combo_middle_click, KC_BTN3),
+  //     COMBO(combo_esc2, KC_ESC),
+  //     COMBO(combo_tab2, KC_TAB),
+  //     COMBO(combo_left_click2, KC_BTN1),
+  //     COMBO(combo_right_click2, KC_BTN2),
+  //     COMBO(combo_middle_click2, KC_BTN3),
+  //     COMBO(combo_esc3, KC_ESC),
+  //     COMBO(combo_tab3, KC_TAB),
+  //     COMBO(combo_left_click3, KC_BTN1),
+  //     COMBO(combo_right_click3, KC_BTN2),
+  //     COMBO(combo_middle_click3, KC_BTN3),
+  //     COMBO(combo_tab_alt, KC_TAB),
+  //     COMBO(combo_tab2_alt, KC_TAB),
+  //     COMBO(combo_tab3_alt, KC_TAB),
+  // };
+// #endif
+
+
+/*
+void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
+    switch (keycode) {
+      SMTD_MT(CKC_ESC, KC_ESC, KC_LEFT_CTRL)
+      SMTD_MT(CKC_A, KC_A, KC_LEFT_GUI)
+      SMTD_MT(CKC_S, KC_S, KC_LEFT_ALT)
+      SMTD_MT(CKC_D, KC_D, KC_LSFT)
+      SMTD_MT(CKC_F, KC_F, KC_LEFT_CTRL)
+      SMTD_MT(CKC_J, KC_J, KC_LEFT_CTRL)
+      SMTD_MT(CKC_K, KC_K, KC_RSFT)
+      SMTD_MT(CKC_L, KC_L, KC_LEFT_ALT)
+
+      SMTD_LT(CKC_MINUS, KC_MINUS, 1)
+      SMTD_LT(CKC_P, KC_P, 3)
+      SMTD_LT(CKC_LNG2, KC_LNG2, 2)
+      SMTD_LT(CKC_SPC, KC_SPC, 3)
+      SMTD_LT(CKC_LNG1, KC_LNG1, 1)
+      SMTD_LT(CKC_ENT, KC_ENT, 2) 
+
+      case CKC_Q: {
+        switch (action) {
+          case SMTD_ACTION_TOUCH:
+            break;
+          case SMTD_ACTION_TAP:
+            switch (tap_count) {
+              case 0:
+                tap_code16(KC_ESC);
+                break;
+              case 1:
+                tap_code16(KC_Q);
+                break;
+              case 2:
+                tap_code16(KC_BSPC);
+                tap_code16(KC_ESC);
+                break;
+              default:
+                tap_code16(KC_ESC);
+                break;
+            }
+            break;
+          case SMTD_ACTION_HOLD:
+            register_code16(KC_ESC);
+            break;
+          case SMTD_ACTION_RELEASE:
+            unregister_code16(KC_ESC);
+            break;
+        }
+        break;
+      }
+    }
+}
+*/
+
+// CAPS WORD
+// bool caps_word_press_user(uint16_t keycode) {
+//   switch (keycode) {
+//     // Keycodes that continue Caps Word, with shift applied.
+//     case KC_A ... KC_Z:
+//     case KC_MINS:
+//     case TD(TD_Q):
+//       add_weak_mods(MOD_BIT(KC_LSFT));  // Apply shift to next key.
+//       return true;
+
+//     // Keycodes that continue Caps Word, without shifting.
+//     case KC_1 ... KC_0:
+//     case KC_BSPC:
+//     case KC_DEL:
+//     case KC_UNDS:
+//       return true;
+
+//     default:
+//       return false;  // Deactivate Caps Word.
+//   }
+// }
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+// //  if (!process_smtd(keycode, record)) {
+// //    return false;
+// //  }
+
+//   if (record->event.pressed) {
+//     static uint32_t last_key_pressed = 0;
+//     uint32_t now = timer_read32();
+//     if (TIMER_DIFF_32(now, last_key_pressed) > AUTO_DISABLE_IME_TIME) {
+//       set_disable_ime();
+//     }
+
+//     last_key_pressed = now;
+//   }
+
+  if (!process_select_word(keycode, record, SELWORD)) { return false; }
+
+//   const uint8_t mods = get_mods();
+// #ifndef NO_ACTION_ONESHOT
+//   uint8_t shift_mods = (mods | get_oneshot_mods()) & MOD_MASK_SHIFT;
+// #else
+//   uint8_t shift_mods = mods & MOD_MASK_SHIFT;
+// #endif  // NO_ACTION_ONESHOT
+
+  switch (keycode) {
+//     case MY_MACRO_0:
+//       if (record->event.pressed) {
+//         // WIN + SPACE (JIS ⇔ US配列切替)
+//         SEND_STRING(SS_LGUI(SS_TAP(X_SPACE)));
+//       }
+//       return false;
+//       break;
+//     case MY_MACRO_1:
+//       if (record->event.pressed) {
+//         // CTRL + HOME (先頭へ移動)
+//         SEND_STRING(SS_LCTL(SS_TAP(X_HOME)));
+//       }
+//       return false;
+//       break;
+//     case MY_MACRO_2:
+//       if (record->event.pressed) {
+//         // CTRL + END (最後へ移動)
+//         SEND_STRING(SS_LCTL(SS_TAP(X_END)));
+//       }
+//       return false;
+//       break;
+//     case MY_MACRO_3:
+//       if (record->event.pressed) {
+//         // CTRL + F3 (カーソル位置の単語で次へ検索)
+//         SEND_STRING(SS_LCTL(SS_TAP(X_F3)));
+//       }
+//       return false;
+//       break;
+//     case MY_MACRO_4:
+//       if (record->event.pressed) {
+//         // ALT + F5 (VSCode: 差分を次へ検索)
+//         SEND_STRING(SS_LALT(SS_TAP(X_F5)));
+//       }
+//       return false;
+//       break;
+//     case MY_MACRO_5:
+//       if (record->event.pressed) {
+//         // click して行全体をコピー
+//         SEND_STRING(SS_TAP(X_BTN1) SS_TAP(X_HOME) SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END)) SS_LCTL("c"));
+//       }
+//       return false;
+//       break;
+
+//     case ARROW:  // Arrow macro, types -> or =>.
+//       if (record->event.pressed) {
+//         if (shift_mods) {
+//           if (shift_mods != MOD_MASK_SHIFT) {
+// #ifndef NO_ACTION_ONESHOT
+//             del_oneshot_mods(MOD_MASK_SHIFT);
+// #endif  // NO_ACTION_ONESHOT
+//             unregister_mods(MOD_MASK_SHIFT);
+//           }
+//           SEND_STRING("=>");
+//           register_mods(mods);            // Restore mods.
+//         } else {
+//           SEND_STRING("->");
+//         }
+//       }
+// //      return false;
+//       break;
+
+//     case M_UPDIR:
+//       if (record->event.pressed) {
+//         SEND_STRING(/*.*/"./");
+//       }
+//       return false;
+//       break;
+
+//     case KC_BSPC:
+//       if (record->event.pressed) {  // On key press.
+//         if (shift_mods) {  // At least one shift key is held.
+//           registered_key = KC_DEL;
+//           // If one shift is held, clear it from the mods. But if both
+//           // shifts are held, leave as is to send Shift + Del.
+//           if (shift_mods != MOD_MASK_SHIFT) {
+// #ifndef NO_ACTION_ONESHOT
+//             del_oneshot_mods(MOD_MASK_SHIFT);
+// #endif  // NO_ACTION_ONESHOT
+//             unregister_mods(MOD_MASK_SHIFT);
+//           }
+//         } else {
+//           registered_key = KC_BSPC;
+//         }
+
+//         register_code(registered_key);
+//         set_mods(mods);
+//       } else {  // On key release.
+//         unregister_code(registered_key);
+//       }
+//       return false;
+//       break;
+
+//     // holdで Shift、tapで Caps Word 起動
+//     case LSFT_T(KC_LSFT):
+//         if (record->tap.count && record->event.pressed) {
+//             caps_word_on(); // Turns Caps Word on
+//             return false;   // Return false to ignore further processing of key
+//         }
+//         break;
+
+    case A2J_TOGG:
+      if (record->event.pressed) {
+        set_jis_mode(!is_jis_mode());
+      }
+      return false;
+      break;
+    case CW_ON:
+      if (record->event.pressed) {
+        caps_word_on();
+      }
+      return false;
+      break;
+
+    // SCRL_MO_VRT/HOR/FREの実装
+    // スクロールのデフォルトモードは垂直スクロール
+    case SCRL_MO_VRT:
+      keyball_set_scroll_mode(record->event.pressed);
+      if (record->event.pressed) {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      } else {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      }
+      return true;
+      break;
+    case SCRL_MO_HOR:
+      keyball_set_scroll_mode(record->event.pressed);
+      if (record->event.pressed) {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_HORIZONTAL);
+      } else {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      }
+      return true;
+      break;
+    case SCRL_MO_FRE:
+      keyball_set_scroll_mode(record->event.pressed);
+      if (record->event.pressed) {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_FREE);
+      } else {
+        keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      }
+      return true;
+      break;
+  }
+
+  if (is_jis_mode()) {
+    return process_record_user_a2j(keycode, record);
+  }
+
+  return true;
+}
