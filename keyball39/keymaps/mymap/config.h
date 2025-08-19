@@ -52,19 +52,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef KEYBALL_SCROLLSNAP_ENABLE
 #define KEYBALL_SCROLLSNAP_ENABLE 1
 
+// scroll_inv
+#define KEYBALL_SCROLL_INVERT 1
+
 // 水平方向の閾値
 #undef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
 #define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 1
 
 //default
 #undef  KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 1100
+#define KEYBALL_CPI_DEFAULT 2000
 
 #undef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 4
-
-// scroll_inv
-//#define KEYBALL_SCROLL_INV 1
+#define KEYBALL_SCROLL_DIV_DEFAULT 3
 
 /* #define TAP_CODE_DELAY 5 */
 
