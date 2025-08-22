@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball.h"
 #include "drivers/sensors/pmw33xx_common.h"
 #include "pointing_device.h"
+#include "os_detection.h"
 
 #include <string.h>
 
@@ -160,29 +161,46 @@ __attribute__((weak))
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              report_mouse_t *output,
                                              bool is_left) {
-    // 120 に固定（Windows の WHEEL_DELTA と同値）
-    enum { HIRES_DELTA = 120 };
+    // ★ switchの外で宣言・初期化（必ずここから値を作る）
+    int16_t out_x = 0;
+    int16_t out_y = 0;
 
-    // フレーム間で保持する蓄積バッファ
-    static int16_t acc_x = 0;
-    static int16_t acc_y = 0;
+    switch (detected_host_os()) {
+      case OS_MACOS: {
+        // ブロックで囲むこと！（case直後の宣言を合法にする）
+        enum { HIRES_DELTA = 120 };
+        static int16_t acc_x = 0, acc_y = 0;
+        static uint8_t last_sdiv = 0;        // 任意: 感度変更時に余りをリセット
 
-    // 入力（必要なら係数で増減調整）
-    int16_t sx = (int16_t)report->x;
-    int16_t sy = (int16_t)report->y;
+        int16_t sx = (int16_t)report->x;
+        int16_t sy = (int16_t)report->y;
+        uint8_t sdiv = keyball_get_scroll_div();
+        if (sdiv != last_sdiv) {             // 感度を変えたフレームの跳ねを抑制
+            acc_x = 0; acc_y = 0;
+            last_sdiv = sdiv;
+        }
 
-    // お好みで感度調整したい場合は scroll_div を掛ける（1〜7）
-    uint8_t sdiv = keyball_get_scroll_div();  // 既存関数（1 が最小）
-    acc_x += sx * sdiv;
-    acc_y += sy * sdiv;
+        acc_x += sx * sdiv;
+        acc_y += sy * sdiv;
 
-    // 120 で割って「送る量（商）」を取り出し、余りは保持
-    int16_t out_x = acc_x / HIRES_DELTA;
-    int16_t out_y = acc_y / HIRES_DELTA;
-    acc_x -= out_x * HIRES_DELTA;
-    acc_y -= out_y * HIRES_DELTA;
+        out_x = acc_x / HIRES_DELTA;
+        out_y = acc_y / HIRES_DELTA;
 
-    // ---- モデルに合わせてホイールに反映（あなたの既存ロジックを踏襲）----
+        acc_x -= out_x * HIRES_DELTA;
+        acc_y -= out_y * HIRES_DELTA;
+        break;
+      }
+
+      default: {
+        // Windows/Linux 等はそのまま（必要なら sdiv を掛ける）
+        uint8_t sdiv = keyball_get_scroll_div();
+        out_x = (int16_t)report->x * sdiv;
+        out_y = (int16_t)report->y * sdiv;
+        break;
+      }
+    }
+
+    // ---- モデルに合わせてホイールに反映（従来ロジック）----
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
     output->h = -CONSTRAIN_HV(out_x);
     output->v =  CONSTRAIN_HV(out_y);
@@ -194,7 +212,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 #   error("unknown Keyball model")
 #endif
 
-    // ---- スナップ処理（既存）----
+    // ---- スナップ処理 ----
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
     uint32_t now = timer_read32();
     if (output->h != 0 || output->v != 0) {
@@ -203,8 +221,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
         keyball.scroll_snap_tension_h = 0;
     }
     if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
-        // 旧実装互換：張力計算は今回の「商」を使う
-        keyball.scroll_snap_tension_h += out_y;
+        keyball.scroll_snap_tension_h += out_y;  // ★ out_y は必ず代入済み
         output->h = 0;
     }
 #elif KEYBALL_SCROLLSNAP_ENABLE == 2
@@ -220,6 +237,76 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->v = -output->v;
 #endif
 }
+// __attribute__((weak))
+// void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
+//                                              report_mouse_t *output,
+//                                              bool is_left) {
+//     switch(detected_host_os()){
+//       case OS_MACOS:
+//         // 120 に固定（Windows の WHEEL_DELTA と同値）
+//         enum { HIRES_DELTA = 120 };
+
+//         // フレーム間で保持する蓄積バッファ
+//         static int16_t acc_x = 0;
+//         static int16_t acc_y = 0;
+
+//         // 入力（必要なら係数で増減調整）
+//         int16_t sx = (int16_t)report->x;
+//         int16_t sy = (int16_t)report->y;
+
+//         // お好みで感度調整したい場合は scroll_div を掛ける（1〜7）
+//         uint8_t sdiv = keyball_get_scroll_div();  // 既存関数（1 が最小）
+//         acc_x += sx * sdiv;
+//         acc_y += sy * sdiv;
+
+//         // 120 で割って「送る量（商）」を取り出し、余りは保持
+//         int16_t out_x = acc_x / HIRES_DELTA;
+//         int16_t out_y = acc_y / HIRES_DELTA;
+//         acc_x -= out_x * HIRES_DELTA;
+//         acc_y -= out_y * HIRES_DELTA;
+
+//         break;
+
+//       default:
+//         // consume motion of trackball.
+//         int16_t x = report->x;
+//         int16_t y = report->y;
+
+//     }
+
+//       output->h = -CONSTRAIN_HV(out_x);
+//       output->v =  CONSTRAIN_HV(out_y);
+//       if (is_left) {
+//           output->h = -output->h;
+//           output->v = -output->v;
+//       }
+
+//     // ---- スナップ処理（既存）----
+// #if KEYBALL_SCROLLSNAP_ENABLE == 1
+//     uint32_t now = timer_read32();
+//     if (output->h != 0 || output->v != 0) {
+//         keyball.scroll_snap_last = now;
+//     } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
+//         keyball.scroll_snap_tension_h = 0;
+//     }
+//     if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
+//         // 旧実装互換：張力計算は今回の「商」を使う
+//         keyball.scroll_snap_tension_h += out_y;
+//         output->h = 0;
+//     }
+// #elif KEYBALL_SCROLLSNAP_ENABLE == 2
+//     switch (keyball_get_scrollsnap_mode()) {
+//         case KEYBALL_SCROLLSNAP_MODE_VERTICAL:   output->h = 0; break;
+//         case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL: output->v = 0; break;
+//         default: break;
+//     }
+// #endif
+
+// #if KEYBALL_SCROLL_INVERT == 1
+//     output->h = -output->h;
+//     output->v = -output->v;
+// #endif
+// }
 
 // __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report, report_mouse_t *output, bool is_left) {
 //     // consume motion of trackball.

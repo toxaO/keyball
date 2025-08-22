@@ -25,16 +25,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #ifndef KEYBALL_SCROLL_DIV_DEFAULT
-#    define KEYBALL_SCROLL_DIV_DEFAULT 3 // 4: 1/8 (1/2^(n-1))
+#    define KEYBALL_SCROLL_DIV_DEFAULT 3
 #endif
 
 #ifndef KEYBALL_SCROLL_INVERT
-#    define KEYBALL_SCROLL_INVERT 1
+#    define KEYBALL_SCROLL_INVERT 0
 #endif
 
-#ifndef KEYBALL_SCROLLBALL_INHIVITOR
-#    define KEYBALL_SCROLLBALL_INHIVITOR 50
-#endif
+// #ifndef KEYBALL_SCROLLBALL_INHIVITOR
+// #    define KEYBALL_SCROLLBALL_INHIVITOR 50
+// #endif
 
 /// To disable scroll snap feature, define 0 in your config.h
 #ifndef KEYBALL_SCROLLSNAP_ENABLE
