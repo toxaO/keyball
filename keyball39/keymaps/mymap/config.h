@@ -34,19 +34,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_EFFECT_ALTERNATING
 #    define RGBLIGHT_EFFECT_TWINKLE
 
-#    undef RGBLIGHT_DEFAULT_MODE
-#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
-#    define RGBLIGHT_DEFAULT_HUE 127
-#    define RGBLIGHT_DEFAULT_SAT 255
-#    define RGBLIGHT_DEFAULT_VAL 100
-#    undef RGBLIGHT_LIMIT_VAL
-#    define RGBLIGHT_LIMIT_VAL 125
-#    define RGBLIGHT_LAYERS
-#    define RGBLIGHT_LAYERS_RETAIN_VAL
-#endif
+// #    undef RGBLIGHT_DEFAULT_MODE
+// #    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
+// #    define RGBLIGHT_DEFAULT_HUE 127
+// #    define RGBLIGHT_DEFAULT_SAT 255
+// #    define RGBLIGHT_DEFAULT_VAL 100
+// #    undef RGBLIGHT_LIMIT_VAL
+// #    define RGBLIGHT_LIMIT_VAL 125
+// #    define RGBLIGHT_LAYERS
+// #    define RGBLIGHT_LAYERS_RETAIN_VAL
 
-// repeat key macro用
-/* #define M_REPEAT_TH 300 */
+// test
+#    undef RGBLIGHT_DEFAULT_MODE
+#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_STATIC_LIGHT
+
+#    define RGBLIGHT_DEFAULT_HUE 2
+#    define RGBLIGHT_DEFAULT_SAT 2
+#    define RGBLIGHT_DEFAULT_VAL 2
+
+#    undef RGBLIGHT_LIMIT_VAL
+#    define RGBLIGHT_LIMIT_VAL 8
+
+#    define RGBLIGHT_LAYERS
+#    define RGBLIGHT_MAX_LAYERS 32
+#    define RGBLIGHT_LAYERS_RETAIN_VAL
+#    define SPLIT_LAYER_STATE_ENABLE
+#endif
 
 // scroll snap
 #undef KEYBALL_SCROLLSNAP_ENABLE
@@ -66,8 +79,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef KEYBALL_SCROLL_DIV_DEFAULT
 #define KEYBALL_SCROLL_DIV_DEFAULT 3
 
-/* #define TAP_CODE_DELAY 5 */
-
 // tap dance
 #define TAPPING_TERM 175
 #define TAPPING_TERM_PER_KEY
@@ -75,8 +86,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // レイヤー数増加させたい時はundefして16bitを追加
 #undef LAYER_STATE_8BIT
 #define LAYER_STATE_16BIT
-
-// 容量削減
-#undef LOCKING_SUPPORT_ENABLE
-#undef LOCKING_RESYNC_ENABLE
-#define NO_MUSIC_MODE

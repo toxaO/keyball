@@ -2,6 +2,7 @@
 #include "quantum.h"
 #include "my_keycode.h"
 #include "lib/keyball/keyball.h"
+#include "util.h"
 
 /*
 #HSV_COLOR_CODE
@@ -28,6 +29,7 @@ HSV_YELLOW
 ------------------------------
 */
 
+
 // layer state setting ------------------------------
 layer_state_t layer_state_set_user(layer_state_t state) {
 
@@ -35,9 +37,11 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     keyball_set_scroll_mode(get_highest_layer(state) == 7);
 
     // led test
-    rgblight_sethsv(1, 1, 1);
-    // rgblight_sethsv_at(HSV_WHITE, 0);
-    // rgblight_mode(RGBLIGHT_MODE_BREATHING + 0);
+    // indexがmasterの範囲なら動作する
+    // rgblight_sethsv(1, 1, 1);
+    // rgblight_sethsv_range(HSV_GREEN, 0, 5);
+
+    rgblight_set_layer_state(0, layer_state_cmp(state, 1));
 
     ////LED------------------------------
     //uint8_t layer = biton32(state);
