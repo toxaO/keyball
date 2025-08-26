@@ -7,14 +7,6 @@ int host_os;
 
 void keyboard_post_init_user(void) {
     host_os = detected_host_os();
-    switch (host_os) {
-      case OS_WINDOWS:
-        keyball_set_scroll_div(2);
-        break;
-
-      default:
-        keyball_set_scroll_div(5);
-    }
 }
 
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.
@@ -51,3 +43,6 @@ void tap_code16_os(
   }
 }
 
+void reset_eeprom(void) {
+  eeconfig_init();
+}

@@ -214,4 +214,5 @@ enum custom_keycodes {
     MULTI_B,
     EISU_S_N,
     KANA_C_N,
+    EEPROM_RST,
 };

@@ -3,6 +3,8 @@
 #include "os_detection.h"
 #include "my_keycode.h"
 #include "util.h"
+#include QMK_KEYBOARD_H
+#include "eeconfig.h"
 
 // mod override用変数
 uint8_t mod_state;
@@ -246,13 +248,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               canceller = false;
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                 tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
-                /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                /*   // mission control */
-                /*   tap_code16(m_MIS_CON); */
-                /* } else { */
-                /*   // task control */
-                /*   tap_code16(G(KC_TAB)); */
-                /* } */
               }
               repeat_speed = NORMAL;
             }
@@ -289,11 +284,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
-                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                  /*   tap_code16(G(KC_L)); */
-                  /* } else { */
-                  /*   tap_code16(C(KC_L)); */
-                  /* } */
                 }
                 repeat_speed = NORMAL;
             }
@@ -312,11 +302,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 state = NONE;
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
-                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                  /*   tap_code16(G(KC_T)); */
-                  /* } else { */
-                  /*   tap_code16(C(KC_T)); */
-                  /* } */
                 }
                 repeat_speed = NORMAL;
             }
@@ -333,16 +318,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 // キーアップ時
                 swipe_mode = NO_SW;
                 state = NONE;
+                if (host_os == OS_WINDOWS){
+                  unregister_code(KC_LGUI);
+                }
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
-                  /* if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){ */
-                  /*   tap_code16(A(C(KC_ENT))); */
-                  /* } else { */
-                  /*   tap_code16(G(KC_Z)); */
-                  /* } */
-                  if (host_os == OS_WINDOWS){
-                    unregister_code(KC_LGUI);
-                  }
                 }
                 repeat_speed = NORMAL;
             }
@@ -352,7 +332,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
               switch(swipe_mode) {
                 case APP_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  if (host_os == OS_MACOS || host_os == OS_IOS){
                     tap_code16(m_L_DESK); // spotlight
                   } else {
                     tap_code16(w_L_DESK); // windows key
@@ -367,7 +347,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   break;
 
                 case BRO_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  if (host_os == OS_MACOS || host_os == OS_IOS){
                     tap_code16(G(KC_LEFT)); // browse back
                   } else {
                     tap_code16(KC_WBAK); // windows key
@@ -378,7 +358,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   break;
 
                 default:
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                if (host_os == OS_MACOS || host_os == OS_IOS){
                   tap_code16(G(KC_Z));
                 } else {
                   tap_code16(C(KC_Z));
@@ -393,7 +373,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
               switch(swipe_mode) {
                 case APP_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  if (host_os == OS_MACOS || host_os == OS_IOS){
                     tap_code16(m_R_DESK); // spotlight
                   } else {
                     tap_code16(w_R_DESK); // windows key
@@ -408,7 +388,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   break;
 
                 case BRO_SW:
-                  if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                  if (host_os == OS_MACOS || host_os == OS_IOS){
                     tap_code16(G(KC_RIGHT)); // browse back
                   } else {
                     tap_code16(KC_WFWD); // windows key
@@ -419,13 +399,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   break;
 
                 default:
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS){
+                if (host_os == OS_MACOS || host_os == OS_IOS){
                   tap_code16(S(G(KC_Z)));
                 } else {
                   tap_code16(S(C(KC_Z)));
                 }
                   break;
               }
+            } else {
+            }
+            break;
+
+        case EEPROM_RST:
+            if (record->event.pressed) {
+              reset_eeprom();
             } else {
             }
             break;

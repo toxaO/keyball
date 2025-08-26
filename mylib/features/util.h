@@ -11,6 +11,9 @@ void tap_code16_os(
     uint16_t mac,
     uint16_t ios,
     uint16_t linux,
-    uint16_t unsure);
+    uint16_t unsure
+    );
+
+void reset_eeprom(void);
 
 #endif // UTIL_H
