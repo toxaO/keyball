@@ -1,4 +1,0 @@
-swipe level
- update_layer_led function
-
-confirms

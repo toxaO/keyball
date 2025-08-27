@@ -1,3 +1,5 @@
+// keyball39
+// mymap2.0
 /*
 This is the c configuration file for the keymap
 
@@ -32,23 +34,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_EFFECT_ALTERNATING
 #    define RGBLIGHT_EFFECT_TWINKLE
 
-#    undef RGBLIGHT_DEFAULT_MODE
-#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
-#    define RGBLIGHT_DEFAULT_HUE 127
-#    define RGBLIGHT_DEFAULT_SAT 255
-#    define RGBLIGHT_DEFAULT_VAL 100
-#    undef RGBLIGHT_LIMIT_VAL
-#    define RGBLIGHT_LIMIT_VAL 125
-#    define RGBLIGHT_LAYERS
-#    define RGBLIGHT_LAYERS_RETAIN_VAL
-#endif
+// #    undef RGBLIGHT_DEFAULT_MODE
+// #    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
+// #    define RGBLIGHT_DEFAULT_HUE 127
+// #    define RGBLIGHT_DEFAULT_SAT 255
+// #    define RGBLIGHT_DEFAULT_VAL 100
+// #    undef RGBLIGHT_LIMIT_VAL
+// #    define RGBLIGHT_LIMIT_VAL 125
+// #    define RGBLIGHT_LAYERS
+// #    define RGBLIGHT_LAYERS_RETAIN_VAL
 
-// repeat key macro用
-/* #define M_REPEAT_TH 300 */
+// test
+#    undef RGBLIGHT_DEFAULT_MODE
+#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_STATIC_LIGHT
+
+#    define RGBLIGHT_DEFAULT_HUE 2
+#    define RGBLIGHT_DEFAULT_SAT 2
+#    define RGBLIGHT_DEFAULT_VAL 2
+
+#    undef RGBLIGHT_LIMIT_VAL
+#    define RGBLIGHT_LIMIT_VAL 8
+
+#    define RGBLIGHT_LAYERS
+#    define RGBLIGHT_MAX_LAYERS 32
+#    define RGBLIGHT_LAYERS_RETAIN_VAL
+#    define SPLIT_LAYER_STATE_ENABLE
+#endif
 
 // scroll snap
 #undef KEYBALL_SCROLLSNAP_ENABLE
 #define KEYBALL_SCROLLSNAP_ENABLE 1
+
+// scroll_inv
+#define KEYBALL_SCROLL_INVERT 1
 
 // 水平方向の閾値
 #undef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
@@ -56,15 +74,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //default
 #undef  KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 1100
+#define KEYBALL_CPI_DEFAULT 2000
 
 #undef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 4
-
-// scroll_inv
-//#define KEYBALL_SCROLL_INV 1
-
-/* #define TAP_CODE_DELAY 5 */
+#define KEYBALL_SCROLL_DIV_DEFAULT 3
 
 // tap dance
 #define TAPPING_TERM 175

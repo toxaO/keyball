@@ -41,6 +41,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_LED_COUNT      60
 #    define RGBLED_SPLIT    { 30, 30 }  // (30 + 29)
+#    define LEFT_LEDS 30
+#    define RIGHT_LEDS 30
 #    ifndef RGBLIGHT_LIMIT_VAL
 #        define RGBLIGHT_LIMIT_VAL  150 // limitated for power consumption
 #    endif
