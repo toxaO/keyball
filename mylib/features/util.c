@@ -5,21 +5,8 @@
 
 int host_os;
 
-// 右手だけ光らせるレイヤ（例：右手の先頭から4灯をシアン）
-const rgblight_segment_t PROGMEM right_only_layer[] =
-    RGBLIGHT_LAYER_SEGMENTS({ LEFT_LEDS + 0, 14, HSV_CYAN });
-
-// （必要なら他のレイヤも足せる）
-const rgblight_segment_t* const PROGMEM my_rgb_layers[] =
-    RGBLIGHT_LAYERS_LIST(
-        right_only_layer          // レイヤID 0
-    );
-
 void keyboard_post_init_user(void) {
     host_os = detected_host_os();
-    rgblight_enable_noeeprom();
-    rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-    rgblight_layers = my_rgb_layers;
 }
 
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.
