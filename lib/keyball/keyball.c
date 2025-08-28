@@ -25,7 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball.h"
 #include "drivers/sensors/pmw33xx_common.h"
 #include "pointing_device.h"
+
 #include "os_detection.h"
+#include "eeprom.h"
+#include "eeconfig.h"
 
 #include <string.h>
 
@@ -43,9 +46,60 @@ const uint16_t AML_TIMEOUT_MAX = 1000;
 const uint16_t AML_TIMEOUT_QU  = 50;   // Quantization Unit
 
 static const char BL = '\xB0'; // Blank indicator character
-static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";
-static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5";
+// static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";
+// static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5";
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// new keyball profiles
+// ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
+typedef struct __attribute__((packed)) {
+    uint32_t magic;     // 'KBP1'
+    uint16_t version;   // 1
+    uint16_t reserved;  // 0
+    uint16_t cpi[8];    // 100..CPI_MAX
+    uint8_t  sdiv[8];   // 1..SCROLL_DIV_MAX
+    uint8_t  inv[8];    // 0/1
+} keyball_profiles_t;
+
+#define KBPF_MAGIC   0x4B425031u /* 'KBP1' */
+#define KBPF_VERSION 1
+
+_Static_assert(sizeof(keyball_profiles_t) == 40, "keyball_profiles_t must be 40 bytes");
+
+// ---- 保存ブロックサイズ ----
+#define KBPF_EE_SIZE (sizeof(keyball_profiles_t))
+
+// ---- 保存先アドレス決定（VIA優先 → eeconfig系 → 最終フォールバック）----
+#ifndef KBPF_EE_ADDR   // ← config.h で手動指定があればそれを使う
+#  ifdef VIA_ENABLE
+#    include "via.h"
+     // VIA のカスタム領域を使用
+#    define KBPF_EE_ADDR (VIA_EEPROM_CUSTOM_CONFIG_ADDR)
+     _Static_assert(VIA_EEPROM_CUSTOM_CONFIG_SIZE >= KBPF_EE_SIZE,
+                    "VIA custom area is too small for keyball profiles");
+#  else
+     // QMK の世代差を全部カバー
+#    if defined(EECONFIG_END)
+#      define KBPF_EE_ADDR (EECONFIG_END)
+#    elif defined(EECONFIG_SIZE)
+#      define KBPF_EE_ADDR (EECONFIG_SIZE)
+#    elif defined(EECONFIG_USER)
+       // ユーザ 32bit の直後
+#      define KBPF_EE_ADDR (EECONFIG_USER + sizeof(uint32_t))
+#    elif defined(EECONFIG_KB)
+       // キーボード 32bit の直後
+#      define KBPF_EE_ADDR (EECONFIG_KB + sizeof(uint32_t))
+#    else
+       // 最終フォールバック（古い/特殊環境用）。必要に応じて config.h で上書き推奨。
+#      define KBPF_EE_ADDR (512)  // 例: AVR 1KB EEPROM想定で中腹に配置
+#    endif
+#  endif
+#endif
+
+static keyball_profiles_t kbpf;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// old keyball config
 keyball_t keyball = {
     .this_have_ball = false,
     .that_enable    = false,
@@ -76,46 +130,46 @@ static inline int8_t clip2int8(int16_t v) {
 }
 
 #ifdef OLED_ENABLE
-static const char *format_4d(int16_t d) {
-    static char buf[5] = {0}; // max width (4) + NUL (1)
-    char        lead   = ' ';
+// static const char *format_4d(int16_t d) {
+//     static char buf[5] = {0}; // max width (4) + NUL (1)
+//     char        lead   = ' ';
 
-    if (d > 9999) {
-        d    = 9999;
-    } else if (d < -9999) {
-        d    = -9999;
-    }
+//     if (d > 9999) {
+//         d    = 9999;
+//     } else if (d < -9999) {
+//         d    = -9999;
+//     }
 
-    if (d < 0) {
-        d    = -d;
-        lead = '-';
-    }
-    buf[3] = (d % 10) + '0';
-    d /= 10;
-    if (d == 0) {
-        buf[2] = lead;
-        lead   = ' ';
-    } else {
-        buf[2] = (d % 10) + '0';
-        d /= 10;
-    }
-    if (d == 0) {
-        buf[1] = lead;
-        lead   = ' ';
-    } else {
-        buf[1] = (d % 10) + '0';
-        d /= 10;
-    }
-    buf[0] = lead;
-    return buf;
-}
+//     if (d < 0) {
+//         d    = -d;
+//         lead = '-';
+//     }
+//     buf[3] = (d % 10) + '0';
+//     d /= 10;
+//     if (d == 0) {
+//         buf[2] = lead;
+//         lead   = ' ';
+//     } else {
+//         buf[2] = (d % 10) + '0';
+//         d /= 10;
+//     }
+//     if (d == 0) {
+//         buf[1] = lead;
+//         lead   = ' ';
+//     } else {
+//         buf[1] = (d % 10) + '0';
+//         d /= 10;
+//     }
+//     buf[0] = lead;
+//     return buf;
+// }
 
-static const char *format_cpi(int16_t d) {
-    static char buf[10] = {0};
+// static const char *format_cpi(int16_t d) {
+//     static char buf[10] = {0};
 
-    sprintf(buf, "%5d", d);
-    return buf;
-}
+//     sprintf(buf, "%5d", d);
+//     return buf;
+// }
 
 static char to_1x(uint8_t x) {
     x &= 0x0f;
@@ -128,9 +182,61 @@ static void add_cpi(int16_t delta) {
     keyball_set_cpi(v < 1 ? 1 : v);
 }
 
-static void add_scroll_div(int8_t delta) {
-    int8_t v = keyball_get_scroll_div() + delta;
-    keyball_set_scroll_div(v < 1 ? 1 : v);
+// static void add_scroll_div(int8_t delta) {
+//     int8_t v = keyball_get_scroll_div() + delta;
+//     keyball_set_scroll_div(v < 1 ? 1 : v);
+// }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// config relative utilities
+
+static inline uint8_t osi(void) {
+    uint8_t i = (uint8_t)detected_host_os();
+    return (i < 8) ? i : 0; // 範囲外は0
+}
+static inline uint16_t clamp_cpi(uint16_t c) {
+    if (c < 100)  c = 100;
+    if (c > CPI_MAX) c = CPI_MAX;
+    return c;
+}
+static inline uint8_t clamp_sdiv(uint8_t v) {
+    if (v < 1) v = 1;
+    if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
+    return v;
+}
+
+static void kb_profiles_defaults(void) {
+    for (int i = 0; i < 8; ++i) {
+        kbpf.cpi[i]  = KEYBALL_CPI_DEFAULT;
+        kbpf.sdiv[i] = KEYBALL_SCROLL_DIV_DEFAULT;
+        kbpf.inv[i]  = (KEYBALL_SCROLL_INVERT != 0);
+    }
+    kbpf.magic   = KBPF_MAGIC;
+    kbpf.version = KBPF_VERSION;
+    kbpf.reserved= 0;
+}
+
+static void kb_profiles_validate(void) {
+    if (kbpf.magic != KBPF_MAGIC || kbpf.version != KBPF_VERSION) {
+        kb_profiles_defaults();
+        return;
+    }
+    for (int i = 0; i < 8; ++i) {
+        kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
+        kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
+        kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
+    }
+}
+
+static void kb_profiles_read(void) {
+    // NG: eeprom_read_block(&kbpf, (void*)EECONFIG_KEYBALL_PROFILES_ADDR, sizeof(kbpf));
+    eeprom_read_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
+    kb_profiles_validate();
+}
+
+static void kb_profiles_write(void) {
+    // NG: eeprom_update_block(&kbpf, (void*)EECONFIG_KEYBALL_PROFILES_ADDR, sizeof(kbpf));
+    eeprom_update_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -232,11 +338,21 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     }
 #endif
 
-#if KEYBALL_SCROLL_INVERT == 1
-    output->h = -output->h;
-    output->v = -output->v;
-#endif
+// #if KEYBALL_SCROLL_INVERT == 1
+//     output->h = -output->h;
+//     output->v = -output->v;
+// #endif
+
+//////////////////////////////////////////////////////////////////////////////////////////
+    // new invert
+    // ランタイム反転（OS別）
+    if (kbpf.inv[osi()]) {
+        output->h = -output->h;
+        output->v = -output->v;
+    }
+
 }
+// old
 // __attribute__((weak))
 // void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 //                                              report_mouse_t *output,
@@ -448,55 +564,77 @@ const char PROGMEM code_to_name[] = {
 
 void keyball_oled_render_ballinfo(void) {
 #ifdef OLED_ENABLE
-    // Format: `Ball:{mouse x}{mouse y}{mouse h}{mouse v}`
-    //
-    // Output example:
-    //
-    //     Ball: -12  34   0   0
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //old
 
-    // 1st line, "Ball" label, mouse x, y, h, and v.
-    oled_write_P(PSTR("Ball\xB1"), false);
-    oled_write(format_4d(keyball.last_mouse.x), false);
-    oled_write(format_4d(keyball.last_mouse.y), false);
-    oled_write(format_4d(keyball.last_mouse.h), false);
-    oled_write(format_4d(keyball.last_mouse.v), false);
+    // // Format: `Ball:{mouse x}{mouse y}{mouse h}{mouse v}`
+    // //
+    // // Output example:
+    // //
+    // //     Ball: -12  34   0   0
 
-    // 2nd line, empty label and CPI
-    oled_write_P(PSTR("    \xB1\xBC\xBD"), false);
-    oled_write(format_cpi(keyball_get_cpi()), false);
-    oled_write_char(' ', false);
+    // // 1st line, "Ball" label, mouse x, y, h, and v.
+    // oled_write_P(PSTR("Ball\xB1"), false);
+    // oled_write(format_4d(keyball.last_mouse.x), false);
+    // oled_write(format_4d(keyball.last_mouse.y), false);
+    // oled_write(format_4d(keyball.last_mouse.h), false);
+    // oled_write(format_4d(keyball.last_mouse.v), false);
 
-    // indicate scroll snap mode: "VT" (vertical), "HN" (horiozntal), and "SCR" (free)
-#if 1 && KEYBALL_SCROLLSNAP_ENABLE == 2
-    switch (keyball_get_scrollsnap_mode()) {
-        case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
-            oled_write_P(PSTR("VT"), false);
-            break;
-        case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
-            oled_write_P(PSTR("HO"), false);
-            break;
-        default:
-            oled_write_P(PSTR("\xBE\xBF"), false);
-            break;
-    }
-#else
-    oled_write_P(PSTR("\xBE\xBF"), false);
-#endif
-    // indicate scroll mode: on/off
-    if (keyball.scroll_mode) {
-        oled_write_P(LFSTR_ON, false);
-    } else {
-        oled_write_P(LFSTR_OFF, false);
-    }
+    // // 2nd line, empty label and CPI
+    // oled_write_P(PSTR("    \xB1\xBC\xBD"), false);
+    // oled_write(format_cpi(keyball_get_cpi()), false);
+    // oled_write_char(' ', false);
 
-    // indicate scroll divider:
-    oled_write_P(PSTR(" \xC0\xC1"), false);
-    // oled_write_char('0' + keyball_get_scroll_div(), false);
+    // // indicate scroll snap mode: "VT" (vertical), "HN" (horiozntal), and "SCR" (free)
+// #if 1 && KEYBALL_SCROLLSNAP_ENABLE == 2
+    // switch (keyball_get_scrollsnap_mode()) {
+    //     case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
+    //         oled_write_P(PSTR("VT"), false);
+    //         break;
+    //     case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
+    //         oled_write_P(PSTR("HO"), false);
+    //         break;
+    //     default:
+    //         oled_write_P(PSTR("\xBE\xBF"), false);
+    //         break;
+    // }
+// #else
+    // oled_write_P(PSTR("\xBE\xBF"), false);
+// #endif
+    // // indicate scroll mode: on/off
+    // if (keyball.scroll_mode) {
+    //     oled_write_P(LFSTR_ON, false);
+    // } else {
+    //     oled_write_P(LFSTR_OFF, false);
+    // }
+
+    // // indicate scroll divider:
+    // oled_write_P(PSTR(" \xC0\xC1"), false);
+    // // oled_write_char('0' + keyball_get_scroll_div(), false);
+    // {
+    // char buf[4];
+    // snprintf(buf, sizeof(buf), "%u", (unsigned)keyball_get_scroll_div());
+    // oled_write(buf, false);
+    // }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // new
+    oled_write_P(PSTR("CPI:"), false);
     {
-    char buf[4];
-    snprintf(buf, sizeof(buf), "%u", (unsigned)keyball_get_scroll_div());
-    oled_write(buf, false);
+        char b[6];
+        snprintf(b, sizeof b, "%4u", (unsigned)keyball_get_cpi());
+        oled_write(b, false);
     }
+    oled_write_P(PSTR(" DIV:"), false);
+    {
+        char b[4];
+        snprintf(b, sizeof b, "%u", (unsigned)keyball_get_scroll_div());
+        oled_write(b, false);
+    }
+    oled_write_P(PSTR(" INV:"), false);
+    oled_write_char(kbpf.inv[osi()] ? '1' : '0', false);
+    oled_write_ln_P(PSTR(""), false);
+
 #endif
 }
 
@@ -599,41 +737,64 @@ void keyball_set_scrollsnap_mode(keyball_scrollsnap_mode_t mode) {
 #endif
 }
 
-uint8_t keyball_get_scroll_div(void) {
-    uint8_t v = keyball.scroll_div;
-    // v==0 のときにデフォルトを使いたい設計ならここで決め打ち
-    // （デフォルトが 0 でも落ちないように 1 を最低保証）
-#if defined(KEYBALL_SCROLL_DIV_DEFAULT)
-    if (v < 1) v = (KEYBALL_SCROLL_DIV_DEFAULT < 1) ? 1 : KEYBALL_SCROLL_DIV_DEFAULT;
-#else
-    if (v < 1) v = 1;
-#endif
-    if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
-    return v;
-}
-
-void keyball_set_scroll_div(uint8_t div) {
-    if (div < 1) div = 1;
-    if (div > SCROLL_DIV_MAX) div = SCROLL_DIV_MAX;
-    keyball.scroll_div = div;
-}
-
-
 uint16_t keyball_get_cpi(void) {
-    return keyball.cpi_value == 0 ? CPI_DEFAULT : keyball.cpi_value;
+    return clamp_cpi(kbpf.cpi[osi()]);
 }
-
 void keyball_set_cpi(uint16_t cpi) {
-    if (cpi > CPI_MAX + 1) {
-        cpi = CPI_MAX;
-    }
-
-    keyball.cpi_value   = cpi;
-    dprintf("set cpi: %u\n", keyball.cpi_value);
-    pointing_device_set_cpi_on_side(true, keyball.cpi_value);
+    cpi = clamp_cpi(cpi);
+    kbpf.cpi[osi()] = cpi;
+    keyball.cpi_value = cpi; // 互換
+    dprintf("set cpi(OS=%u): %u\n", osi(), cpi);
+    pointing_device_set_cpi_on_side(true,  keyball.cpi_value);
     pointing_device_set_cpi_on_side(false, keyball.cpi_value);
-    dprintf("actual after cpi: %u\n", pointing_device_get_cpi());
 }
+
+uint8_t keyball_get_scroll_div(void) {
+    return clamp_sdiv(kbpf.sdiv[osi()]);
+}
+void keyball_set_scroll_div(uint8_t div) {
+    div = clamp_sdiv(div);
+    kbpf.sdiv[osi()] = div;
+    keyball.scroll_div = div; // 互換
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// old getter and setter
+// uint8_t keyball_get_scroll_div(void) {
+//     uint8_t v = keyball.scroll_div;
+//     // v==0 のときにデフォルトを使いたい設計ならここで決め打ち
+//     // （デフォルトが 0 でも落ちないように 1 を最低保証）
+// #if defined(KEYBALL_SCROLL_DIV_DEFAULT)
+//     if (v < 1) v = (KEYBALL_SCROLL_DIV_DEFAULT < 1) ? 1 : KEYBALL_SCROLL_DIV_DEFAULT;
+// #else
+//     if (v < 1) v = 1;
+// #endif
+//     if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
+//     return v;
+// }
+
+// void keyball_set_scroll_div(uint8_t div) {
+//     if (div < 1) div = 1;
+//     if (div > SCROLL_DIV_MAX) div = SCROLL_DIV_MAX;
+//     keyball.scroll_div = div;
+// }
+
+
+// uint16_t keyball_get_cpi(void) {
+//     return keyball.cpi_value == 0 ? CPI_DEFAULT : keyball.cpi_value;
+// }
+
+// void keyball_set_cpi(uint16_t cpi) {
+//     if (cpi > CPI_MAX + 1) {
+//         cpi = CPI_MAX;
+//     }
+
+//     keyball.cpi_value   = cpi;
+//     dprintf("set cpi: %u\n", keyball.cpi_value);
+//     pointing_device_set_cpi_on_side(true, keyball.cpi_value);
+//     pointing_device_set_cpi_on_side(false, keyball.cpi_value);
+//     dprintf("actual after cpi: %u\n", pointing_device_get_cpi());
+// }
 
 //////////////////////////////////////////////////////////////////////////////
 // Keyboard hooks
@@ -647,26 +808,36 @@ void keyboard_post_init_kb(void) {
 #endif
 
     keyball.this_have_ball = pmw33xx_init_ok;
-    keyball_set_cpi(CPI_DEFAULT);
-    keyball_set_scroll_div(KEYBALL_SCROLL_DIV_DEFAULT);  // 最低でも 1 以上になる
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // new config
+    kb_profiles_defaults(); // まず既定値
+    kb_profiles_read();     // EEPROMから上書き
 
-    // read keyball configuration from EEPROM
-    if (eeconfig_is_enabled()) {
-        keyball_config_t c = {.raw = eeconfig_read_kb()};
-        printf("read cpi: %u, scroll_div: %u\n", c.cpi, c.sdiv);
-        if (c.cpi < 1) {
-            c.cpi = CPI_DEFAULT;
-        }
-        keyball_set_cpi(c.cpi);
-        keyball_set_scroll_div(c.sdiv);
-#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-        set_auto_mouse_enable(c.amle);
-        set_auto_mouse_timeout(c.amlto == 0 ? AUTO_MOUSE_TIME : (c.amlto + 1) * AML_TIMEOUT_QU);
-#endif
-#if KEYBALL_SCROLLSNAP_ENABLE == 2
-        keyball_set_scrollsnap_mode(c.ssnap);
-#endif
-    }
+    keyball_set_cpi(kbpf.cpi[osi()]);
+    keyball_set_scroll_div(kbpf.sdiv[osi()]);
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // old config
+    // keyball_set_cpi(CPI_DEFAULT);
+    // keyball_set_scroll_div(KEYBALL_SCROLL_DIV_DEFAULT);  // 最低でも 1 以上になる
+
+    // // read keyball configuration from EEPROM
+    // if (eeconfig_is_enabled()) {
+    //     keyball_config_t c = {.raw = eeconfig_read_kb()};
+    //     printf("read cpi: %u, scroll_div: %u\n", c.cpi, c.sdiv);
+    //     if (c.cpi < 1) {
+    //         c.cpi = CPI_DEFAULT;
+    //     }
+    //     keyball_set_cpi(c.cpi);
+    //     keyball_set_scroll_div(c.sdiv);
+// #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+    //     set_auto_mouse_enable(c.amle);
+    //     set_auto_mouse_timeout(c.amlto == 0 ? AUTO_MOUSE_TIME : (c.amlto + 1) * AML_TIMEOUT_QU);
+// #endif
+// #if KEYBALL_SCROLLSNAP_ENABLE == 2
+    //     keyball_set_scrollsnap_mode(c.ssnap);
+// #endif
+    // }
 
     keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
     keyboard_post_init_user();
@@ -748,28 +919,62 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     // process events which works on pressed only.
     if (record->event.pressed) {
         switch (keycode) {
+//////////////////////////////////////////////////////////////////////////////////////////
+          // new
             case KBC_RST:
-                keyball_set_cpi(0);
-                keyball_set_scroll_div(KEYBALL_SCROLL_DIV_DEFAULT);
+                kb_profiles_defaults();
+                keyball_set_cpi(kbpf.cpi[osi()]);
+                keyball_set_scroll_div(kbpf.sdiv[osi()]);
+                kb_profiles_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
                 set_auto_mouse_enable(false);
                 set_auto_mouse_timeout(AUTO_MOUSE_TIME);
 #endif
                 break;
-            case KBC_SAVE: {
-                keyball_config_t c = {
-                    .cpi   = keyball.cpi_value,
-                    .sdiv  = keyball.scroll_div,
-#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-                    .amle  = get_auto_mouse_enable(),
-                    .amlto = (get_auto_mouse_timeout() / AML_TIMEOUT_QU) - 1,
-#endif
-#if KEYBALL_SCROLLSNAP_ENABLE == 2
-                    .ssnap = keyball_get_scrollsnap_mode(),
-#endif
-                };
-                eeconfig_update_kb(c.raw);
+
+            case KBC_SAVE:
+                kb_profiles_write();  // OSごとの全データを一括保存
+                dprintf("KB profiles saved (magic=0x%08lX ver=%u)\n",
+                        (unsigned long)kbpf.magic, kbpf.version);
+                break;
+
+            case SCRL_DVI:
+                keyball_set_scroll_div(keyball_get_scroll_div() + 1);
+                break;
+            case SCRL_DVD:
+                keyball_set_scroll_div(keyball_get_scroll_div() - 1);
+                break;
+
+            case SCRL_INV: { // OS別反転トグル
+                uint8_t i = osi();
+                kbpf.inv[i] = !kbpf.inv[i];
+                dprintf("invert toggle OS=%u -> %u\n", i, kbpf.inv[i]);
             } break;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+            //old
+            // case KBC_RST:
+            //     keyball_set_cpi(0);
+            //     keyball_set_scroll_div(KEYBALL_SCROLL_DIV_DEFAULT);
+// #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+            //     set_auto_mouse_enable(false);
+            //     set_auto_mouse_timeout(AUTO_MOUSE_TIME);
+// #endif
+            //     break;
+            // case KBC_SAVE: {
+            //     keyball_config_t c = {
+            //         .cpi   = keyball.cpi_value,
+            //         .sdiv  = keyball.scroll_div,
+// #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+            //         .amle  = get_auto_mouse_enable(),
+            //         .amlto = (get_auto_mouse_timeout() / AML_TIMEOUT_QU) - 1,
+// #endif
+// #if KEYBALL_SCROLLSNAP_ENABLE == 2
+            //         .ssnap = keyball_get_scrollsnap_mode(),
+// #endif
+            //     };
+            //     eeconfig_update_kb(c.raw);
+            // } break;
 
             case CPI_I100:
                 add_cpi(100);
@@ -787,12 +992,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             case SCRL_TO:
                 keyball_set_scroll_mode(!keyball.scroll_mode);
                 break;
-            case SCRL_DVI:
-                add_scroll_div(1);
-                break;
-            case SCRL_DVD:
-                add_scroll_div(-1);
-                break;
+            // case SCRL_DVI:
+            //     add_scroll_div(1);
+            //     break;
+            // case SCRL_DVD:
+            //     add_scroll_div(-1);
+            //     break;
 
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
             case SSNP_HOR:

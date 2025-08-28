@@ -79,10 +79,10 @@ void oled_set_info(void) {
 
 // OLEDの実装
 void oledkit_render_info_user(void) {
-    /* keyball_oled_render_keyinfo(); */
-    /* keyball_oled_render_ballinfo(); */
-    /* keyball_oled_render_layerinfo(); */
+    keyball_oled_render_keyinfo();
+    keyball_oled_render_ballinfo();
+    keyball_oled_render_layerinfo();
     /* oled_test(); */
-    oled_set_info();
+    // oled_set_info();
     oled_render_layer_state();
 }
