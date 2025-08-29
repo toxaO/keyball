@@ -28,13 +28,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define KEYBALL_SCROLL_DIV_DEFAULT 3
 #endif
 
-#ifndef KEYBALL_SCROLL_INVERT
-#    define KEYBALL_SCROLL_INVERT 0
+// 1 なら従来、2 で半段階、3 なら 1/3 ...（分解能を上げたいほど大きく）
+#ifndef KEYBALL_SCROLL_FINE_DEN
+#  define KEYBALL_SCROLL_FINE_DEN 4
 #endif
-
-// #ifndef KEYBALL_SCROLLBALL_INHIVITOR
-// #    define KEYBALL_SCROLLBALL_INHIVITOR 50
-// #endif
+// 入力がしばらく無い時に余りを捨てる（ms）
+#ifndef KEYBALL_SCROLL_IDLE_RESET_MS
+#  define KEYBALL_SCROLL_IDLE_RESET_MS 80
+#endif
+// 方向が変わったら余りをゼロに（バネ戻り防止）
+#ifndef KEYBALL_SCROLL_RESET_ON_DIRCHANGE
+#  define KEYBALL_SCROLL_RESET_ON_DIRCHANGE 1
+#endif
+// 1フレームで出す最大ホイール量（スパイク抑制）
+#ifndef KEYBALL_SCROLL_FRAME_CLAMP
+#  define KEYBALL_SCROLL_FRAME_CLAMP 8
+#endif
 
 /// To disable scroll snap feature, define 0 in your config.h
 #ifndef KEYBALL_SCROLLSNAP_ENABLE

@@ -191,51 +191,78 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(report_mouse_t 
 
 }
 
-// 商/余り方式でスクロールを安定化（WHEEL_DELTA=120 を固定使用）
 __attribute__((weak))
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              report_mouse_t *output,
                                              bool is_left) {
-    // ★ switchの外で宣言・初期化（必ずここから値を作る）
     int16_t out_x = 0;
     int16_t out_y = 0;
 
+    // 32bitにして余裕を持たせる（高速回転や高CPIでのあふれ対策）
+    static int32_t acc_x_mac = 0, acc_y_mac = 0;
+    static int32_t acc_x_gen = 0, acc_y_gen = 0;
+    static uint8_t last_sdiv = 0;
+    static int8_t  last_sx = 0, last_sy = 0;
+    static uint32_t last_ts = 0;
+
+    uint32_t now = timer_read32();
+    int16_t sx = (int16_t)report->x;
+    int16_t sy = (int16_t)report->y;
+    uint8_t sdiv = keyball_get_scroll_div();
+
+    // 感度変更やアイドルで余りリセット
+    if (sdiv != last_sdiv || TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
+        acc_x_mac = acc_y_mac = 0;
+        acc_x_gen = acc_y_gen = 0;
+        last_sdiv = sdiv;
+    }
+#if KEYBALL_SCROLL_RESET_ON_DIRCHANGE
+    if ((int8_t)sx && (int8_t)last_sx && ((sx ^ last_sx) < 0)) { acc_x_mac = acc_x_gen = 0; }
+    if ((int8_t)sy && (int8_t)last_sy && ((sy ^ last_sy) < 0)) { acc_y_mac = acc_y_gen = 0; }
+#endif
+    last_sx = (int8_t)sx; last_sy = (int8_t)sy;
+    last_ts = now;
+
     switch (detected_host_os()) {
       case OS_MACOS: {
-        // ブロックで囲むこと！（case直後の宣言を合法にする）
-        enum { HIRES_DELTA = 120 };
-        static int16_t acc_x = 0, acc_y = 0;
-        static uint8_t last_sdiv = 0;        // 任意: 感度変更時に余りをリセット
+        // WHEEL_DELTA=120 を「分母」に集約。分解能を上げるときはさらに掛け算。
+        const int32_t DEN = 120 * (int32_t)KEYBALL_SCROLL_FINE_DEN;
+        acc_x_mac += (int32_t)sx * (int32_t)sdiv;
+        acc_y_mac += (int32_t)sy * (int32_t)sdiv;
 
-        int16_t sx = (int16_t)report->x;
-        int16_t sy = (int16_t)report->y;
-        uint8_t sdiv = keyball_get_scroll_div();
-        if (sdiv != last_sdiv) {             // 感度を変えたフレームの跳ねを抑制
-            acc_x = 0; acc_y = 0;
-            last_sdiv = sdiv;
-        }
+        out_x = (int16_t)(acc_x_mac / DEN);
+        out_y = (int16_t)(acc_y_mac / DEN);
 
-        acc_x += sx * sdiv;
-        acc_y += sy * sdiv;
-
-        out_x = acc_x / HIRES_DELTA;
-        out_y = acc_y / HIRES_DELTA;
-
-        acc_x -= out_x * HIRES_DELTA;
-        acc_y -= out_y * HIRES_DELTA;
+        acc_x_mac -= (int32_t)out_x * DEN;
+        acc_y_mac -= (int32_t)out_y * DEN;
         break;
       }
-
       default: {
         // Windows/Linux 等はそのまま（必要なら sdiv を掛ける）
         uint8_t sdiv = keyball_get_scroll_div();
         out_x = (int16_t)report->x * sdiv;
         out_y = (int16_t)report->y * sdiv;
+        // // Win/Linux でも蓄積方式にして微分解度と安定性を揃える
+        // const int32_t DEN = (int32_t)KEYBALL_SCROLL_FINE_DEN;
+        // acc_x_gen += (int32_t)sx * (int32_t)sdiv;
+        // acc_y_gen += (int32_t)sy * (int32_t)sdiv;
+
+        // out_x = (int16_t)(acc_x_gen / DEN);
+        // out_y = (int16_t)(acc_y_gen / DEN);
+
+        // acc_x_gen -= (int32_t)out_x * DEN;
+        // acc_y_gen -= (int32_t)out_y * DEN;
         break;
       }
     }
 
-    // ---- モデルに合わせてホイールに反映（従来ロジック）----
+    // スパイク抑制（任意）
+    if (out_x >  KEYBALL_SCROLL_FRAME_CLAMP) out_x =  KEYBALL_SCROLL_FRAME_CLAMP;
+    if (out_x < -KEYBALL_SCROLL_FRAME_CLAMP) out_x = -KEYBALL_SCROLL_FRAME_CLAMP;
+    if (out_y >  KEYBALL_SCROLL_FRAME_CLAMP) out_y =  KEYBALL_SCROLL_FRAME_CLAMP;
+    if (out_y < -KEYBALL_SCROLL_FRAME_CLAMP) out_y = -KEYBALL_SCROLL_FRAME_CLAMP;
+
+    // ---- モデル反映（従来ロジック）----
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
     output->h = -CONSTRAIN_HV(out_x);
     output->v =  CONSTRAIN_HV(out_y);
@@ -249,14 +276,13 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
     // ---- スナップ処理 ----
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
-    uint32_t now = timer_read32();
     if (output->h != 0 || output->v != 0) {
         keyball.scroll_snap_last = now;
     } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
         keyball.scroll_snap_tension_h = 0;
     }
     if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
-        keyball.scroll_snap_tension_h += out_y;  // ★ out_y は必ず代入済み
+        keyball.scroll_snap_tension_h += out_y;
         output->h = 0;
     }
 #elif KEYBALL_SCROLLSNAP_ENABLE == 2
@@ -267,13 +293,96 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     }
 #endif
 
-    // ランタイム反転（OS別）
+    // 反転（OS別）
     if (kbpf.inv[osi()]) {
         output->h = -output->h;
         output->v = -output->v;
     }
-
 }
+
+// // 商/余り方式でスクロールを安定化（WHEEL_DELTA=120 を固定使用）
+// __attribute__((weak))
+// void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
+//                                              report_mouse_t *output,
+//                                              bool is_left) {
+//     // ★ switchの外で宣言・初期化（必ずここから値を作る）
+//     int16_t out_x = 0;
+//     int16_t out_y = 0;
+
+//     switch (detected_host_os()) {
+//       case OS_MACOS: {
+//         // ブロックで囲むこと！（case直後の宣言を合法にする）
+//         enum { HIRES_DELTA = 120 };
+//         static int16_t acc_x = 0, acc_y = 0;
+//         static uint8_t last_sdiv = 0;        // 任意: 感度変更時に余りをリセット
+
+//         int16_t sx = (int16_t)report->x;
+//         int16_t sy = (int16_t)report->y;
+//         uint8_t sdiv = keyball_get_scroll_div();
+//         if (sdiv != last_sdiv) {             // 感度を変えたフレームの跳ねを抑制
+//             acc_x = 0; acc_y = 0;
+//             last_sdiv = sdiv;
+//         }
+
+//         acc_x += sx * sdiv;
+//         acc_y += sy * sdiv;
+
+//         out_x = acc_x / HIRES_DELTA;
+//         out_y = acc_y / HIRES_DELTA;
+
+//         acc_x -= out_x * HIRES_DELTA;
+//         acc_y -= out_y * HIRES_DELTA;
+//         break;
+//       }
+
+//       default: {
+//         // Windows/Linux 等はそのまま（必要なら sdiv を掛ける）
+//         uint8_t sdiv = keyball_get_scroll_div();
+//         out_x = (int16_t)report->x * sdiv;
+//         out_y = (int16_t)report->y * sdiv;
+//         break;
+//       }
+//     }
+
+//     // ---- モデルに合わせてホイールに反映（従来ロジック）----
+// #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
+//     output->h = -CONSTRAIN_HV(out_x);
+//     output->v =  CONSTRAIN_HV(out_y);
+//     if (is_left) {
+//         output->h = -output->h;
+//         output->v = -output->v;
+//     }
+// #else
+// #   error("unknown Keyball model")
+// #endif
+
+//     // ---- スナップ処理 ----
+// #if KEYBALL_SCROLLSNAP_ENABLE == 1
+//     uint32_t now = timer_read32();
+//     if (output->h != 0 || output->v != 0) {
+//         keyball.scroll_snap_last = now;
+//     } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
+//         keyball.scroll_snap_tension_h = 0;
+//     }
+//     if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
+//         keyball.scroll_snap_tension_h += out_y;  // ★ out_y は必ず代入済み
+//         output->h = 0;
+//     }
+// #elif KEYBALL_SCROLLSNAP_ENABLE == 2
+//     switch (keyball_get_scrollsnap_mode()) {
+//         case KEYBALL_SCROLLSNAP_MODE_VERTICAL:   output->h = 0; break;
+//         case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL: output->v = 0; break;
+//         default: break;
+//     }
+// #endif
+
+//     // ランタイム反転（OS別）
+//     if (kbpf.inv[osi()]) {
+//         output->h = -output->h;
+//         output->v = -output->v;
+//     }
+
+// }
 
 static void motion_to_mouse(report_mouse_t *report, report_mouse_t *output, bool is_left, bool as_scroll) {
     if (as_scroll) {

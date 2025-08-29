@@ -249,7 +249,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                 tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
               }
-              repeat_speed = NORMAL;
             }
             break;
 
@@ -267,7 +266,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                     tap_code(KC_MPLY);
                 }
-                repeat_speed = NORMAL;
             }
             break;
 
@@ -285,7 +283,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
                 }
-                repeat_speed = NORMAL;
             }
             break;
 
@@ -303,7 +300,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
                 }
-                repeat_speed = NORMAL;
             }
             break;
 
@@ -324,7 +320,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
                   tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
                 }
-                repeat_speed = NORMAL;
             }
             break;
 

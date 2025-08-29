@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_DEFAULT_VAL 10
 #    undef RGBLIGHT_LIMIT_VAL
 #    define RGBLIGHT_LIMIT_VAL 100
+
 #    define RGBLIGHT_LAYERS
 #    define RGBLIGHT_LAYERS_RETAIN_VAL
 #    define RGBLIGHT_MAX_LAYERS 32
@@ -57,7 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // 水平方向の閾値
 #undef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
-#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 1
+#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 0
 
 //default
 #undef  KEYBALL_CPI_DEFAULT
