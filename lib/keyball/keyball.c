@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSTRAIN_HV(val)      (mouse_hv_report_t) _CONSTRAIN(val, MOUSE_REPORT_HV_MIN, MOUSE_REPORT_HV_MAX)
 
 // Anything above this value makes the cursor fly across the screen.
-const uint16_t CPI_MAX        = 3000;
+const uint16_t CPI_MAX        = 4000;
 const uint8_t SCROLL_DIV_MAX = 7;
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
@@ -46,6 +46,9 @@ const uint16_t AML_TIMEOUT_QU  = 50;   // Quantization Unit
 #endif
 
 static const char BL = '\xB0'; // Blank indicator character
+
+static int32_t g_move_gain_lo_fp = KEYBALL_MOVE_GAIN_LO_FP;
+static int16_t g_move_th1 = KEYBALL_MOVE_TH1;  // th2 は固定でもOK。要れば同様に可変化。
 
 static uint8_t g_os_idx = 0;      // 決定した OS スロット
 static bool    g_os_idx_init = false;
@@ -60,12 +63,14 @@ typedef struct __attribute__((packed)) {
     uint16_t cpi[8];    // 100..CPI_MAX
     uint8_t  sdiv[8];   // 1..SCROLL_DIV_MAX
     uint8_t  inv[8];    // 0/1
+    uint8_t  mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
+    uint8_t  mv_th1[8];        // 0..(mv_th2-1)
+    uint8_t  mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
 } keyball_profiles_t;
 
 #define KBPF_MAGIC   0x4B425031u /* 'KBP1' */
-#define KBPF_VERSION 1
-
-_Static_assert(sizeof(keyball_profiles_t) == 40, "keyball_profiles_t must be 40 bytes");
+#define KBPF_VERSION 2
+_Static_assert(sizeof(keyball_profiles_t) == 40 + 24, "update size expectation if you change fields");
 
 // ---- 保存ブロックサイズ ----
 #define KBPF_EE_SIZE (sizeof(keyball_profiles_t))
@@ -164,6 +169,11 @@ static void kb_profiles_defaults(void) {
         kbpf.cpi[i]  = KEYBALL_CPI_DEFAULT;
         kbpf.sdiv[i] = KEYBALL_SCROLL_DIV_DEFAULT;
         kbpf.inv[i]  = (KEYBALL_SCROLL_INVERT != 0);
+
+        kbpf.mv_gain_lo_fp[i] = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_GAIN_LO_FP, 1, 255);
+        kbpf.mv_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
+        kbpf.mv_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
+        if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
     }
     kbpf.magic   = KBPF_MAGIC;
     kbpf.version = KBPF_VERSION;
@@ -171,7 +181,7 @@ static void kb_profiles_defaults(void) {
 }
 
 static void kb_profiles_validate(void) {
-    if (kbpf.magic != KBPF_MAGIC || kbpf.version != KBPF_VERSION) {
+    if (kbpf.magic != KBPF_MAGIC || (kbpf.version != 1 && kbpf.version != 2)) {
         kb_profiles_defaults();
         return;
     }
@@ -179,6 +189,16 @@ static void kb_profiles_validate(void) {
         kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
         kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
         kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
+    }
+    if (kbpf.version == 1) {
+        // v1→v2 移行：追加分はデフォルト埋め
+        for (int i = 0; i < 8; ++i) {
+            kbpf.mv_gain_lo_fp[i] = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_GAIN_LO_FP, 1, 255);
+            kbpf.mv_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
+            kbpf.mv_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
+            if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
+        }
+        kbpf.version = 2; // 次回保存でv2化
     }
 }
 
@@ -193,17 +213,87 @@ static void kb_profiles_write(void) {
     eeprom_update_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
 }
 
+
+static inline int16_t clamp_xy(int16_t v) {
+    return (int16_t)_CONSTRAIN(v, MOUSE_REPORT_XY_MIN, MOUSE_REPORT_XY_MAX);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Pointing device driver
+__attribute__((weak))
+void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
+                                           report_mouse_t *output,
+                                           bool is_left) {
+#if KEYBALL_MOVE_SHAPING_ENABLE
+    // 32bit蓄積（商/余り用）
+    static int32_t acc_x = 0, acc_y = 0;
+    static uint8_t last_sx = 0, last_sy = 0;
+    static uint32_t last_ts = 0;
 
-void pointing_device_init_kb(void) {
-}
+    int16_t sx = (int16_t)report->x;
+    int16_t sy = (int16_t)report->y;
 
-__attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report, report_mouse_t *output, bool is_left) {
+    // アイドル・方向反転で蓄積を捨てる（跳ね防止）
+    uint32_t now = timer_read32();
+    if (TIMER_DIFF_32(now, last_ts) > KEYBALL_MOVE_IDLE_RESET_MS) {
+        acc_x = acc_y = 0;
+    }
+    if ((int8_t)sx && (int8_t)last_sx && ((sx ^ last_sx) < 0)) acc_x = 0;
+    if ((int8_t)sy && (int8_t)last_sy && ((sy ^ last_sy) < 0)) acc_y = 0;
+    last_sx = (uint8_t)sx; last_sy = (uint8_t)sy;
+    last_ts = now;
+
+    // 速度近似（高コストなsqrt回避）
+    int16_t ax = (sx < 0 ? -sx : sx);
+    int16_t ay = (sy < 0 ? -sy : sy);
+    int16_t mag = (ax > ay) ? ax : ay;
+
+    // ゲイン算出（固定小数点）
+    // int32_t g_lo = KEYBALL_MOVE_GAIN_LO_FP;  // 例: 64
+    int32_t g_lo = g_move_gain_lo_fp;  // 例: 64
+    int32_t g_hi = KEYBALL_MOVE_GAIN_HI_FP;  // 例: 256
+    int32_t gain_fp;
+
+    if (mag <= g_move_th1) {
+        gain_fp = g_lo;
+    } else if (mag >= KEYBALL_MOVE_TH2) {
+        gain_fp = g_hi;
+    } else {
+        // 線形補間
+        int32_t num = (int32_t)(mag - g_move_th1);
+        int32_t den = (int32_t)(KEYBALL_MOVE_TH2 - g_move_th1);
+        if (den < 1) den = 1; // 保険
+        gain_fp = g_lo + ( (g_hi - g_lo) * num ) / den;
+    }
+
+    // 固定小数点で適用（商/余り）
+    acc_x += (int32_t)sx * gain_fp;
+    acc_y += (int32_t)sy * gain_fp;
+
+    int16_t out_x = (int16_t)(acc_x / KMF_DEN);
+    int16_t out_y = (int16_t)(acc_y / KMF_DEN);
+
+    acc_x -= (int32_t)out_x * KMF_DEN;
+    acc_y -= (int32_t)out_y * KMF_DEN;
+
+    // クランプして反映
+    output->x = (int8_t)clamp_xy(out_x);
+    output->y = (int8_t)clamp_xy(out_y);
+
+    // 左右で「移動」は反転しない（従来のscrollとは別）
+    (void)is_left;
+#else
+    // 旧仕様：そのまま
     output->x = report->x;
     output->y = report->y;
-
+#endif
 }
+
+// __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report, report_mouse_t *output, bool is_left) {
+//     output->x = report->x;
+//     output->y = report->y;
+
+// }
 
 __attribute__((weak))
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
@@ -256,25 +346,9 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
         // uint8_t sdiv = keyball_get_scroll_div();
         out_x = (int16_t)report->x * sdiv;
         out_y = (int16_t)report->y * sdiv;
-        // // Win/Linux でも蓄積方式にして微分解度と安定性を揃える
-        // const int32_t DEN = (int32_t)KEYBALL_SCROLL_FINE_DEN;
-        // acc_x_gen += (int32_t)sx * (int32_t)sdiv;
-        // acc_y_gen += (int32_t)sy * (int32_t)sdiv;
-
-        // out_x = (int16_t)(acc_x_gen / DEN);
-        // out_y = (int16_t)(acc_y_gen / DEN);
-
-        // acc_x_gen -= (int32_t)out_x * DEN;
-        // acc_y_gen -= (int32_t)out_y * DEN;
         break;
       }
     }
-
-    // // スパイク抑制（任意）
-    // if (out_x >  KEYBALL_SCROLL_FRAME_CLAMP) out_x =  KEYBALL_SCROLL_FRAME_CLAMP;
-    // if (out_x < -KEYBALL_SCROLL_FRAME_CLAMP) out_x = -KEYBALL_SCROLL_FRAME_CLAMP;
-    // if (out_y >  KEYBALL_SCROLL_FRAME_CLAMP) out_y =  KEYBALL_SCROLL_FRAME_CLAMP;
-    // if (out_y < -KEYBALL_SCROLL_FRAME_CLAMP) out_y = -KEYBALL_SCROLL_FRAME_CLAMP;
 
     // ---- モデル反映（従来ロジック）----
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
@@ -426,11 +500,6 @@ void keyball_oled_render_ballinfo(void) {
 #endif
 }
 
-void keyball_oled_render_ballsubinfo(void) {
-#ifdef OLED_ENABLE
-#endif
-}
-
 void keyball_oled_render_keyinfo(void) {
 #ifdef OLED_ENABLE
     // Format: `Key :  R{row}  C{col} K{kc} {name}{name}{name}`
@@ -497,6 +566,14 @@ void keyball_oled_render_layerinfo(void) {
 #    else
     oled_write_P(PSTR("\xC2\xC3\xB4\xB5 ---"), false);
 #    endif
+#endif
+}
+
+void keyball_oled_render_ballsubinfo(void) {
+#ifdef OLED_ENABLE
+    char b[20];
+    snprintf(b, sizeof b, "GL:%3ld  TH1:%2d", (long)g_move_gain_lo_fp, (int)g_move_th1);
+    oled_write_ln(b, false);
 #endif
 }
 
@@ -571,6 +648,8 @@ void keyboard_post_init_kb(void) {
 
     keyball_set_cpi(keyball_get_cpi());
     keyball_set_scroll_div(keyball_get_scroll_div());
+    g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
+    g_move_th1        = kbpf.mv_th1[osi()];
     keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
     keyboard_post_init_user();
 }
@@ -659,6 +738,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 kb_profiles_defaults();
                 keyball_set_cpi(kbpf.cpi[osi()]);
                 keyball_set_scroll_div(kbpf.sdiv[osi()]);
+                g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
+                g_move_th1        = kbpf.mv_th1[osi()];
                 kb_profiles_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
                 set_auto_mouse_enable(false);
@@ -667,6 +748,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 break;
 
             case KBC_SAVE:
+                kbpf.mv_gain_lo_fp[osi()] = (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
+                kbpf.mv_th1[osi()]        = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
                 kb_profiles_write();  // OSごとの全データを一括保存
                 dprintf("KB profiles saved (magic=0x%08lX ver=%u)\n",
                         (unsigned long)kbpf.magic, kbpf.version);
@@ -731,6 +814,27 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
                 break;
 #endif
+
+            case MVGL_UP:
+                 g_move_gain_lo_fp = _CONSTRAIN(g_move_gain_lo_fp + 8, 16, 255); // 255に上限
+                 kbpf.mv_gain_lo_fp[osi()] = (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
+                 dprintf("move: gain_lo=%ld/256\n", (long)g_move_gain_lo_fp);
+                 break;
+            case MVGL_DN:
+                 g_move_gain_lo_fp = _CONSTRAIN(g_move_gain_lo_fp - 8, 16, 255);
+                 kbpf.mv_gain_lo_fp[osi()] = (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
+                 dprintf("move: gain_lo=%ld/256\n", (long)g_move_gain_lo_fp);
+                 break;
+            case MVTH1_UP:
+                 g_move_th1 = _CONSTRAIN(g_move_th1 + 1, 0, kbpf.mv_th2[osi()] - 1);
+                 kbpf.mv_th1[osi()] = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
+                 dprintf("move: th1=%d\n", g_move_th1);
+                 break;
+            case MVTH1_DN:
+                 g_move_th1 = _CONSTRAIN(g_move_th1 - 1, 0, kbpf.mv_th2[osi()] - 1);
+                 kbpf.mv_th1[osi()] = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
+                 dprintf("move: th1=%d\n", g_move_th1);
+                 break;
 
             default:
                 return true;

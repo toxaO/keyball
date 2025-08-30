@@ -35,10 +35,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_EFFECT_TWINKLE
 
 #    undef RGBLIGHT_DEFAULT_MODE
-#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING + 3
-#    define RGBLIGHT_DEFAULT_HUE 127
-#    define RGBLIGHT_DEFAULT_SAT 255
-#    define RGBLIGHT_DEFAULT_VAL 10
+#    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_BREATHING
+// #    define RGBLIGHT_DEFAULT_HUE 127
+// #    define RGBLIGHT_DEFAULT_SAT 255
+// #    define RGBLIGHT_DEFAULT_VAL 10
 #    undef RGBLIGHT_LIMIT_VAL
 #    define RGBLIGHT_LIMIT_VAL 100
 

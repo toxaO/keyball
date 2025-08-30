@@ -58,6 +58,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 12
 #endif
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// pointer motion configuration
+// ==== Move shaping (pointer) ====
+#ifndef KEYBALL_MOVE_SHAPING_ENABLE
+#  define KEYBALL_MOVE_SHAPING_ENABLE 1
+#endif
+
+// 固定小数点の分母（256が安全）
+#define KMF_DEN       256
+
+// 低速域ゲイン（0.25 ≒ 64/256）、高速域ゲイン（1.00 ≒ 256/256）
+#ifndef KEYBALL_MOVE_GAIN_LO_FP
+#  define KEYBALL_MOVE_GAIN_LO_FP  64     // 0.25
+#endif
+#ifndef KEYBALL_MOVE_GAIN_HI_FP
+#  define KEYBALL_MOVE_GAIN_HI_FP  256    // 1.00
+#endif
+
+// 速度の近似は max(|x|,|y|) を使用（軽い・十分）
+#ifndef KEYBALL_MOVE_TH1
+#  define KEYBALL_MOVE_TH1  2   // ここまでは低速域ゲイン
+#endif
+#ifndef KEYBALL_MOVE_TH2
+#  define KEYBALL_MOVE_TH2  12  // 緩やかにGAIN_LO→GAIN_HIへ線形補間
+#endif
+
+#ifndef KEYBALL_MOVE_IDLE_RESET_MS
+#  define KEYBALL_MOVE_IDLE_RESET_MS  80  // アイドルでaccを捨てて跳ね防止
+#endif
+
+// XYのクランプ（QMK標準は±127）
+#ifndef MOUSE_REPORT_XY_MIN
+#  define MOUSE_REPORT_XY_MIN  (-127)
+#endif
+#ifndef MOUSE_REPORT_XY_MAX
+#  define MOUSE_REPORT_XY_MAX  (127)
+#endif
+
 /// Specify SROM ID to be uploaded PMW3360DW (optical sensor).  It will be
 /// enabled high CPI setting or so.  Valid valus are 0x04 or 0x81.  Define this
 /// in your config.h to be enable.  Please note that using this option will
@@ -126,6 +164,12 @@ enum keyball_keycodes {
 
     // not offical
     SCRL_INV = QK_KB_16, // scroll direction inverse.
+
+
+    MVGL_UP = QK_KB_17,   // 低速ゲイン↑
+    MVGL_DN = QK_KB_18,   // 低速ゲイン↓
+    MVTH1_UP = QK_KB_19,  // しきい値1↑
+    MVTH1_DN = QK_KB_20,  // しきい値1↓
 
     // User customizable 32 keycodes.
     KEYBALL_SAFE_RANGE = QK_USER_0,
@@ -234,6 +278,9 @@ void keyball_oled_render_keyinfo(void);
 /// OLED.  It shows layer mask with number (1~f) for active layers and '_' for
 /// inactive layers.
 void keyball_oled_render_layerinfo(void);
+
+/// show mouse motion config
+void keyball_oled_render_ballsubinfo(void);
 
 /// keyball_get_scroll_mode gets current scroll mode.
 bool keyball_get_scroll_mode(void);

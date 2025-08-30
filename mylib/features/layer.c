@@ -38,35 +38,35 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     uint8_t layer = biton32(state);
     switch (layer) {
         case _Def:
-            rgblight_sethsv_noeeprom(HSV_CYAN);
+            // rgblight_sethsv_noeeprom(HSV_CYAN);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Sym:
-            rgblight_sethsv_noeeprom(HSV_PURPLE);
+            // rgblight_sethsv_noeeprom(HSV_PURPLE);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mCur:
-            rgblight_sethsv_noeeprom(HSV_GREEN);
+            // rgblight_sethsv_noeeprom(HSV_GREEN);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _wCur:
-            rgblight_sethsv_noeeprom(HSV_GREEN);
+            // rgblight_sethsv_noeeprom(HSV_GREEN);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
             break;
         case _mMou:
-            rgblight_sethsv_noeeprom(HSV_BLUE);
+            // rgblight_sethsv_noeeprom(HSV_BLUE);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _wMou:
-            rgblight_sethsv_noeeprom(HSV_BLUE);
+            // rgblight_sethsv_noeeprom(HSV_BLUE);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 2);
             break;
         case _NumP:
-            rgblight_sethsv_noeeprom(HSV_ORANGE);
+            // rgblight_sethsv_noeeprom(HSV_ORANGE);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 0);
             break;
         case _Scr:
-            rgblight_sethsv_noeeprom(HSV_BLUE);
+            // rgblight_sethsv_noeeprom(HSV_BLUE);
             rgblight_mode_noeeprom(RGBLIGHT_MODE_SNAKE + 2);
             break;
     }

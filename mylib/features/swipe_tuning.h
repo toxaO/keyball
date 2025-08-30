@@ -7,17 +7,17 @@
 
 // 微小ゆらぎのカット（counts）
 #ifndef DEADZONE
-#  define DEADZONE               2
+#  define DEADZONE               1
 #endif
 
 // 一次ローパス強度（大きいほどマイルド）
 #ifndef LP_SHIFT
-#  define LP_SHIFT               2
+#  define LP_SHIFT               1
 #endif
 
 // スワイプ起動の最初のゲート（軽くしたいなら小さく）
 #ifndef START_COUNT
-#  define START_COUNT            2
+#  define START_COUNT            1
 #endif
 
 // 繰り返し発火の基本距離（大きいほど単発寄り）
@@ -32,7 +32,7 @@
 
 // STEP を越えて更に必要な距離（単発寄りマージン）
 #ifndef FIRE_MARGIN_COUNT
-#  define FIRE_MARGIN_COUNT      120   // 60〜120 目安
+#  define FIRE_MARGIN_COUNT      80   // 60〜120 目安
 #endif
 
 
