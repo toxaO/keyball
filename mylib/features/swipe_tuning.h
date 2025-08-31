@@ -10,5 +10,5 @@
 
 // 2回目以降の等間隔しきい値（超えるたびに発火、余剰は持ち越し）
 #ifndef STEP_COUNT
-#  define STEP_COUNT       80   // 140〜200 目安（初回より小さめ推奨）
+#  define STEP_COUNT       60   // 140〜200 目安（初回より小さめ推奨）
 #endif
