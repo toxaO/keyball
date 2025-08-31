@@ -16,45 +16,11 @@ SwipeState state = NONE;
 uint16_t click_timer;   // タイマー。状態に応じて時間で判定する。 Timer. Time to determine the state of the system.
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 
-// // 調整用パラメータ
-// #define DEADZONE              2  // 微小ゆらぎを無視（3～6で調整）
-// #define LP_SHIFT              4
-// #define START_COUNT           2
-// #define STEP_COUNT          280
-// #define MAX_FIRES_PER_SCAN    1  // 1スキャンあたりの最大発火回数（暴走防止）
-
-// // 単発寄りにするためのマージン（STEP を越えてさらに必要な距離）
-// #define FIRE_MARGIN_COUNT   80    // 60〜120 で調整。大きいほど単発になりやすい
 
 // === 軸ヒステリシス & ロック ===
 typedef enum { AXIS_NONE=0, AXIS_H, AXIS_V } SwipeAxis;
 
-// // 優勢判定（整数比較：ay/ax <= 0.75 を水平、>= 1.33 を垂直）
-// #ifndef AXIS_H_RATIO_X100
-// #define AXIS_H_RATIO_X100   75   // 0.75
-// #endif
-// #ifndef AXIS_V_RATIO_X100
-// #define AXIS_V_RATIO_X100  133   // 1.33
-// #endif
-
-// #ifndef AXIS_SWITCH_HYST
-// #define AXIS_SWITCH_HYST     3   // 軸切替に必要な「連続優勢」フレーム
-// #endif
-// #ifndef POST_FIRE_axis_lock_frames
-// #define POST_FIRE_axis_lock_frames 4  // 発火後の軸ロック維持フレーム
-// #endif
-// #ifndef ORTHO_DECAY_SHIFT
-// #define ORTHO_DECAY_SHIFT    1   // 直交軸の減衰（>>1 = 半減）
-// #endif
-
 #define ACC_SAT (1L<<28)  // 充分大きな上限
-
-// C11 以降: _Static_assert
-// _Static_assert(START_COUNT > 0, "START_COUNT must be > 0");
-// _Static_assert(STEP_COUNT > 0,   "STEP_COUNT must be > 0");
-// _Static_assert(FIRE_MARGIN_COUNT >= 0, "FIRE_MARGIN_COUNT must be >= 0");
-// _Static_assert((STEP_COUNT + FIRE_MARGIN_COUNT) > START_COUNT,
-//                "STEP+MARGIN should be larger than START_COUNT");
 
 // 軸状態
 static SwipeAxis current_axis = AXIS_NONE;
