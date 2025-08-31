@@ -16,43 +16,7 @@ SwipeState state = NONE;
 uint16_t click_timer;   // タイマー。状態に応じて時間で判定する。 Timer. Time to determine the state of the system.
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 
-
-// === 軸ヒステリシス & ロック ===
-typedef enum { AXIS_NONE=0, AXIS_H, AXIS_V } SwipeAxis;
-
 #define ACC_SAT (1L<<28)  // 充分大きな上限
-
-// 軸状態
-static SwipeAxis current_axis = AXIS_NONE;
-static uint8_t   axis_switch_run = 0;       // 連続優勢カウント
-static uint8_t   axis_lock_frames = 0;   // 発火後ロック残り
-
-
-// 追加：ローパスと累積（符号付き）
-static int32_t lp_x = 0, lp_y = 0;    // ローパス用の内部状態
-static int32_t accum_x = 0, accum_y = 0;  // 発火用の距離累積（正負で左右/上下）
-static int8_t    dir_x = 0, dir_y = 0;  // 積算の符号記憶（往復稼ぎ防止）
-
-static inline void saturating_add(int32_t *acc, int32_t delta) {
-    int64_t t = (int64_t)(*acc) + delta;
-    if (t >  ACC_SAT) t =  ACC_SAT;
-    if (t < -ACC_SAT) t = -ACC_SAT;
-    *acc = (int32_t)t;
-}
-
-static inline void accumulate_with_dir_guard(int32_t *acc, int16_t delta, int8_t *last_dir) {
-    int8_t d = (delta > 0) - (delta < 0);
-    if (d != 0 && d != *last_dir) { *acc = 0; *last_dir = d; }
-    saturating_add(acc, delta);
-}
-
-static inline SwipeAxis dominant_axis(int16_t x, int16_t y) {
-    int32_t ax = my_abs(x), ay = my_abs(y);
-    if (ax == 0 && ay == 0) return AXIS_NONE;
-    if (ax > 0 && ay * 100 <= ax * AXIS_H_RATIO_X100) return AXIS_H;
-    if (ax > 0 && ay * 100 >= ax * AXIS_V_RATIO_X100) return AXIS_V;
-    return AXIS_NONE; // 曖昧
-}
 
 // スワイプジェスチャーで何が起こるかを実際に処理する関数
 // 上、下、左、右、スワイプなしの5つのオプションがあります
@@ -134,95 +98,95 @@ static inline void fire_swipe_action(SwipeDirection dir) {
 
 
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+
     int16_t dx = mouse_report.x;
     int16_t dy = mouse_report.y;
 
-    // デッドゾーン
-    if (my_abs(dx) < DEADZONE) dx = 0;
-    if (my_abs(dy) < DEADZONE) dy = 0;
+    // 状態（関数スコープ静的）
+    static SwipeDirection cur_dir = SW_NO;  // 現在選択中の「厳密な方向」
+    static int32_t        accum   = 0;      // その方向への蓄積距離（正数）
+    static bool           first_pending = true; // 初回発火待ち？
+    static uint8_t        idle_frames   = 0;    // 停止復帰用（任意）
 
-    // ローパス（単一の係数でOK）
-    lp_x += ((int32_t)dx - (lp_x >> LP_SHIFT));
-    lp_y += ((int32_t)dy - (lp_y >> LP_SHIFT));
-    int16_t fdx = (int16_t)(lp_x >> LP_SHIFT);
-    int16_t fdy = (int16_t)(lp_y >> LP_SHIFT);
-
-    // 起動判定（X/Y共通しきい値）
+    // --- SWIPE → SWIPING の開始ゲート ---
     if (state == SWIPE) {
-        if (my_abs(fdx) >= START_COUNT || my_abs(fdy) >= START_COUNT) {
-            accum_x = accum_y = 0;
-            dir_x = dir_y = 0;
-            state = SWIPING;
+        int16_t adx = my_abs(dx), ady = my_abs(dy);
+        // 厳密分類：主成分のみ採用（= 一番大きく動いた方向）
+        if (adx >= ady) {
+            cur_dir = (dx >= 0) ? SW_RIGHT : SW_LEFT;
+        } else {
+            cur_dir = (dy >= 0) ? SW_DOWN  : SW_UP;
         }
+        accum = 0;
+        first_pending = true;
+        state = SWIPING;
     }
 
-    // 距離累積 & 発火（X/Y同じSTEP_COUNT）
     if (state == SWIPING) {
         int fires = 0;
-        int16_t step = STEP_COUNT;
 
-        // --- 軸の決定（ヒステリシス & 発火後ロック） ---
-        SwipeAxis want = dominant_axis(fdx, fdy);
-
-        if (axis_lock_frames > 0) {
-            // ロック中は軸固定＆直交軸を減衰
-            if (current_axis == AXIS_H) accum_y >>= ORTHO_DECAY_SHIFT;
-            else if (current_axis == AXIS_V) accum_x >>= ORTHO_DECAY_SHIFT;
-            axis_lock_frames--;
+        // そのフレームの主成分と方向を厳密分類
+        int16_t adx = my_abs(dx), ady = my_abs(dy);
+        SwipeDirection new_dir;
+        int16_t dom = 0;
+        if (adx >= ady) {
+            new_dir = (dx >= 0) ? SW_RIGHT : SW_LEFT;
+            dom     = adx;
         } else {
-            if (current_axis == AXIS_NONE) {
-                if (want != AXIS_NONE) { current_axis = want; axis_switch_run = 0; accum_x = accum_y = 0; dir_x = dir_y = 0; }
-            } else if (want == current_axis || want == AXIS_NONE) {
-                axis_switch_run = 0; // 変わらない/曖昧ならカウントリセット
-            } else {
-                if (++axis_switch_run >= AXIS_SWITCH_HYST) {
-                    current_axis = want; axis_switch_run = 0;
-                    accum_x = accum_y = 0; dir_x = dir_y = 0; // 切替時は前軸の残留を捨てる
-                }
+            new_dir = (dy >= 0) ? SW_DOWN  : SW_UP;
+            dom     = ady;
+        }
+
+        // 方向が切り替わったら蓄積を0に（他方向は常に0扱い）
+        if (new_dir != cur_dir) {
+            cur_dir = new_dir;
+            accum   = 0;
+            // 初回/再初回の概念は維持（first_pending は直前の発火でのみ false になる）
+        }
+
+        // 選ばれた方向“だけ”に距離を蓄積（他方向は0）
+        // ※ 純粋な距離として正のみに積む
+        int64_t tmp = (int64_t)accum + (int64_t)dom;
+        if (tmp > ACC_SAT) tmp = ACC_SAT;
+        accum = (int32_t)tmp;
+
+        // 閾値（初回だけ FIRST、その後は STEP）
+        int16_t th = first_pending ? FIRST_STEP_COUNT : STEP_COUNT;
+
+        // 超えるたびに発火、余剰は持ち越し（ただし1スキャン上限あり）
+        while (accum >= th) {
+            switch (cur_dir) {
+                case SW_RIGHT: fire_swipe_action(SW_RIGHT); break;
+                case SW_LEFT:  fire_swipe_action(SW_LEFT);  break;
+                case SW_DOWN:  fire_swipe_action(SW_DOWN);  break;
+                case SW_UP:    fire_swipe_action(SW_UP);    break;
+                default: break;
             }
+            // accum -= th;
+            accum = 0;
+            fires++;
+            first_pending = false;  // 以後は STEP_COUNT 基準
         }
 
-        // --- 累積（現在の軸のみ本加算、直交軸は減衰） ---
-        if (current_axis == AXIS_H) {
-            accumulate_with_dir_guard(&accum_x, fdx, &dir_x);
-            accum_y >>= ORTHO_DECAY_SHIFT;
-        } else if (current_axis == AXIS_V) {
-            accumulate_with_dir_guard(&accum_y, fdy, &dir_y);
-            accum_x >>= ORTHO_DECAY_SHIFT;
-        } else { // 未決定なら両方少しずつ
-            accum_x += fdx; accum_y += fdy;
-        }
-
-        // ---- 発火（単発寄り: マージン & ゼロクリア）----
-        // X（右/左）
-        if (fires < MAX_FIRES_PER_SCAN && accum_x >= (step + FIRE_MARGIN_COUNT)) {
-            fire_swipe_action(SW_RIGHT);
-            accum_x = 0; fires++; axis_lock_frames = POST_FIRE_LOCK_FRAMES; current_axis = AXIS_H;
-        } else if (fires < MAX_FIRES_PER_SCAN && accum_x <= -(step + FIRE_MARGIN_COUNT)) {
-            fire_swipe_action(SW_LEFT);
-            accum_x = 0; fires++; axis_lock_frames = POST_FIRE_LOCK_FRAMES; current_axis = AXIS_H;
-        }
-
-        // Y（下/上）
-        if (fires < MAX_FIRES_PER_SCAN && accum_y >= (step + FIRE_MARGIN_COUNT)) {
-            fire_swipe_action(SW_DOWN);
-            accum_y = 0; fires++; axis_lock_frames = POST_FIRE_LOCK_FRAMES; current_axis = AXIS_V;
-        } else if (fires < MAX_FIRES_PER_SCAN && accum_y <= -(step + FIRE_MARGIN_COUNT)) {
-            fire_swipe_action(SW_UP);
-            accum_y = 0; fires++; axis_lock_frames = POST_FIRE_LOCK_FRAMES; current_axis = AXIS_V;
-        }
-
-        // ---- 停止判定 ----
-        if (fdx == 0 && fdy == 0 && my_abs(accum_x) < step/2 && my_abs(accum_y) < step/2) {
-            accum_x /= 2; accum_y /= 2;
-            if (accum_x == 0 && accum_y == 0) { current_axis = AXIS_NONE; state = SWIPE; axis_switch_run = 0; axis_lock_frames = 0; }
+        // 停止検出（任意）：完全停止が続いたらSWIPEへ戻す
+        if (dx == 0 && dy == 0) {
+            if (idle_frames < 255) idle_frames++;
+            if (idle_frames >= 2 && accum == 0) {
+                state = SWIPE;
+                cur_dir = SW_NO;
+                first_pending = true;
+                idle_frames = 0;
+            }
+        } else {
+            idle_frames = 0;
         }
     }
 
-    // スワイプ中はポインタ停止（必要なら外してOK）
+    // スワイプ中はポインタ停止（必要なら外す）
     if (state == SWIPE || state == SWIPING) {
         mouse_report.x = 0;
         mouse_report.y = 0;
     }
     return mouse_report;
+
 }
