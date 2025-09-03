@@ -1,31 +1,30 @@
-name: Keyball build
+name: Keyball manual build
 
 on:
-  push:
-    branches: [ develop, toxa_rp2040 ]   # 好きなブランチに変更OK
-  pull_request:
-    branches: [ develop, toxa_rp2040 ]
   workflow_dispatch:
+    inputs:
+      kb:
+        description: "Keyboard (例: keyball/keyball44, keyball/keyball39)"
+        required: true
+        default: "keyball/keyball44"
+      km:
+        description: "Keymap"
+        required: true
+        default: "mymap"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.kb }}-${{ inputs.km }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build ${{ matrix.kb }}:${{ matrix.km }}
+    name: Build ${{ inputs.kb }}:${{ inputs.km }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { kb: "keyball/keyball39", km: "mymap" }
-          - { kb: "keyball/keyball44", km: "mymap" }
-
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive     # qmk_firmware の中の submodule も取得
+          submodules: recursive         # qmk_firmware サブモジュールも取得
+          ref: ${{ github.ref }}        # UIで選んだブランチのHEAD
 
       - name: Install toolchain
         run: |
@@ -45,14 +44,15 @@ jobs:
           mkdir -p qmk_firmware/keyboards
           ln -s ../../keyball qmk_firmware/keyboards/keyball
 
-      - name: Build ${{ matrix.kb }}:${{ matrix.km }}
+      - name: Build
         run: |
           . .venv/bin/activate
           qmk clean -q -n -y || true
-          qmk compile -kb "${{ matrix.kb }}" -km "${{ matrix.km }}"
+          qmk compile -kb "${{ inputs.kb }}" -km "${{ inputs.km }}"
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.kb }}-${{ matrix.km }}
+          name: ${{ inputs.kb }}-${{ inputs.km }}
           path: qmk_firmware/.build/*
+
