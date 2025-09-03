@@ -1,33 +1,58 @@
-# .github/workflows/build.yml
-name: Build (QMK)
+name: Keyball build
+
 on:
   push:
-    branches: [ develop, toxa_rp2040 ]   # ← ここを自由に
+    branches: [ develop, toxa_rp2040 ]   # 好きなブランチに変更OK
   pull_request:
     branches: [ develop, toxa_rp2040 ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  qmk:
+  build:
+    name: Build ${{ matrix.kb }}:${{ matrix.km }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { kb: "keyball/keyball39", km: "mymap" }
+          - { kb: "keyball/keyball44", km: "mymap" }
+
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive  # ← サブモジュール必須
-      - name: Toolchain & Python
+          submodules: recursive     # qmk_firmware の中の submodule も取得
+
+      - name: Install toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi python3-venv
-      - name: Build via script (pinned submodule)
+
+      - name: Setup qmk (venv)
         run: |
-          bash scripts/setup_and_build.sh
-      # --- もし“常に qmk_firmware の keyball 最新”でビルドしたいなら ---
-      # - name: Build via script (float submodule)
-      #   run: |
-      #     QMK_FLOAT=1 bash scripts/setup_and_build.sh
-      - name: Artifacts
-        if: always()
+          python3 -m venv .venv
+          . .venv/bin/activate
+          python3 -m pip install -U pip qmk
+          qmk setup -H "$GITHUB_WORKSPACE/qmk_firmware" -y || true
+
+      - name: Link keyboards/keyball → ../../keyball
+        run: |
+          rm -rf qmk_firmware/keyboards/keyball
+          mkdir -p qmk_firmware/keyboards
+          ln -s ../../keyball qmk_firmware/keyboards/keyball
+
+      - name: Build ${{ matrix.kb }}:${{ matrix.km }}
+        run: |
+          . .venv/bin/activate
+          qmk clean -q -n -y || true
+          qmk compile -kb "${{ matrix.kb }}" -km "${{ matrix.km }}"
+
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware
+          name: ${{ matrix.kb }}-${{ matrix.km }}
           path: qmk_firmware/.build/*
-
