@@ -53,7 +53,7 @@ jobs:
           qmk clean -q -n -y || true
           qmk compile -kb "${{ inputs.kb }}" -km "${{ inputs.km }}"
 
-      # 出力の在り処を可視化（root/.build と qmk_firmware/.build の両方を確認）
+      # 成果物の場所を可視化（デバッグ用）
       - name: Show build outputs
         if: always()
         run: |
@@ -63,16 +63,29 @@ jobs:
           echo "::group::tree qmk_firmware/.build"
           (ls -al qmk_firmware/.build && find qmk_firmware/.build -maxdepth 3 -type f) || true
           echo "::endgroup::"
-          echo "::group::hunt uf2/hex/bin anywhere"
+          echo "::group::hunt uf2/hex/bin"
           find . -maxdepth 3 \( -name "*.uf2" -o -name "*.hex" -o -name "*.bin" \) -print || true
           echo "::endgroup::"
 
-      # ★ Artifact名をサニタイズ（/ を _ に）
+      # Artifact 名を bash でサニタイズ（/ : 空白 など → _）
+      - name: Compute artifact name
+        id: meta
+        shell: bash
+        run: |
+          SAFE_KB="${{ inputs.kb }}"
+          SAFE_KB="${SAFE_KB//\//_}"
+          SAFE_KB="${SAFE_KB//:/_}"
+          SAFE_KB="${SAFE_KB// /_}"
+          SAFE_NAME="${SAFE_KB}-${{ inputs.km }}"
+          echo "ARTIFACT_NAME=$SAFE_NAME" >> "$GITHUB_ENV"
+          echo "artifact=$SAFE_NAME" >> "$GITHUB_OUTPUT"
+          echo "Artifact name: $SAFE_NAME"
+
       - name: Upload firmware
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ format('{0}-{1}', replace(inputs.kb, '/', '_'), inputs.km) }}
+          name: ${{ steps.meta.outputs.artifact }}
           path: |
             .build/**/*.uf2
             .build/**/*.hex
