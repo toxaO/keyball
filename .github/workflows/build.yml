@@ -45,30 +45,38 @@ jobs:
           ln -s ../../keyball qmk_firmware/keyboards/keyball
           ls -l qmk_firmware/keyboards
 
+      # ★ ここだけ qmk_firmware を作業ディレクトリにしてビルド
       - name: Build
+        working-directory: qmk_firmware
         run: |
-          . .venv/bin/activate
+          . ../.venv/bin/activate
           qmk clean -q -n -y || true
           qmk compile -kb "${{ inputs.kb }}" -km "${{ inputs.km }}"
 
-      # ▼ 追加: 生成物がどこに出たかを可視化（デバッグ）
+      # 出力の在り処を可視化（root/.build と qmk_firmware/.build の両方を確認）
       - name: Show build outputs
         if: always()
         run: |
+          echo "::group::tree .build (repo root)"
+          (ls -al .build && find .build -maxdepth 3 -type f) || true
+          echo "::endgroup::"
           echo "::group::tree qmk_firmware/.build"
           (ls -al qmk_firmware/.build && find qmk_firmware/.build -maxdepth 3 -type f) || true
           echo "::endgroup::"
           echo "::group::hunt uf2/hex/bin anywhere"
-          find qmk_firmware -maxdepth 3 \( -name "*.uf2" -o -name "*.hex" -o -name "*.bin" \) -print || true
+          find . -maxdepth 3 \( -name "*.uf2" -o -name "*.hex" -o -name "*.bin" \) -print || true
           echo "::endgroup::"
 
-      # ▼ 修正: グロブを広げて、見つからなければエラーにする
+      # ★ Artifact名をサニタイズ（/ を _ に）
       - name: Upload firmware
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.kb }}-${{ inputs.km }}
+          name: ${{ format('{0}-{1}', replace(inputs.kb, '/', '_'), inputs.km) }}
           path: |
+            .build/**/*.uf2
+            .build/**/*.hex
+            .build/**/*.bin
             qmk_firmware/.build/**/*.uf2
             qmk_firmware/.build/**/*.hex
             qmk_firmware/.build/**/*.bin
