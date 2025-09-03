@@ -1,0 +1,33 @@
+# .github/workflows/build.yml
+name: Build (QMK)
+on:
+  push:
+    branches: [ develop, toxa_rp2040 ]   # ← ここを自由に
+  pull_request:
+    branches: [ develop, toxa_rp2040 ]
+
+jobs:
+  qmk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # ← サブモジュール必須
+      - name: Toolchain & Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi python3-venv
+      - name: Build via script (pinned submodule)
+        run: |
+          bash scripts/setup_and_build.sh
+      # --- もし“常に qmk_firmware の keyball 最新”でビルドしたいなら ---
+      # - name: Build via script (float submodule)
+      #   run: |
+      #     QMK_FLOAT=1 bash scripts/setup_and_build.sh
+      - name: Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: qmk_firmware/.build/*
+
