@@ -20,11 +20,11 @@ jobs:
   build:
     name: Build ${{ inputs.kb }}:${{ inputs.km }}
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive         # qmk_firmware サブモジュールも取得
-          ref: ${{ github.ref }}        # UIで選んだブランチのHEAD
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -43,16 +43,59 @@ jobs:
           rm -rf qmk_firmware/keyboards/keyball
           mkdir -p qmk_firmware/keyboards
           ln -s ../../keyball qmk_firmware/keyboards/keyball
+          ls -l qmk_firmware/keyboards
 
+      # qmk_firmware を作業ディレクトリにしてビルド（.build の場所を安定化）
       - name: Build
+        working-directory: qmk_firmware
         run: |
-          . .venv/bin/activate
+          . ../.venv/bin/activate
           qmk clean -q -n -y || true
           qmk compile -kb "${{ inputs.kb }}" -km "${{ inputs.km }}"
 
+      # 成果物の場所を可視化（デバッグ用）
+      - name: Show build outputs
+        if: always()
+        run: |
+          echo "::group::tree .build (repo root)"
+          (ls -al .build && find .build -maxdepth 3 -type f) || true
+          echo "::endgroup::"
+          echo "::group::tree qmk_firmware/.build"
+          (ls -al qmk_firmware/.build && find qmk_firmware/.build -maxdepth 3 -type f) || true
+          echo "::endgroup::"
+          echo "::group::hunt uf2/hex/bin"
+          find . -maxdepth 3 \( -name "*.uf2" -o -name "*.hex" -o -name "*.bin" \) -print || true
+          echo "::endgroup::"
+
+      # Artifact 名を bash でサニタイズ（/ : 空白 など → _）
+      - name: Compute artifact name
+        id: meta
+        shell: bash
+        run: |
+          SAFE_KB="${{ inputs.kb }}"
+          SAFE_KB="${SAFE_KB//\//_}"
+          SAFE_KB="${SAFE_KB//:/_}"
+          SAFE_KB="${SAFE_KB// /_}"
+          SAFE_NAME="${SAFE_KB}-${{ inputs.km }}"
+          echo "ARTIFACT_NAME=$SAFE_NAME" >> "$GITHUB_ENV"
+          echo "artifact=$SAFE_NAME" >> "$GITHUB_OUTPUT"
+          echo "Artifact name: $SAFE_NAME"
+
       - name: Upload firmware
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.kb }}-${{ inputs.km }}
-          path: qmk_firmware/.build/*
+          name: ${{ steps.meta.outputs.artifact }}
+          path: |
+            .build/**/*.uf2
+            .build/**/*.hex
+            .build/**/*.bin
+            qmk_firmware/.build/**/*.uf2
+            qmk_firmware/.build/**/*.hex
+            qmk_firmware/.build/**/*.bin
+            qmk_firmware/*.uf2
+            qmk_firmware/*.hex
+            qmk_firmware/*.bin
+          if-no-files-found: error
+          retention-days: 14
 
