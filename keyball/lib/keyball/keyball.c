@@ -66,17 +66,6 @@ static bool    g_os_idx_init = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // スワイプ用
-// // ---- Swipe thresholds (compile-time for now) ----
-// #ifndef KB_SW_DEADZONE
-// #  define KB_SW_DEADZONE 1
-// #endif
-// #ifndef KB_SW_STEP
-// #  define KB_SW_STEP     200   // しきい値：超えるたびに発火、余剰は持ち越し
-// #endif
-// #ifndef KB_SWIPE_FREEZE_POINTER
-// #  define KB_SWIPE_FREEZE_POINTER 1   // 1: スワイプ中 出力を0に
-// #endif
-
 static inline int16_t kb_abs16(int16_t v) { return (v < 0) ? -v : v; }
 static inline void kb_sat_add_pos32(int32_t *acc, int32_t delta) {
   // acc は正値のみ運用。オーバーフロー防止。
@@ -206,24 +195,6 @@ static void kb_sw_try_fire(kb_swipe_dir_t dir,
 void keyball_swipe_dbg_toggle(void)         { g_sw_dbg_en = !g_sw_dbg_en; }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// new keyball profiles
-// ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
-// typedef struct __attribute__((packed)) {
-//   uint32_t magic;     // 'KBP1'
-//   uint16_t version;   // 1
-//   uint16_t reserved;  // 0
-//   uint16_t cpi[8];    // 100..CPI_MAX
-//   uint8_t  sdiv[8];   // 1..SCROLL_DIV_MAX
-//   uint8_t  inv[8];    // 0/1
-//   uint8_t  mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
-//   uint8_t  mv_th1[8];        // 0..(mv_th2-1)
-//   uint8_t  mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
-// } keyball_profiles_t;
-
-// #define KBPF_MAGIC   0x4B425031u /* 'KBP1' */
-// #define KBPF_VERSION 2
-// _Static_assert(sizeof(keyball_profiles_t) == 40 + 24, "update size expectation if you change fields");
-
 // ---- 保存ブロックサイズ ----
 #define KBPF_EE_SIZE (sizeof(keyball_profiles_t))
 

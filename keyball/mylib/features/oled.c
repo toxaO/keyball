@@ -52,10 +52,4 @@ void oledkit_render_info_user(void) {
                                 // keyball_oled_render_ballinfo();      // CPI/DIVを見たい時だけ
                                 // keyball_oled_render_ballsubinfo();   // Move shapingの簡易表示
   }
-  // // keyball_oled_render_keyinfo();
-  // keyball_oled_render_ballinfo();
-  // // keyball_oled_render_layerinfo();
-  // oled_render_layer_state();
-  // keyball_oled_render_ballsubinfo();
-  // keyball_oled_render_swipe_debug();
 }
