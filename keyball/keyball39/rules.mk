@@ -33,6 +33,7 @@ SRC += lib/oledkit/oledkit.c    # OLED utility for Keyball series.
 
 # Include common library
 SRC += lib/keyball/keyball.c
+SRC += lib/keyball/keyball_swipe.c
 
 # Disable other features to squeeze firmware size
 SPACE_CADET_ENABLE = no
