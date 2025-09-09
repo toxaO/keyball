@@ -96,6 +96,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #  define MOUSE_REPORT_XY_MAX  (127)
 #endif
 
+
+// 基本はOLED有効
+#ifndef OLED_DRIVER_ENABLE
+#  define KEYBALL_OLED_ENABLE 1
+#endif
+
 /// Specify SROM ID to be uploaded PMW3360DW (optical sensor).  It will be
 /// enabled high CPI setting or so.  Valid valus are 0x04 or 0x81.  Define this
 /// in your config.h to be enable.  Please note that using this option will
@@ -170,6 +176,16 @@ enum keyball_keycodes {
     MVGL_DN = QK_KB_18,   // 低速ゲイン↓
     MVTH1_UP = QK_KB_19,  // しきい値1↑
     MVTH1_DN = QK_KB_20,  // しきい値1↓
+
+    SW_ST_U = QK_KB_21, // スワイプ閾値上昇
+    SW_ST_D = QK_KB_22, // スワイプ閾値下降
+    SW_DZ_U = QK_KB_23, // スワイプゆらぎ抑制（強）
+    SW_DZ_D = QK_KB_24, // スワイプゆらぎ抑制（弱）
+    SW_FRZ  = QK_KB_25, // スワイプのポインタフリーズ
+
+    DBG_TOG = QK_KB_26, // Toggle debug output
+    DBG_NP = QK_KB_27, // Debug page next
+    DBG_PP = QK_KB_28, // Debug page previous
 
     // User customizable 32 keycodes.
     KEYBALL_SAFE_RANGE = QK_USER_0,
@@ -279,6 +295,9 @@ void keyball_oled_render_keyinfo(void);
 /// inactive layers.
 void keyball_oled_render_layerinfo(void);
 
+// show current swipe status
+void keyball_oled_render_swipe_debug(void);
+
 /// show mouse motion config
 void keyball_oled_render_ballsubinfo(void);
 
@@ -328,3 +347,98 @@ uint16_t keyball_get_cpi(void);
 /// In addition, if you do not upload SROM, the maximum value will be limited
 /// to 34 (3500CPI).
 void keyball_set_cpi(uint16_t cpi);
+
+
+// === Swipe hook (KB-level detect -> user-level action) ===
+typedef enum {
+    KB_SWIPE_NONE = 0,
+    KB_SWIPE_UP,
+    KB_SWIPE_DOWN,
+    KB_SWIPE_RIGHT,
+    KB_SWIPE_LEFT,
+} kb_swipe_dir_t;
+
+// ユーザー定義のモードタグ（KBは中身を解釈しない）
+typedef uint8_t kb_swipe_tag_t;
+
+// user → KB：スワイプセッション開始/終了
+void            keyball_swipe_begin(kb_swipe_tag_t mode_tag);
+void            keyball_swipe_end(void);
+
+// user が参照したい状態
+bool            keyball_swipe_is_active(void);          // 押下中？
+kb_swipe_tag_t  keyball_swipe_mode_tag(void);           // begin() で渡されたタグ
+kb_swipe_dir_t  keyball_swipe_direction(void);          // 現在の方向（未実装の間は常に NONE）
+bool            keyball_swipe_fired_since_begin(void);  // セッション開始以降に1回でも発火したか
+bool            keyball_swipe_consume_fired(void);      // ↑を取得して false に戻す
+
+// KB → user：発火イベント（弱シンボル；実装は user 側。未定義なら呼ばない）
+__attribute__((weak)) void keyball_on_swipe_fire(kb_swipe_tag_t mode_tag, kb_swipe_dir_t dir);
+
+// ==== Swipe runtime params ====
+typedef struct {
+    uint16_t step;     // 発火しきい値（counts）
+    uint8_t  deadzone; // デッドゾーン（counts）
+    bool     freeze;   // スワイプ中ポインタ凍結
+} kb_swipe_params_t;
+
+// 取得・設定
+kb_swipe_params_t keyball_swipe_get_params(void);
+void keyball_swipe_set_step(uint16_t v);
+void keyball_swipe_set_deadzone(uint8_t v);
+void keyball_swipe_set_freeze(bool on);
+void keyball_swipe_toggle_freeze(void);
+
+// --- OLED UI mode ---
+typedef enum { KB_OLED_MODE_NORMAL = 0, KB_OLED_MODE_DEBUG = 1 } kb_oled_mode_t;
+
+void            keyball_oled_mode_toggle(void);
+void            keyball_oled_set_mode(kb_oled_mode_t m);
+kb_oled_mode_t  keyball_oled_get_mode(void);
+
+// --- Swipe Debug pages (for OLED) ---
+void    keyball_swipe_dbg_toggle(void);
+void    keyball_swipe_dbg_show(bool on);
+void    keyball_swipe_dbg_next_page(void);
+void    keyball_swipe_dbg_prev_page(void);
+uint8_t keyball_swipe_dbg_get_page(void);
+
+// ==== Swipe params persistence ====
+bool keyball_swipe_cfg_load(void);   // 起動時に呼ぶ: true=読めた, false=初期化
+void keyball_swipe_cfg_save(void);   // 現在の params を保存
+void keyball_swipe_cfg_reset(void);  // 既定値に戻して保存（=工場出荷）
+
+
+// ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
+typedef struct __attribute__((packed)) {
+  uint32_t magic;     // 'KBP1'
+  uint16_t version;   // 1
+  uint16_t reserved;  // 0
+  uint16_t cpi[8];    // 100..CPI_MAX
+  uint8_t  sdiv[8];   // 1..SCROLL_DIV_MAX
+  uint8_t  inv[8];    // 0/1
+  uint8_t  mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
+  uint8_t  mv_th1[8];        // 0..(mv_th2-1)
+  uint8_t  mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
+  uint16_t step;     // 発火しきい値
+  uint8_t  deadzone; // デッドゾーン
+  uint8_t  freeze;    // bit0: freeze (1=FREEZE ON)
+} keyball_profiles_t;
+
+#define KBPF_MAGIC   0x4B425031u /* 'KBP1' */
+
+extern keyball_profiles_t kbpf;
+
+// 既定値（ビルド時デフォルトを反映）
+#ifndef KB_SW_STEP
+#  define KB_SW_STEP 200
+#endif
+#ifndef KB_SW_DEADZONE
+#  define KB_SW_DEADZONE 1
+#endif
+#ifndef KB_SWIPE_FREEZE_POINTER
+#  define KB_SWIPE_FREEZE_POINTER 1
+#endif
+
+#define KBPF_VER_OLD  1   // 例：既存
+#define KBPF_VER_CUR  2   // ★ 今回の拡張版

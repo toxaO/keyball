@@ -1,10 +1,13 @@
 #include "quantum.h"
-#include "swipe.h"
+// #include "swipe.h"
+#include "swipe_user.h"
 #include "os_detection.h"
 #include "my_keycode.h"
 #include "util.h"
 #include QMK_KEYBOARD_H
 #include "eeconfig.h"
+
+#include "lib/keyball/keyball.h"
 
 // mod override用変数
 uint8_t mod_state;
@@ -17,6 +20,9 @@ static bool sft_pressed = false;
 
 static uint16_t first_ctrl_tap_time = 0;
 static uint16_t first_shift_tap_time = 0;
+
+uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
+bool canceller = false;
 
 // マクロキーを設定
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -231,39 +237,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
 
         // 以下スワイプジェスチャー
-        // クリックすると state が SWIPE になり、離したら NONE になる
-        // SWIPEの実装はswipe.hに記載する
         case APP_SWIPE:
             if (record->event.pressed) {
-                // キーダウン時
-              swipe_mode = APP_SW;
-              swipe_timer = timer_read();
-              is_swiped = false;
-              canceller = false;
-              state = SWIPE;
+                keyball_swipe_begin(KBS_TAG_APP);
+                swipe_timer = timer_read();
+                canceller = false;  // ← APP の起動/キャンセル用のあなたの状態
             } else {
-                // キーアップ時
-              swipe_mode = NO_SW;
-              state = NONE;
-              canceller = false;
-              if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
-              }
+                keyball_swipe_end();
+                if (timer_elapsed(swipe_timer) < TAPPING_TERM
+                    && !keyball_swipe_fired_since_begin()) {
+                    tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
+                }
             }
             break;
 
         case VOL_SWIPE:
             if (record->event.pressed) {
-                // キーダウン時
-                swipe_mode = VOL_SW;
+                keyball_swipe_begin(KBS_TAG_VOL);
                 swipe_timer = timer_read();
-                is_swiped = false;
-                state = SWIPE;
             } else {
-                // キーアップ時
-                swipe_mode = NO_SW;
-                state = NONE;
-                if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
+                keyball_swipe_end();
+                if (timer_elapsed(swipe_timer) < TAPPING_TERM
+                    && !keyball_swipe_fired_since_begin()) {
                     tap_code(KC_MPLY);
                 }
             }
@@ -271,139 +266,273 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case BROWSE_SWIPE:
             if (record->event.pressed) {
-                // キーダウン時
-                swipe_mode = BRO_SW;
+                keyball_swipe_begin(KBS_TAG_BRO);
                 swipe_timer = timer_read();
-                is_swiped = false;
-                state = SWIPE;
             } else {
-                // キーアップ時
-                swipe_mode = NO_SW;
-                state = NONE;
-                if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+                keyball_swipe_end();
+                if (timer_elapsed(swipe_timer) < TAPPING_TERM
+                    && !keyball_swipe_fired_since_begin()) {
+                    tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
                 }
             }
             break;
 
         case TAB_SWIPE:
             if (record->event.pressed) {
-                // キーダウン時
-                swipe_mode = TAB_SW;
+                keyball_swipe_begin(KBS_TAG_TAB);
                 swipe_timer = timer_read();
-                is_swiped = false;
-                state = SWIPE;
             } else {
-                // キーアップ時
-                swipe_mode = NO_SW;
-                state = NONE;
-                if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+                keyball_swipe_end();
+                if (timer_elapsed(swipe_timer) < TAPPING_TERM
+                    && !keyball_swipe_fired_since_begin()) {
+                    tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
                 }
             }
             break;
 
         case WIN_SWIPE:
             if (record->event.pressed) {
-                // キーダウン時
-                swipe_mode = WIN_SW;
+                keyball_swipe_begin(KBS_TAG_WIN);
                 swipe_timer = timer_read();
-                is_swiped = false;
-                state = SWIPE;
             } else {
-                // キーアップ時
-                swipe_mode = NO_SW;
-                state = NONE;
-                if (host_os == OS_WINDOWS){
-                  unregister_code(KC_LGUI);
+                keyball_swipe_end();
+                if (host_os == OS_WINDOWS) {
+                    unregister_code(KC_LGUI);
                 }
-                if (is_swiped == false && timer_elapsed(swipe_timer) < TAPPING_TERM){
-                  tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+                if (timer_elapsed(swipe_timer) < TAPPING_TERM
+                    && !keyball_swipe_fired_since_begin()) {
+                    tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
                 }
             }
             break;
 
         case MULTI_A:
             if (record->event.pressed) {
-              switch(swipe_mode) {
-                case APP_SW:
-                  if (host_os == OS_MACOS || host_os == OS_IOS){
-                    tap_code16(m_L_DESK); // spotlight
-                  } else {
-                    tap_code16(w_L_DESK); // windows key
-                  }
-                  break;
-
-                case VOL_SW:
-                  break;
-
-                case TAB_SW:
-                  tap_code16(S(C(KC_TAB))); // next tab
-                  break;
-
-                case BRO_SW:
-                  if (host_os == OS_MACOS || host_os == OS_IOS){
-                    tap_code16(G(KC_LEFT)); // browse back
-                  } else {
-                    tap_code16(KC_WBAK); // windows key
-                  }
-                  break;
-
-                case WIN_SW:
-                  break;
-
-                default:
-                if (host_os == OS_MACOS || host_os == OS_IOS){
-                  tap_code16(G(KC_Z));
+                if (keyball_swipe_is_active()) {
+                    switch (keyball_swipe_mode_tag()) {
+                        case KBS_TAG_APP:
+                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(m_L_DESK);
+                            else                                           tap_code16(w_L_DESK);
+                            break;
+                        case KBS_TAG_TAB:
+                            tap_code16(S(C(KC_TAB)));
+                            break;
+                        case KBS_TAG_BRO:
+                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_LEFT));
+                            else                                           tap_code16(KC_WBAK);
+                            break;
+                        case KBS_TAG_VOL:
+                        case KBS_TAG_WIN:
+                        default:
+                            // スワイプ中だが他モードなら何もしない/通常処理にフォールバックでもOK
+                            break;
+                    }
                 } else {
-                  tap_code16(C(KC_Z));
+                    // 非スワイプ時の通常処理
+                    if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_Z));
+                    else                                           tap_code16(C(KC_Z));
                 }
-                  break;
-              }
-            } else {
             }
             break;
 
         case MULTI_B:
             if (record->event.pressed) {
-              switch(swipe_mode) {
-                case APP_SW:
-                  if (host_os == OS_MACOS || host_os == OS_IOS){
-                    tap_code16(m_R_DESK); // spotlight
-                  } else {
-                    tap_code16(w_R_DESK); // windows key
-                  }
-                  break;
-
-                case VOL_SW:
-                  break;
-
-                case TAB_SW:
-                  tap_code16(C(KC_TAB)); // previous tab
-                  break;
-
-                case BRO_SW:
-                  if (host_os == OS_MACOS || host_os == OS_IOS){
-                    tap_code16(G(KC_RIGHT)); // browse back
-                  } else {
-                    tap_code16(KC_WFWD); // windows key
-                  }
-                  break;
-
-                case WIN_SW:
-                  break;
-
-                default:
-                if (host_os == OS_MACOS || host_os == OS_IOS){
-                  tap_code16(S(G(KC_Z)));
+                if (keyball_swipe_is_active()) {
+                    switch (keyball_swipe_mode_tag()) {
+                        case KBS_TAG_APP:
+                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(m_R_DESK);
+                            else                                           tap_code16(w_R_DESK);
+                            break;
+                        case KBS_TAG_TAB:
+                            tap_code16(C(KC_TAB));
+                            break;
+                        case KBS_TAG_BRO:
+                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_RIGHT));
+                            else                                           tap_code16(KC_WFWD);
+                            break;
+                        case KBS_TAG_VOL:
+                        case KBS_TAG_WIN:
+                        default:
+                            break;
+                    }
                 } else {
-                  tap_code16(S(C(KC_Z)));
+                    // 非スワイプ時の通常処理
+                    if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(S(G(KC_Z)));
+                    else                                           tap_code16(S(C(KC_Z)));
                 }
-                  break;
-              }
-            } else {
             }
             break;
+
+
+
+        // クリックすると state が SWIPE になり、離したら NONE になる
+        // SWIPEの実装はswipe.hに記載する
+        // case APP_SWIPE:
+        //     if (record->event.pressed) {
+        //         // キーダウン時
+        //       swipe_mode = APP_SW;
+        //       swipe_timer = timer_read();
+        //       canceller = false;
+        //       state = SWIPE;
+        //     } else {
+        //         // キーアップ時
+        //       swipe_mode = NO_SW;
+        //       state = NONE;
+        //       canceller = false;
+        //       if (timer_elapsed(swipe_timer) < TAPPING_TERM){
+        //         tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
+        //       }
+        //     }
+        //     break;
+
+        // case VOL_SWIPE:
+        //     if (record->event.pressed) {
+        //         // キーダウン時
+        //         swipe_mode = VOL_SW;
+        //         swipe_timer = timer_read();
+        //         state = SWIPE;
+        //     } else {
+        //         // キーアップ時
+        //         swipe_mode = NO_SW;
+        //         state = NONE;
+        //         if (timer_elapsed(swipe_timer) < TAPPING_TERM){
+        //             tap_code(KC_MPLY);
+        //         }
+        //     }
+        //     break;
+
+        // case BROWSE_SWIPE:
+        //     if (record->event.pressed) {
+        //         // キーダウン時
+        //         swipe_mode = BRO_SW;
+        //         swipe_timer = timer_read();
+        //         state = SWIPE;
+        //     } else {
+        //         // キーアップ時
+        //         swipe_mode = NO_SW;
+        //         state = NONE;
+        //         if (timer_elapsed(swipe_timer) < TAPPING_TERM){
+        //           tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+        //         }
+        //     }
+        //     break;
+
+        // case TAB_SWIPE:
+        //     if (record->event.pressed) {
+        //         // キーダウン時
+        //         swipe_mode = TAB_SW;
+        //         swipe_timer = timer_read();
+        //         state = SWIPE;
+        //     } else {
+        //         // キーアップ時
+        //         swipe_mode = NO_SW;
+        //         state = NONE;
+        //         if (timer_elapsed(swipe_timer) < TAPPING_TERM){
+        //           tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+        //         }
+        //     }
+        //     break;
+
+        // case WIN_SWIPE:
+        //     if (record->event.pressed) {
+        //         // キーダウン時
+        //         swipe_mode = WIN_SW;
+        //         swipe_timer = timer_read();
+        //         state = SWIPE;
+        //     } else {
+        //         // キーアップ時
+        //         swipe_mode = NO_SW;
+        //         state = NONE;
+        //         if (host_os == OS_WINDOWS){
+        //           unregister_code(KC_LGUI);
+        //         }
+        //         if (timer_elapsed(swipe_timer) < TAPPING_TERM){
+        //           tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+        //         }
+        //     }
+        //     break;
+
+        // case MULTI_A:
+        //     if (record->event.pressed) {
+        //       switch(swipe_mode) {
+        //         case APP_SW:
+        //           if (host_os == OS_MACOS || host_os == OS_IOS){
+        //             tap_code16(m_L_DESK); // spotlight
+        //           } else {
+        //             tap_code16(w_L_DESK); // windows key
+        //           }
+        //           break;
+
+        //         case VOL_SW:
+        //           break;
+
+        //         case TAB_SW:
+        //           tap_code16(S(C(KC_TAB))); // next tab
+        //           break;
+
+        //         case BRO_SW:
+        //           if (host_os == OS_MACOS || host_os == OS_IOS){
+        //             tap_code16(G(KC_LEFT)); // browse back
+        //           } else {
+        //             tap_code16(KC_WBAK); // windows key
+        //           }
+        //           break;
+
+        //         case WIN_SW:
+        //           break;
+
+        //         default:
+        //         if (host_os == OS_MACOS || host_os == OS_IOS){
+        //           tap_code16(G(KC_Z));
+        //         } else {
+        //           tap_code16(C(KC_Z));
+        //         }
+        //           break;
+        //       }
+        //     } else {
+        //     }
+        //     break;
+
+        // case MULTI_B:
+        //     if (record->event.pressed) {
+        //       switch(swipe_mode) {
+        //         case APP_SW:
+        //           if (host_os == OS_MACOS || host_os == OS_IOS){
+        //             tap_code16(m_R_DESK); // spotlight
+        //           } else {
+        //             tap_code16(w_R_DESK); // windows key
+        //           }
+        //           break;
+
+        //         case VOL_SW:
+        //           break;
+
+        //         case TAB_SW:
+        //           tap_code16(C(KC_TAB)); // previous tab
+        //           break;
+
+        //         case BRO_SW:
+        //           if (host_os == OS_MACOS || host_os == OS_IOS){
+        //             tap_code16(G(KC_RIGHT)); // browse back
+        //           } else {
+        //             tap_code16(KC_WFWD); // windows key
+        //           }
+        //           break;
+
+        //         case WIN_SW:
+        //           break;
+
+        //         default:
+        //         if (host_os == OS_MACOS || host_os == OS_IOS){
+        //           tap_code16(S(G(KC_Z)));
+        //         } else {
+        //           tap_code16(S(C(KC_Z)));
+        //         }
+        //           break;
+        //       }
+        //     } else {
+        //     }
+        //     break;
 
         case EEPROM_RST:
             if (record->event.pressed) {

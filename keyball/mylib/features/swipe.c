@@ -7,7 +7,6 @@
 #include "os_detection.h"
 #include "swipe_tuning.h"
 
-bool is_swiped = false;
 bool canceller = false;
 
 SwipeMode swipe_mode = NO_SW;

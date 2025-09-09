@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "my_keycode.h"
 #include "os_detection.h"
 #include "features/util.h"
-#include "features/swipe.h"
+// #include "features/swipe.h"
 #include "features/macro_key.h"
 #include "features/layer.h"
 #ifdef OLED_ENABLE

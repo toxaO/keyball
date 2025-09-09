@@ -200,6 +200,7 @@ enum layer_names {
     _wMou,
     _Scr,
     _Pad,
+    _Set,
 };
 
 // custom keycode --------------------
