@@ -26,20 +26,8 @@
 #include "drivers/sensors/pmw33xx_common.h"
 #include "pointing_device.h"
 #include "os_detection.h"
-#include "eeprom.h"
-#include "eeconfig.h"
 #include "timer.h"
 #include "oled_driver.h"
-
-// ==== OLED UI state ====
-static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
-static uint8_t        g_sw_dbg_page = 0;      // 既存
-static bool           g_sw_dbg_en   = true;   // 既存（デバッグ描画ON/OFFフラグ）
-
-#define KB_SW_DBG_PAGE_COUNT   3
-#define KB_OLED_UI_DEBOUNCE_MS 100
-
-static uint32_t g_oled_ui_ts = 0;  // 操作デバウンス
 
 #define _CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 #define CONSTRAIN_HV(val)      (mouse_hv_report_t) _CONSTRAIN(val, MOUSE_REPORT_HV_MIN, MOUSE_REPORT_HV_MAX)
@@ -59,173 +47,14 @@ static const char BL = '\xB0'; // Blank indicator character
 // マウス移動量調整用
 static int32_t g_move_gain_lo_fp = KEYBALL_MOVE_GAIN_LO_FP;
 static int16_t g_move_th1 = KEYBALL_MOVE_TH1;  // th2 は固定でもOK。要れば同様に可変化。
+static uint8_t g_scroll_deadzone   = KB_SCROLL_DEADZONE;
+static uint8_t g_scroll_hysteresis = KB_SCROLL_HYST;
 
 // OS 検出用
 static uint8_t g_os_idx = 0;      // 決定した OS スロット
 static bool    g_os_idx_init = false;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// スワイプ用
-static inline int16_t kb_abs16(int16_t v) { return (v < 0) ? -v : v; }
-static inline void kb_sat_add_pos32(int32_t *acc, int32_t delta) {
-  // acc は正値のみ運用。オーバーフロー防止。
-  int64_t t = (int64_t)(*acc) + (int64_t)delta;
-  if (t > (1L<<27)) t = (1L<<27);
-  if (t < 0) t = 0;
-  *acc = (int32_t)t;
-}
 
-typedef struct {
-  bool            active;
-  kb_swipe_tag_t  tag;
-  bool            fired_any;
-  kb_swipe_dir_t  last_dir;   // 直近の発火方向（検出未実装の間は NONE のまま）
-                              // 方向別累積（正距離）。RIGHT/LEFT/DOWN/UP
-  int32_t acc_r, acc_l, acc_d, acc_u;
-} kb_swipe_session_t;
-
-static kb_swipe_session_t g_sw = {0};
-
-// ==== API実装（検出はまだ入れない）====
-void keyball_swipe_begin(kb_swipe_tag_t mode_tag) {
-  g_sw.active   = true;
-  g_sw.tag      = mode_tag;
-  g_sw.fired_any= false;
-  g_sw.last_dir = KB_SWIPE_NONE;
-  g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
-}
-void keyball_swipe_end(void) {
-  g_sw.active   = false;
-  g_sw.tag      = 0;
-  g_sw.fired_any= false;
-  g_sw.last_dir = KB_SWIPE_NONE;
-  g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
-}
-bool           keyball_swipe_is_active(void)         { return g_sw.active; }
-kb_swipe_tag_t keyball_swipe_mode_tag(void)          { return g_sw.tag; }
-kb_swipe_dir_t keyball_swipe_direction(void)         { return g_sw.last_dir; }
-bool           keyball_swipe_fired_since_begin(void) { return g_sw.fired_any; }
-bool           keyball_swipe_consume_fired(void)     { bool f = g_sw.fired_any; g_sw.fired_any = false; return f; }
-
-kb_swipe_params_t keyball_swipe_get_params(void){
-    kb_swipe_params_t p = {
-        .step     = kbpf.step,
-        .deadzone = kbpf.deadzone,
-        .freeze   = (kbpf.freeze & 1) != 0
-    };
-    return p;
-}
-
-void keyball_swipe_set_step(uint16_t v){
-  if (v < 10) v = 10;
-  if (v > 2000) v = 2000;
-  kbpf.step = v;
-  uprintf("SW step=%u\r\n", kbpf.step);
-}
-
-void keyball_swipe_set_deadzone(uint8_t v){
-  if (v > 32) v = 32;
-  kbpf.deadzone = v;
-  uprintf("SW deadzone=%u\r\n", kbpf.deadzone);
-}
-
-void keyball_swipe_set_freeze(bool on){
-  kbpf.freeze = on ? 1 : 0;
-  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
-}
-
-void keyball_swipe_toggle_freeze(void){
-  kbpf.freeze ^= 1;  // ← g_sw_params ではなく kbpf をトグル
-  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
-}
-
-static inline bool ui_op_ready(void){
-  if (TIMER_DIFF_32(timer_read32(), g_oled_ui_ts) < KB_OLED_UI_DEBOUNCE_MS) return false;
-  g_oled_ui_ts = timer_read32();
-  return true;
-}
-
-void keyball_oled_set_mode(kb_oled_mode_t m){
-  g_oled_mode = m;
-  g_sw_dbg_en = (m == KB_OLED_MODE_DEBUG);  // 通常=非表示, デバッグ=表示
-  oled_clear();
-}
-
-void keyball_oled_mode_toggle(void){
-  if (!ui_op_ready()) return;
-  keyball_oled_set_mode((g_oled_mode == KB_OLED_MODE_DEBUG) ? KB_OLED_MODE_NORMAL : KB_OLED_MODE_DEBUG);
-}
-
-kb_oled_mode_t keyball_oled_get_mode(void){ return g_oled_mode; }
-
-void keyball_swipe_dbg_next_page(void){
-  if (!ui_op_ready()) return;
-  g_sw_dbg_page = (g_sw_dbg_page + 1) % KB_SW_DBG_PAGE_COUNT;
-  oled_clear();
-}
-
-void keyball_swipe_dbg_prev_page(void){
-  if (!ui_op_ready()) return;
-  g_sw_dbg_page = (g_sw_dbg_page + KB_SW_DBG_PAGE_COUNT - 1) % KB_SW_DBG_PAGE_COUNT;
-  oled_clear();
-}
-
-uint8_t keyball_swipe_dbg_get_page(void){ return g_sw_dbg_page; }
-
-// プロトタイプ宣言
-static void kb_apply_swipe(report_mouse_t *report, report_mouse_t *output, bool is_left);
-
-static void kb_sw_try_fire(kb_swipe_dir_t dir,
-    int32_t *acc_target,
-    int32_t *a1, int32_t *a2, int32_t *a3) {
-
-  while (*acc_target >= kbpf.step) {
-    if (keyball_on_swipe_fire) {
-      keyball_on_swipe_fire(g_sw.tag, dir);
-    }
-    g_sw.fired_any = true;
-    g_sw.last_dir  = dir;
-
-    *acc_target -= kbpf.step;      // ← ここを修正！
-    if (*acc_target < 0) *acc_target = 0;
-    *a1 = *a2 = *a3 = 0;           // 他3方向はクリア
-  }
-}
-
-void keyball_swipe_dbg_toggle(void)         { g_sw_dbg_en = !g_sw_dbg_en; }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// ---- 保存ブロックサイズ ----
-#define KBPF_EE_SIZE (sizeof(keyball_profiles_t))
-
-// ---- 保存先アドレス決定（VIA優先 → eeconfig系 → 最終フォールバック）----
-#ifndef KBPF_EE_ADDR   // ← config.h で手動指定があればそれを使う
-#  ifdef VIA_ENABLE
-#    include "via.h"
-// VIA のカスタム領域を使用
-#    define KBPF_EE_ADDR (VIA_EEPROM_CUSTOM_CONFIG_ADDR)
-_Static_assert(VIA_EEPROM_CUSTOM_CONFIG_SIZE >= KBPF_EE_SIZE,
-    "VIA custom area is too small for keyball profiles");
-#  else
-// QMK の世代差を全部カバー
-#    if defined(EECONFIG_END)
-#      define KBPF_EE_ADDR (EECONFIG_END)
-#    elif defined(EECONFIG_SIZE)
-#      define KBPF_EE_ADDR (EECONFIG_SIZE)
-#    elif defined(EECONFIG_USER)
-// ユーザ 32bit の直後
-#      define KBPF_EE_ADDR (EECONFIG_USER + sizeof(uint32_t))
-#    elif defined(EECONFIG_KB)
-// キーボード 32bit の直後
-#      define KBPF_EE_ADDR (EECONFIG_KB + sizeof(uint32_t))
-#    else
-// 最終フォールバック（古い/特殊環境用）。必要に応じて config.h で上書き推奨。
-#      define KBPF_EE_ADDR (512)  // 例: AVR 1KB EEPROM想定で中腹に配置
-#    endif
-#  endif
-#endif
-
-keyball_profiles_t kbpf;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // old keyball config
@@ -272,6 +101,10 @@ static inline uint8_t osi(void) {
   return g_os_idx;
 }
 
+uint8_t keyball_os_idx(void) {
+  return osi();
+}
+
 static void add_cpi(int16_t delta) {
   int16_t v = keyball_get_cpi() + delta;
   keyball_set_cpi(v < 1 ? 1 : v);
@@ -292,112 +125,10 @@ static inline int16_t clamp_xy(int16_t v) {
   return (int16_t)_CONSTRAIN(v, MOUSE_REPORT_XY_MIN, MOUSE_REPORT_XY_MAX);
 }
 
-static void kb_profiles_defaults(void) {
-  for (int i = 0; i < 8; ++i) {
-    kbpf.cpi[i]  = KEYBALL_CPI_DEFAULT;
-    kbpf.sdiv[i] = KEYBALL_SCROLL_DIV_DEFAULT;
-    kbpf.inv[i]  = (KEYBALL_SCROLL_INVERT != 0);
-
-    kbpf.mv_gain_lo_fp[i] = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_GAIN_LO_FP, 1, 255);
-    kbpf.mv_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
-    kbpf.mv_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
-    if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
-  }
-  kbpf.magic   = KBPF_MAGIC;
-  // kbpf.version = KBPF_VERSION;
-  kbpf.version = KBPF_VER_CUR;
-  kbpf.reserved= 0;
-}
-
-static inline void kbpf_set_swipe_defaults(keyball_profiles_t *p){
-  p->step     = KB_SW_STEP;
-  p->deadzone = KB_SW_DEADZONE;
-  p->freeze    = (KB_SWIPE_FREEZE_POINTER ? 0x01 : 0x00);
-}
-
-static void kb_profiles_validate(void) {
-  if (kbpf.magic != KBPF_MAGIC || (kbpf.version != 1 && kbpf.version != KBPF_VER_CUR)) {
-    kb_profiles_defaults();
-    return;
-  }
-  for (int i = 0; i < 8; ++i) {
-    kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
-    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
-    kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
-  }
-  if (kbpf.version == 1) {
-    // v1 -> v2 への移行（新フィールドに既定値を充填）
-    kbpf.step     = KB_SW_STEP;
-    kbpf.deadzone = KB_SW_DEADZONE;
-    kbpf.freeze   = (KB_SWIPE_FREEZE_POINTER ? 1 : 0);
-    kbpf.version  = KBPF_VER_CUR; // SAVE 時に確定
-  }
-  // v2 の範囲ガード
-  if (kbpf.step < 1 || kbpf.step > 2000) kbpf.step = KB_SW_STEP;
-  if (kbpf.deadzone > 32)                kbpf.deadzone = KB_SW_DEADZONE;
-  kbpf.freeze &= 0x01;
-}
-
-
-void kbpf_after_load_fixup(void){  // 例名。あなたの初期化ハンドラに入れてOK
-  if (kbpf.version < KBPF_VER_CUR) {
-    // 旧版 → 新フィールドに既定値を充填
-    kbpf_set_swipe_defaults(&kbpf);
-    kbpf.version = KBPF_VER_CUR;
-    // ★ ここで即セーブはしない（ユーザーが SAVE した時に上書きでOK）
-  } else {
-    // 現行/将来版 → 範囲ガード（壊れ値対策）
-    if (kbpf.step == 0 || kbpf.step > 2000) kbpf.step = KB_SW_STEP;
-    if (kbpf.deadzone > 32) kbpf.deadzone = KB_SW_DEADZONE;
-    kbpf.freeze &= 0x01; // 予約ビットを落とす
-  }
-}
-
-static void kb_profiles_read(void) {
-  // NG: eeprom_read_block(&kbpf, (void*)EECONFIG_KEYBALL_PROFILES_ADDR, sizeof(kbpf));
-  eeprom_read_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
-  kb_profiles_validate();
-}
-
-static void kb_profiles_write(void) {
-  // NG: eeprom_update_block(&kbpf, (void*)EECONFIG_KEYBALL_PROFILES_ADDR, sizeof(kbpf));
-  eeprom_update_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
-}
 
 
 //////////////////////////////////////////////////////////////////////////////
 // Pointing device driver
-// スワイプ処理
-static void kb_apply_swipe(report_mouse_t *report, report_mouse_t *output, bool is_left) {
-  // ---- RAW motion（整形前）----
-  int16_t sx = (int16_t)report->x;
-  int16_t sy = (int16_t)report->y;
-
-  // デッドゾーン
-  if (kb_abs16(sx) < kbpf.deadzone) sx = 0;
-  if (kb_abs16(sy) < kbpf.deadzone) sy = 0;
-
-  // 符号別に累積、反対側は 0（距離は正で加算）
-  if (sx > 0)      { kb_sat_add_pos32(&g_sw.acc_r, sx);  g_sw.acc_l = 0; }
-  else if (sx < 0) { kb_sat_add_pos32(&g_sw.acc_l, -sx); g_sw.acc_r = 0; }
-
-  if (sy > 0)      { kb_sat_add_pos32(&g_sw.acc_d, sy);  g_sw.acc_u = 0; }
-  else if (sy < 0) { kb_sat_add_pos32(&g_sw.acc_u, -sy); g_sw.acc_d = 0; }
-
-  // 主成分優先の評価順（斜め同時越え時の順序安定化）
-  bool prefer_x = (kb_abs16((int16_t)report->x) >= kb_abs16((int16_t)report->y));
-  if (prefer_x) {
-    kb_sw_try_fire(KB_SWIPE_RIGHT, &g_sw.acc_r, &g_sw.acc_l, &g_sw.acc_u, &g_sw.acc_d);
-    kb_sw_try_fire(KB_SWIPE_LEFT,  &g_sw.acc_l, &g_sw.acc_r, &g_sw.acc_u, &g_sw.acc_d);
-    kb_sw_try_fire(KB_SWIPE_DOWN,  &g_sw.acc_d, &g_sw.acc_u, &g_sw.acc_r, &g_sw.acc_l);
-    kb_sw_try_fire(KB_SWIPE_UP,    &g_sw.acc_u, &g_sw.acc_d, &g_sw.acc_r, &g_sw.acc_l);
-  } else {
-    kb_sw_try_fire(KB_SWIPE_DOWN,  &g_sw.acc_d, &g_sw.acc_u, &g_sw.acc_r, &g_sw.acc_l);
-    kb_sw_try_fire(KB_SWIPE_UP,    &g_sw.acc_u, &g_sw.acc_d, &g_sw.acc_r, &g_sw.acc_l);
-    kb_sw_try_fire(KB_SWIPE_RIGHT, &g_sw.acc_r, &g_sw.acc_l, &g_sw.acc_u, &g_sw.acc_d);
-    kb_sw_try_fire(KB_SWIPE_LEFT,  &g_sw.acc_l, &g_sw.acc_r, &g_sw.acc_u, &g_sw.acc_d);
-  }
-}
 
 // ポインターの動き変換フック
 __attribute__((weak))
@@ -482,25 +213,47 @@ __attribute__((weak))
     static int32_t acc_x_mac = 0, acc_y_mac = 0;
     static int32_t acc_x_gen = 0, acc_y_gen = 0;
     static uint8_t last_sdiv = 0;
-    static int8_t  last_sx = 0, last_sy = 0;
     static uint32_t last_ts = 0;
+    static int8_t last_dir_x = 0, last_dir_y = 0;
 
     uint32_t now = timer_read32();
     int16_t sx = (int16_t)report->x;
     int16_t sy = (int16_t)report->y;
     uint8_t sdiv = keyball_get_scroll_div();
 
+    // デッドゾーン適用
+    if (abs(sx) <= g_scroll_deadzone) sx = 0;
+    if (abs(sy) <= g_scroll_deadzone) sy = 0;
+
+    // ヒステリシス処理（方向反転のゆらぎ抑制）
+    int8_t dir_x = (sx > 0) - (sx < 0);
+    int8_t dir_y = (sy > 0) - (sy < 0);
+    if (dir_x && dir_x != last_dir_x) {
+      if (last_dir_x && abs(sx) <= g_scroll_hysteresis) {
+        sx = 0;
+        dir_x = 0;
+      } else {
+        acc_x_mac = acc_x_gen = 0;
+        last_dir_x = dir_x;
+      }
+    }
+    if (dir_y && dir_y != last_dir_y) {
+      if (last_dir_y && abs(sy) <= g_scroll_hysteresis) {
+        sy = 0;
+        dir_y = 0;
+      } else {
+        acc_y_mac = acc_y_gen = 0;
+        last_dir_y = dir_y;
+      }
+    }
+
     // 感度変更やアイドルで余りリセット
     if (sdiv != last_sdiv || TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
       acc_x_mac = acc_y_mac = 0;
       acc_x_gen = acc_y_gen = 0;
       last_sdiv = sdiv;
+      last_dir_x = last_dir_y = 0;
     }
-#if KEYBALL_SCROLL_RESET_ON_DIRCHANGE
-    if ((int8_t)sx && (int8_t)last_sx && ((sx ^ last_sx) < 0)) { acc_x_mac = acc_x_gen = 0; }
-    if ((int8_t)sy && (int8_t)last_sy && ((sy ^ last_sy) < 0)) { acc_y_mac = acc_y_gen = 0; }
-#endif
-    last_sx = (int8_t)sx; last_sy = (int8_t)sy;
     last_ts = now;
 
     switch (detected_host_os()) {
@@ -520,8 +273,8 @@ __attribute__((weak))
       default: {
                  // Windows/Linux 等はそのまま（必要なら sdiv を掛ける）
                  // uint8_t sdiv = keyball_get_scroll_div();
-                 out_x = (int16_t)report->x * sdiv;
-                 out_y = (int16_t)report->y * sdiv;
+                 out_x = (int16_t)sx * sdiv;
+                 out_y = (int16_t)sy * sdiv;
                  break;
                }
     }
@@ -567,7 +320,7 @@ __attribute__((weak))
 // report の motion を output に変換して加算し、report の motion はクリアする。
 static void motion_to_mouse(report_mouse_t *report, report_mouse_t *output, bool is_left, bool as_scroll) {
   if (keyball_swipe_is_active()) {
-    kb_apply_swipe(report, output, is_left);
+    keyball_swipe_apply(report, output, is_left);
     // ★ freezeがOFFなら、通常のMove経路も通してポインタを動かす
     if (!kbpf.freeze) {
       keyball_on_apply_motion_to_mouse_move(report, output, is_left);
@@ -826,14 +579,16 @@ void keyboard_post_init_kb(void) {
 #endif
 
   keyball.this_have_ball = pmw33xx_init_ok;
-  kb_profiles_defaults(); // まず既定値
-  kb_profiles_read();     // EEPROMから上書き
+  kbpf_defaults();        // まず既定値
+  kbpf_read();            // EEPROMから上書き
                           // kbpf_after_load_fixup(); // 旧版からの移行処理
 
   keyball_set_cpi(keyball_get_cpi());
   keyball_set_scroll_div(keyball_get_scroll_div());
   g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
   g_move_th1        = kbpf.mv_th1[osi()];
+  g_scroll_deadzone   = kbpf.sc_dz;
+  g_scroll_hysteresis = kbpf.sc_hyst;
   keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
   keyboard_post_init_user();
 }
@@ -870,96 +625,6 @@ static void pressing_keys_update(uint16_t keycode, keyrecord_t *record) {
 static inline void pressing_keys_update(uint16_t keycode, keyrecord_t *record) { (void)keycode; (void)record; }
 #endif
 
-#if defined(OLED_ENABLE) || defined(OLED_DRIVER_ENABLE)
-// 再入防止（レンダ中に再呼び出されてもスキップ）
-static bool g_sw_dbg_in_render = false;
-
-// 0..9999 に丸めた無符号
-static inline unsigned clip0_9999(int32_t v){
-  if (v <= 0) return 0u;
-  if (v >= 9999) return 9999u;
-  return (unsigned)v;
-}
-static inline const char* kb_dir_str(kb_swipe_dir_t d){
-  return (d==KB_SWIPE_UP)?"UP ":(d==KB_SWIPE_DOWN)?"DN ":
-    (d==KB_SWIPE_LEFT)?"LT ":(d==KB_SWIPE_RIGHT)?"RT ":"NON";
-}
-
-void keyball_oled_render_swipe_debug(void){
-  if (g_oled_mode != KB_OLED_MODE_DEBUG) return; // 通常モードなら描かない
-  if (!g_sw_dbg_en) return;
-  if (g_sw_dbg_in_render) return;
-  g_sw_dbg_in_render = true;
-
-  char line[32];
-  oled_set_cursor(0, 0); // 毎回先頭から
-
-  switch (g_sw_dbg_page) {
-    case 0: { // 環境（Move shaping 等）
-              uint16_t cpi = keyball_get_cpi();
-              snprintf(line, sizeof(line), "CPI:%u", (unsigned)cpi);
-              oled_write_ln(line, false);
-
-              // Move shaping が無効なら別表示
-#ifdef KEYBALL_MOVE_SHAPING_ENABLE
-              extern int32_t g_move_gain_lo_fp;
-              extern int16_t g_move_th1;
-              snprintf(line, sizeof(line), "Glo:%ld Th1:%d", (long)g_move_gain_lo_fp, (int)g_move_th1);
-#else
-              snprintf(line, sizeof(line), "MoveShape:OFF");
-#endif
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Div:%u Inv:%u",
-                       (unsigned)keyball_get_scroll_div(),
-                       (unsigned)(kbpf.inv[osi()] ? 1 : 0));
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(g_sw_dbg_page+1), (unsigned)KB_SW_DBG_PAGE_COUNT);
-              oled_write_ln(line, false);
-            } break;
-
-    case 1: { // 状態・基本パラメータ
-              kb_swipe_params_t p = keyball_swipe_get_params();
-              snprintf(line, sizeof(line), "A:%u Tg:%u Fz:%u",
-                  keyball_swipe_is_active()?1u:0u,
-                  (unsigned)keyball_swipe_mode_tag(),
-                  p.freeze?1u:0u);
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "St:%u Dz:%u",
-                  (unsigned)p.step, (unsigned)p.deadzone);
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Dir:%s Fd:%u",
-                  kb_dir_str(keyball_swipe_direction()),
-                  keyball_swipe_fired_since_begin()?1u:0u);
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(g_sw_dbg_page+1), (unsigned)KB_SW_DBG_PAGE_COUNT);
-              oled_write_ln(line, false);
-            } break;
-
-    case 2: { // Accumulators
-              unsigned ar = clip0_9999(g_sw.acc_r);
-              unsigned al = clip0_9999(g_sw.acc_l);
-              unsigned ad = clip0_9999(g_sw.acc_d);
-              unsigned au = clip0_9999(g_sw.acc_u);
-
-              snprintf(line, sizeof(line), "R%4u L%4u", ar, al);
-              oled_write_ln(line, false);
-              snprintf(line, sizeof(line), "D%4u U%4u", ad, au);
-              oled_write_ln(line, false);
-
-              oled_write_ln("Acc", false);
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(g_sw_dbg_page+1), (unsigned)KB_SW_DBG_PAGE_COUNT);
-              oled_write_ln(line, false);
-            } break;
-  }
-
-  g_sw_dbg_in_render = false;
-}
-#endif
 
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
@@ -1011,12 +676,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     switch (keycode) {
       case KBC_RST:
-        kb_profiles_defaults();
+        kbpf_defaults();
         keyball_set_cpi(kbpf.cpi[osi()]);
         keyball_set_scroll_div(kbpf.sdiv[osi()]);
         g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
         g_move_th1        = kbpf.mv_th1[osi()];
-        kb_profiles_write();
+        kbpf_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
         set_auto_mouse_enable(false);
         set_auto_mouse_timeout(AUTO_MOUSE_TIME);
@@ -1026,7 +691,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       case KBC_SAVE:
         kbpf.mv_gain_lo_fp[osi()] = (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
         kbpf.mv_th1[osi()]        = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
-        kb_profiles_write();  // OSごとの全データを一括保存
+        kbpf_write();  // OSごとの全データを一括保存
         dprintf("KB profiles saved (magic=0x%08lX ver=%u)\n",
             (unsigned long)kbpf.magic, kbpf.version);
         break;
@@ -1053,12 +718,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                      break;
       case CPI_D100:
                      add_cpi(-100);
-                     break;
-      case CPI_I1K:
-                     add_cpi(1000);
-                     break;
-      case CPI_D1K:
-                     add_cpi(-1000);
                      break;
 
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
@@ -1101,16 +760,14 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                      kbpf.mv_gain_lo_fp[osi()] = (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
                      dprintf("move: gain_lo=%ld/256\n", (long)g_move_gain_lo_fp);
                      break;
-      case MVTH1_UP:
-                     g_move_th1 = _CONSTRAIN(g_move_th1 + 1, 0, kbpf.mv_th2[osi()] - 1);
-                     kbpf.mv_th1[osi()] = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
-                     dprintf("move: th1=%d\n", g_move_th1);
-                     break;
-      case MVTH1_DN:
-                     g_move_th1 = _CONSTRAIN(g_move_th1 - 1, 0, kbpf.mv_th2[osi()] - 1);
-                     kbpf.mv_th1[osi()] = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
-                     dprintf("move: th1=%d\n", g_move_th1);
-                     break;
+      case MVTH1:
+                     if (record->event.pressed) {
+                       int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
+                       g_move_th1 = _CONSTRAIN(g_move_th1 + delta, 0, kbpf.mv_th2[osi()] - 1);
+                       kbpf.mv_th1[osi()] = (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[osi()] - 1);
+                       dprintf("move: th1=%d\n", g_move_th1);
+                     }
+                     return false;
 
       case SW_ST_U:
                      if (record->event.pressed) {
@@ -1146,16 +803,42 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                      }
                      return false;
 
+      case SW_RT:
+                     if (record->event.pressed) {
+                       kb_swipe_params_t p = keyball_swipe_get_params();
+                       int v = (int)p.reset_ms + ((get_mods() & MOD_MASK_SHIFT) ? -10 : 10);
+                       if (v < 0) v = 0;
+                       keyball_swipe_set_reset_ms((uint16_t)v);
+                     }
+                     return false;
+
+      case SCRL_DZ:
+                     if (record->event.pressed) {
+                       int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
+                       g_scroll_deadzone = _CONSTRAIN(g_scroll_deadzone + delta, 0, 32);
+                       kbpf.sc_dz = g_scroll_deadzone;
+                       dprintf("scroll: deadzone=%u\n", g_scroll_deadzone);
+                     }
+                     return false;
+      case SCRL_HY:
+                     if (record->event.pressed) {
+                       int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
+                       g_scroll_hysteresis = _CONSTRAIN(g_scroll_hysteresis + delta, 0, 32);
+                       kbpf.sc_hyst = g_scroll_hysteresis;
+                       dprintf("scroll: hyst=%u\n", g_scroll_hysteresis);
+                     }
+                     return false;
+
       case DBG_TOG:
                      keyball_oled_mode_toggle();
                      return false;
 
       case DBG_NP:
-                     keyball_swipe_dbg_next_page();
+                     keyball_oled_next_page();
                      return false;
 
       case DBG_PP:
-                     keyball_swipe_dbg_prev_page();
+                     keyball_oled_prev_page();
                      return false;
 
       default:

@@ -17,6 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "keyball_swipe.h"
+#include "keyball_oled.h"
+#include "keyball_kbpf.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
 
@@ -148,8 +152,6 @@ enum keyball_keycodes {
 
     CPI_I100 = QK_KB_2, // CPI +100 CPI
     CPI_D100 = QK_KB_3, // CPI -100 CPI
-    CPI_I1K  = QK_KB_4, // CPI +1000 CPI
-    CPI_D1K  = QK_KB_5, // CPI -1000 CPI
 
     // In scroll mode, motion from primary trackball is treated as scroll
     // wheel.
@@ -174,20 +176,23 @@ enum keyball_keycodes {
 
     MVGL_UP = QK_KB_17,   // 低速ゲイン↑
     MVGL_DN = QK_KB_18,   // 低速ゲイン↓
-    MVTH1_UP = QK_KB_19,  // しきい値1↑
-    MVTH1_DN = QK_KB_20,  // しきい値1↓
+    MVTH1   = QK_KB_19,   // しきい値1調整(Shiftで減少)
 
     SW_ST_U = QK_KB_21, // スワイプ閾値上昇
     SW_ST_D = QK_KB_22, // スワイプ閾値下降
     SW_DZ_U = QK_KB_23, // スワイプゆらぎ抑制（強）
     SW_DZ_D = QK_KB_24, // スワイプゆらぎ抑制（弱）
     SW_FRZ  = QK_KB_25, // スワイプのポインタフリーズ
+    SW_RT   = QK_KB_4,  // スワイプリセット遅延調整(Shiftで減少)
 
     DBG_TOG = QK_KB_26, // Toggle debug output
-    DBG_NP = QK_KB_27, // Debug page next
-    DBG_PP = QK_KB_28, // Debug page previous
+    DBG_NP  = QK_KB_27, // Debug page next
+    DBG_PP  = QK_KB_28, // Debug page previous
 
-    // User customizable 32 keycodes.
+    SCRL_DZ = QK_KB_29, // スクロールデッドゾーン調整(Shiftで減少)
+    SCRL_HY = QK_KB_31, // スクロールヒステリシス調整(Shiftで減少)
+
+    // User customizable keycodes start here.
     KEYBALL_SAFE_RANGE = QK_USER_0,
 };
 
@@ -263,6 +268,8 @@ typedef enum {
 
 extern keyball_t keyball;
 
+uint8_t keyball_os_idx(void);
+
 //////////////////////////////////////////////////////////////////////////////
 // Hook points
 
@@ -294,9 +301,6 @@ void keyball_oled_render_keyinfo(void);
 /// OLED.  It shows layer mask with number (1~f) for active layers and '_' for
 /// inactive layers.
 void keyball_oled_render_layerinfo(void);
-
-// show current swipe status
-void keyball_oled_render_swipe_debug(void);
 
 /// show mouse motion config
 void keyball_oled_render_ballsubinfo(void);
@@ -349,65 +353,6 @@ uint16_t keyball_get_cpi(void);
 void keyball_set_cpi(uint16_t cpi);
 
 
-// === Swipe hook (KB-level detect -> user-level action) ===
-typedef enum {
-    KB_SWIPE_NONE = 0,
-    KB_SWIPE_UP,
-    KB_SWIPE_DOWN,
-    KB_SWIPE_RIGHT,
-    KB_SWIPE_LEFT,
-} kb_swipe_dir_t;
-
-// ユーザー定義のモードタグ（KBは中身を解釈しない）
-typedef uint8_t kb_swipe_tag_t;
-
-// user → KB：スワイプセッション開始/終了
-void            keyball_swipe_begin(kb_swipe_tag_t mode_tag);
-void            keyball_swipe_end(void);
-
-// user が参照したい状態
-bool            keyball_swipe_is_active(void);          // 押下中？
-kb_swipe_tag_t  keyball_swipe_mode_tag(void);           // begin() で渡されたタグ
-kb_swipe_dir_t  keyball_swipe_direction(void);          // 現在の方向（未実装の間は常に NONE）
-bool            keyball_swipe_fired_since_begin(void);  // セッション開始以降に1回でも発火したか
-bool            keyball_swipe_consume_fired(void);      // ↑を取得して false に戻す
-
-// KB → user：発火イベント（弱シンボル；実装は user 側。未定義なら呼ばない）
-__attribute__((weak)) void keyball_on_swipe_fire(kb_swipe_tag_t mode_tag, kb_swipe_dir_t dir);
-
-// ==== Swipe runtime params ====
-typedef struct {
-    uint16_t step;     // 発火しきい値（counts）
-    uint8_t  deadzone; // デッドゾーン（counts）
-    bool     freeze;   // スワイプ中ポインタ凍結
-} kb_swipe_params_t;
-
-// 取得・設定
-kb_swipe_params_t keyball_swipe_get_params(void);
-void keyball_swipe_set_step(uint16_t v);
-void keyball_swipe_set_deadzone(uint8_t v);
-void keyball_swipe_set_freeze(bool on);
-void keyball_swipe_toggle_freeze(void);
-
-// --- OLED UI mode ---
-typedef enum { KB_OLED_MODE_NORMAL = 0, KB_OLED_MODE_DEBUG = 1 } kb_oled_mode_t;
-
-void            keyball_oled_mode_toggle(void);
-void            keyball_oled_set_mode(kb_oled_mode_t m);
-kb_oled_mode_t  keyball_oled_get_mode(void);
-
-// --- Swipe Debug pages (for OLED) ---
-void    keyball_swipe_dbg_toggle(void);
-void    keyball_swipe_dbg_show(bool on);
-void    keyball_swipe_dbg_next_page(void);
-void    keyball_swipe_dbg_prev_page(void);
-uint8_t keyball_swipe_dbg_get_page(void);
-
-// ==== Swipe params persistence ====
-bool keyball_swipe_cfg_load(void);   // 起動時に呼ぶ: true=読めた, false=初期化
-void keyball_swipe_cfg_save(void);   // 現在の params を保存
-void keyball_swipe_cfg_reset(void);  // 既定値に戻して保存（=工場出荷）
-
 
 // ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
 typedef struct __attribute__((packed)) {
@@ -423,6 +368,9 @@ typedef struct __attribute__((packed)) {
   uint16_t step;     // 発火しきい値
   uint8_t  deadzone; // デッドゾーン
   uint8_t  freeze;    // bit0: freeze (1=FREEZE ON)
+  uint8_t  sw_rst_ms; // スワイプ蓄積リセット遅延(ms)
+  uint8_t  sc_dz;     // スクロール用デッドゾーン
+  uint8_t  sc_hyst;   // スクロール反転ヒステリシス
 } keyball_profiles_t;
 
 #define KBPF_MAGIC   0x4B425031u /* 'KBP1' */
@@ -439,6 +387,16 @@ extern keyball_profiles_t kbpf;
 #ifndef KB_SWIPE_FREEZE_POINTER
 #  define KB_SWIPE_FREEZE_POINTER 1
 #endif
+#ifndef KB_SW_RST_MS
+#  define KB_SW_RST_MS 80
+#endif
+
+#ifndef KB_SCROLL_DEADZONE
+#  define KB_SCROLL_DEADZONE 0
+#endif
+#ifndef KB_SCROLL_HYST
+#  define KB_SCROLL_HYST 0
+#endif
 
 #define KBPF_VER_OLD  1   // 例：既存
-#define KBPF_VER_CUR  2   // ★ 今回の拡張版
+#define KBPF_VER_CUR  4   // ★ 今回の拡張版

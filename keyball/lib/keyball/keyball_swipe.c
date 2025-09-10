@@ -1,0 +1,146 @@
+#include <stdint.h>
+#include "quantum.h"
+#include "print.h"
+#include "timer.h"
+
+#include "keyball.h"
+#include "keyball_swipe.h"
+
+static inline int16_t kb_abs16(int16_t v) { return (v < 0) ? -v : v; }
+static inline void kb_sat_add_pos32(int32_t *acc, int32_t delta) {
+  int64_t t = (int64_t)(*acc) + (int64_t)delta;
+  if (t > (1L<<27)) t = (1L<<27);
+  if (t < 0) t = 0;
+  *acc = (int32_t)t;
+}
+
+typedef struct {
+  bool            active;
+  kb_swipe_tag_t  tag;
+  bool            fired_any;
+  kb_swipe_dir_t  last_dir;
+  int32_t acc_r, acc_l, acc_d, acc_u;
+} kb_swipe_session_t;
+
+static kb_swipe_session_t g_sw = {0};
+static uint32_t g_sw_idle_timer = 0;
+
+void keyball_swipe_begin(kb_swipe_tag_t mode_tag) {
+  g_sw.active   = true;
+  g_sw.tag      = mode_tag;
+  g_sw.fired_any= false;
+  g_sw.last_dir = KB_SWIPE_NONE;
+  g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+}
+void keyball_swipe_end(void) {
+  g_sw.active   = false;
+  g_sw.tag      = 0;
+  g_sw.fired_any= false;
+  g_sw.last_dir = KB_SWIPE_NONE;
+  g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+}
+bool           keyball_swipe_is_active(void)         { return g_sw.active; }
+kb_swipe_tag_t keyball_swipe_mode_tag(void)          { return g_sw.tag; }
+kb_swipe_dir_t keyball_swipe_direction(void)         { return g_sw.last_dir; }
+bool           keyball_swipe_fired_since_begin(void) { return g_sw.fired_any; }
+bool           keyball_swipe_consume_fired(void)     { bool f = g_sw.fired_any; g_sw.fired_any = false; return f; }
+
+kb_swipe_params_t keyball_swipe_get_params(void){
+    kb_swipe_params_t p = {
+        .step     = kbpf.step,
+        .deadzone = kbpf.deadzone,
+        .reset_ms = kbpf.sw_rst_ms,
+        .freeze   = (kbpf.freeze & 1) != 0
+    };
+    return p;
+}
+
+void keyball_swipe_set_step(uint16_t v){
+  if (v < 10) v = 10;
+  if (v > 2000) v = 2000;
+  kbpf.step = v;
+  uprintf("SW step=%u\r\n", kbpf.step);
+}
+
+void keyball_swipe_set_deadzone(uint8_t v){
+  if (v > 32) v = 32;
+  kbpf.deadzone = v;
+  uprintf("SW deadzone=%u\r\n", kbpf.deadzone);
+}
+
+void keyball_swipe_set_reset_ms(uint8_t v){
+  if (v > 250) v = 250;
+  kbpf.sw_rst_ms = v;
+  uprintf("SW reset_ms=%u\r\n", kbpf.sw_rst_ms);
+}
+
+void keyball_swipe_set_freeze(bool on){
+  kbpf.freeze = on ? 1 : 0;
+  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
+}
+
+void keyball_swipe_toggle_freeze(void){
+  kbpf.freeze ^= 1;
+  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
+}
+
+static void kb_sw_try_fire(kb_swipe_dir_t dir,
+    int32_t *acc_target,
+    int32_t *a1, int32_t *a2, int32_t *a3) {
+
+  while (*acc_target >= kbpf.step) {
+    if (keyball_on_swipe_fire) {
+      keyball_on_swipe_fire(g_sw.tag, dir);
+    }
+    g_sw.fired_any = true;
+    g_sw.last_dir  = dir;
+
+    *acc_target -= kbpf.step;
+    if (*acc_target < 0) *acc_target = 0;
+    *a1 = *a2 = *a3 = 0;
+  }
+}
+
+void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is_left) {
+  int16_t sx = (int16_t)report->x;
+  int16_t sy = (int16_t)report->y;
+  uint32_t now = timer_read32();
+
+  if (kb_abs16(sx) < kbpf.deadzone) sx = 0;
+  if (kb_abs16(sy) < kbpf.deadzone) sy = 0;
+
+  if (sx == 0 && sy == 0) {
+    if (timer_elapsed32(g_sw_idle_timer) > kbpf.sw_rst_ms) {
+      g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+    }
+    return;
+  }
+
+  g_sw_idle_timer = now;
+
+  if (sx > 0)      { kb_sat_add_pos32(&g_sw.acc_r, sx);  g_sw.acc_l = 0; }
+  else if (sx < 0) { kb_sat_add_pos32(&g_sw.acc_l, -sx); g_sw.acc_r = 0; }
+
+  if (sy > 0)      { kb_sat_add_pos32(&g_sw.acc_d, sy);  g_sw.acc_u = 0; }
+  else if (sy < 0) { kb_sat_add_pos32(&g_sw.acc_u, -sy); g_sw.acc_d = 0; }
+
+  bool prefer_x = (kb_abs16((int16_t)report->x) >= kb_abs16((int16_t)report->y));
+  if (prefer_x) {
+    kb_sw_try_fire(KB_SWIPE_RIGHT, &g_sw.acc_r, &g_sw.acc_l, &g_sw.acc_u, &g_sw.acc_d);
+    kb_sw_try_fire(KB_SWIPE_LEFT,  &g_sw.acc_l, &g_sw.acc_r, &g_sw.acc_u, &g_sw.acc_d);
+    kb_sw_try_fire(KB_SWIPE_DOWN,  &g_sw.acc_d, &g_sw.acc_u, &g_sw.acc_r, &g_sw.acc_l);
+    kb_sw_try_fire(KB_SWIPE_UP,    &g_sw.acc_u, &g_sw.acc_d, &g_sw.acc_r, &g_sw.acc_l);
+  } else {
+    kb_sw_try_fire(KB_SWIPE_DOWN,  &g_sw.acc_d, &g_sw.acc_u, &g_sw.acc_r, &g_sw.acc_l);
+    kb_sw_try_fire(KB_SWIPE_UP,    &g_sw.acc_u, &g_sw.acc_d, &g_sw.acc_r, &g_sw.acc_l);
+    kb_sw_try_fire(KB_SWIPE_RIGHT, &g_sw.acc_r, &g_sw.acc_l, &g_sw.acc_u, &g_sw.acc_d);
+    kb_sw_try_fire(KB_SWIPE_LEFT,  &g_sw.acc_l, &g_sw.acc_r, &g_sw.acc_u, &g_sw.acc_d);
+  }
+}
+
+void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u) {
+  if (r) *r = (g_sw.acc_r < 0) ? 0 : (uint32_t)g_sw.acc_r;
+  if (l) *l = (g_sw.acc_l < 0) ? 0 : (uint32_t)g_sw.acc_l;
+  if (d) *d = (g_sw.acc_d < 0) ? 0 : (uint32_t)g_sw.acc_d;
+  if (u) *u = (g_sw.acc_u < 0) ? 0 : (uint32_t)g_sw.acc_u;
+}
