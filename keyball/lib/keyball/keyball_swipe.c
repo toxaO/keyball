@@ -168,7 +168,8 @@ void keyball_swipe_render_debug(void){
   switch (page) {
     case 0: {
               uint16_t cpi = keyball_get_cpi();
-              snprintf(line, sizeof(line), "CPI:%u", (unsigned)cpi);
+              snprintf(line, sizeof(line), "CPI:%u OS:%u",
+                       (unsigned)cpi, (unsigned)keyball_os_idx());
               oled_write_ln(line, false);
 
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
@@ -180,52 +181,66 @@ void keyball_swipe_render_debug(void){
 #endif
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "Div:%u Dz:%u",
-                       (unsigned)keyball_get_scroll_div(),
-                       (unsigned)kbpf.sc_dz);
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Inv:%u Hy:%u Pg:%u/%u",
-                       (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0),
-                       (unsigned)kbpf.sc_hyst,
+              oled_write_ln("", false);
+              snprintf(line, sizeof(line), "Pg:%u/%u",
                        (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
               oled_write_ln(line, false);
             } break;
 
     case 1: {
-              kb_swipe_params_t p = keyball_swipe_get_params();
-              snprintf(line, sizeof(line), "A:%u Tg:%u Fz:%u",
-                  keyball_swipe_is_active()?1u:0u,
-                  (unsigned)keyball_swipe_mode_tag(),
-                  p.freeze?1u:0u);
+              snprintf(line, sizeof(line), "Div:%u Dz:%u",
+                       (unsigned)keyball_get_scroll_div(),
+                       (unsigned)kbpf.sc_dz);
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "St:%u Dz:%u Rt:%u",
-                  (unsigned)p.step, (unsigned)p.deadzone, (unsigned)p.reset_ms);
+              snprintf(line, sizeof(line), "Inv:%u Hy:%u",
+                       (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0),
+                       (unsigned)kbpf.sc_hyst);
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "Dir:%s Fd:%u",
-                  kb_dir_str(keyball_swipe_direction()),
-                  keyball_swipe_fired_since_begin()?1u:0u);
-              oled_write_ln(line, false);
-
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
+              oled_write_ln("Scroll", false);
+              snprintf(line, sizeof(line), "Pg:%u/%u",
+                       (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
               oled_write_ln(line, false);
             } break;
 
     case 2: {
+              kb_swipe_params_t p = keyball_swipe_get_params();
+              snprintf(line, sizeof(line), "St:%u Dz:%u",
+                       (unsigned)p.step, (unsigned)p.deadzone);
+              oled_write_ln(line, false);
+
+              snprintf(line, sizeof(line), "Rt:%u Fz:%u",
+                       (unsigned)p.reset_ms, p.freeze?1u:0u);
+              oled_write_ln(line, false);
+
+              oled_write_ln("SwipeCfg", false);
+              snprintf(line, sizeof(line), "Pg:%u/%u",
+                       (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
+              oled_write_ln(line, false);
+            } break;
+
+    case 3: {
               unsigned ar = clip0_9999(g_sw.acc_r);
               unsigned al = clip0_9999(g_sw.acc_l);
               unsigned ad = clip0_9999(g_sw.acc_d);
               unsigned au = clip0_9999(g_sw.acc_u);
 
-              snprintf(line, sizeof(line), "R%4u L%4u", ar, al);
-              oled_write_ln(line, false);
-              snprintf(line, sizeof(line), "D%4u U%4u", ad, au);
+              snprintf(line, sizeof(line), "A:%u Tg:%u Fd:%u",
+                       keyball_swipe_is_active()?1u:0u,
+                       (unsigned)keyball_swipe_mode_tag(),
+                       keyball_swipe_fired_since_begin()?1u:0u);
               oled_write_ln(line, false);
 
-              oled_write_ln("Acc", false);
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
+              snprintf(line, sizeof(line), "Dir:%s",
+                       kb_dir_str(keyball_swipe_direction()));
+              oled_write_ln(line, false);
+
+              snprintf(line, sizeof(line), "R%4u L%4u", ar, al);
+              oled_write_ln(line, false);
+
+              snprintf(line, sizeof(line), "D%4u U%4u Pg:%u/%u",
+                       ad, au, (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
               oled_write_ln(line, false);
             } break;
   }

@@ -10,7 +10,7 @@ static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
 static bool           g_dbg_en   = true;
 static uint8_t        g_oled_page = 0;
 
-#define KB_OLED_PAGE_COUNT      3
+#define KB_OLED_PAGE_COUNT      4
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
