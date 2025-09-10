@@ -72,6 +72,7 @@ static void kbpf_set_swipe_defaults(keyball_profiles_t *p){
   p->step     = KB_SW_STEP;
   p->deadzone = KB_SW_DEADZONE;
   p->freeze   = (KB_SWIPE_FREEZE_POINTER ? 1 : 0);
+  p->sw_rst_ms= KB_SW_RST_MS;
   p->sc_dz    = KB_SCROLL_DEADZONE;
   p->sc_hyst  = KB_SCROLL_HYST;
 }
@@ -102,7 +103,7 @@ void kbpf_defaults(void) {
 // Ensure loaded data is sane and migrate from older versions when needed.
 static void kbpf_validate(void) {
   if (kbpf.magic != KBPF_MAGIC ||
-      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != KBPF_VER_CUR)) {
+      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != 3 && kbpf.version != KBPF_VER_CUR)) {
     // Corrupted or unknown layout -> fall back to defaults.
     kbpf_defaults();
     return;
@@ -121,11 +122,16 @@ static void kbpf_validate(void) {
     kbpf.sc_dz   = KB_SCROLL_DEADZONE;
     kbpf.sc_hyst = KB_SCROLL_HYST;
     kbpf.version = KBPF_VER_CUR;
+  } else if (kbpf.version == 3) {
+    // v3 lacked swipe reset delay
+    kbpf.sw_rst_ms = KB_SW_RST_MS;
+    kbpf.version   = KBPF_VER_CUR;
   }
   // Range guard for current fields
   if (kbpf.step < 1 || kbpf.step > 2000) kbpf.step = KB_SW_STEP;
   if (kbpf.deadzone > 32)                kbpf.deadzone = KB_SW_DEADZONE;
   kbpf.freeze &= 0x01;
+  if (kbpf.sw_rst_ms > 250) kbpf.sw_rst_ms = KB_SW_RST_MS;
   if (kbpf.sc_dz > 32)    kbpf.sc_dz   = KB_SCROLL_DEADZONE;
   if (kbpf.sc_hyst > 32)  kbpf.sc_hyst = KB_SCROLL_HYST;
 }

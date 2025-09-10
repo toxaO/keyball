@@ -22,6 +22,8 @@
 | `SCRL_DZ_D`| `Kb 30`         | `0x7e1e` | Decrease scroll deadzone                                          |
 | `SCRL_HY_U`| `Kb 31`         | `0x7e1f` | Increase scroll hysteresis                                        |
 | `SCRL_HY_D`| `U0`           | `0x7800` | Decrease scroll hysteresis                                        |
+| `SW_RT_U` | `U1`           | `0x7801` | Increase swipe reset delay                                        |
+| `SW_RT_D` | `U2`           | `0x7802` | Decrease swipe reset delay                                        |
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | Toggle automatic mouse layer                                      |
 | `AML_I50`  | `Kb 11`         | `0x7e0b` | Increase 50ms automatic mouse layer timeout (max 1000ms)          |
 | `AML_D50`  | `Kb 12`         | `0x7e0c` | Decrease 50ms automatic mouse layer timeout (min 100ms)           |
@@ -50,6 +52,8 @@
 | `SCRL_DZ_D`| `Kb 30`         | `0x7e1e` | スクロールのデッドゾーンを狭めます                                 |
 | `SCRL_HY_U`| `Kb 31`         | `0x7e1f` | スクロール反転ヒステリシスを強めます                               |
 | `SCRL_HY_D`| `U0`           | `0x7800` | スクロール反転ヒステリシスを弱めます                               |
+| `SW_RT_U` | `U1`           | `0x7801` | スワイプリセット遅延を延ばします                                   |
+| `SW_RT_D` | `U2`           | `0x7802` | スワイプリセット遅延を短くします                                   |
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | 自動マウスレイヤーをトグルします。                                |
 | `AML_I50`  | `Kb 11`         | `0x7e0b` | 自動マウスレイヤーのタイムアウトを50msec増やします (max 1000ms)   |
 | `AML_D50`  | `Kb 12`         | `0x7e0c` | 自動マウスレイヤーのタイムアウトを50msec減らします (min 100ms)    |

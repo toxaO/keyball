@@ -195,9 +195,11 @@ enum keyball_keycodes {
     SCRL_DZ_D = QK_KB_30, // Scroll deadzone decrease
     SCRL_HY_U = QK_KB_31, // Scroll hysteresis increase
     SCRL_HY_D = QK_USER_0, // Scroll hysteresis decrease
+    SW_RT_U   = QK_USER_1, // スワイプリセット遅延延長
+    SW_RT_D   = QK_USER_2, // スワイプリセット遅延短縮
 
     // User customizable keycodes start here.
-    KEYBALL_SAFE_RANGE = QK_USER_1,
+    KEYBALL_SAFE_RANGE = QK_USER_3,
 };
 
 typedef union {
@@ -372,6 +374,7 @@ typedef struct __attribute__((packed)) {
   uint16_t step;     // 発火しきい値
   uint8_t  deadzone; // デッドゾーン
   uint8_t  freeze;    // bit0: freeze (1=FREEZE ON)
+  uint8_t  sw_rst_ms; // スワイプ蓄積リセット遅延(ms)
   uint8_t  sc_dz;     // スクロール用デッドゾーン
   uint8_t  sc_hyst;   // スクロール反転ヒステリシス
 } keyball_profiles_t;
@@ -390,6 +393,9 @@ extern keyball_profiles_t kbpf;
 #ifndef KB_SWIPE_FREEZE_POINTER
 #  define KB_SWIPE_FREEZE_POINTER 1
 #endif
+#ifndef KB_SW_RST_MS
+#  define KB_SW_RST_MS 80
+#endif
 
 #ifndef KB_SCROLL_DEADZONE
 #  define KB_SCROLL_DEADZONE 0
@@ -399,4 +405,4 @@ extern keyball_profiles_t kbpf;
 #endif
 
 #define KBPF_VER_OLD  1   // 例：既存
-#define KBPF_VER_CUR  3   // ★ 今回の拡張版
+#define KBPF_VER_CUR  4   // ★ 今回の拡張版

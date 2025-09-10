@@ -25,6 +25,7 @@ typedef struct {
 } kb_swipe_session_t;
 
 static kb_swipe_session_t g_sw = {0};
+static uint32_t g_sw_idle_timer = 0;
 
 void keyball_swipe_begin(kb_swipe_tag_t mode_tag) {
   g_sw.active   = true;
@@ -50,6 +51,7 @@ kb_swipe_params_t keyball_swipe_get_params(void){
     kb_swipe_params_t p = {
         .step     = kbpf.step,
         .deadzone = kbpf.deadzone,
+        .reset_ms = kbpf.sw_rst_ms,
         .freeze   = (kbpf.freeze & 1) != 0
     };
     return p;
@@ -66,6 +68,12 @@ void keyball_swipe_set_deadzone(uint8_t v){
   if (v > 32) v = 32;
   kbpf.deadzone = v;
   uprintf("SW deadzone=%u\r\n", kbpf.deadzone);
+}
+
+void keyball_swipe_set_reset_ms(uint8_t v){
+  if (v > 250) v = 250;
+  kbpf.sw_rst_ms = v;
+  uprintf("SW reset_ms=%u\r\n", kbpf.sw_rst_ms);
 }
 
 void keyball_swipe_set_freeze(bool on){
@@ -98,14 +106,19 @@ static void kb_sw_try_fire(kb_swipe_dir_t dir,
 void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is_left) {
   int16_t sx = (int16_t)report->x;
   int16_t sy = (int16_t)report->y;
+  uint32_t now = timer_read32();
 
   if (kb_abs16(sx) < kbpf.deadzone) sx = 0;
   if (kb_abs16(sy) < kbpf.deadzone) sy = 0;
 
   if (sx == 0 && sy == 0) {
-    g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+    if (timer_elapsed32(g_sw_idle_timer) > kbpf.sw_rst_ms) {
+      g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+    }
     return;
   }
+
+  g_sw_idle_timer = now;
 
   if (sx > 0)      { kb_sat_add_pos32(&g_sw.acc_r, sx);  g_sw.acc_l = 0; }
   else if (sx < 0) { kb_sat_add_pos32(&g_sw.acc_l, -sx); g_sw.acc_r = 0; }
@@ -167,12 +180,15 @@ void keyball_swipe_render_debug(void){
 #endif
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "Div:%u Inv:%u",
+              snprintf(line, sizeof(line), "Div:%u Dz:%u",
                        (unsigned)keyball_get_scroll_div(),
-                       (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0));
+                       (unsigned)kbpf.sc_dz);
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "Pg:%u/%u", (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
+              snprintf(line, sizeof(line), "Inv:%u Hy:%u Pg:%u/%u",
+                       (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0),
+                       (unsigned)kbpf.sc_hyst,
+                       (unsigned)(page+1), (unsigned)keyball_oled_get_page_count());
               oled_write_ln(line, false);
             } break;
 
@@ -184,8 +200,8 @@ void keyball_swipe_render_debug(void){
                   p.freeze?1u:0u);
               oled_write_ln(line, false);
 
-              snprintf(line, sizeof(line), "St:%u Dz:%u",
-                  (unsigned)p.step, (unsigned)p.deadzone);
+              snprintf(line, sizeof(line), "St:%u Dz:%u Rt:%u",
+                  (unsigned)p.step, (unsigned)p.deadzone, (unsigned)p.reset_ms);
               oled_write_ln(line, false);
 
               snprintf(line, sizeof(line), "Dir:%s Fd:%u",

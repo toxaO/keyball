@@ -811,6 +811,20 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                      }
                      return false;
 
+      case SW_RT_U:
+                     if (record->event.pressed) {
+                       kb_swipe_params_t p = keyball_swipe_get_params();
+                       keyball_swipe_set_reset_ms(p.reset_ms + 10);
+                     }
+                     return false;
+
+      case SW_RT_D:
+                     if (record->event.pressed) {
+                       kb_swipe_params_t p = keyball_swipe_get_params();
+                       keyball_swipe_set_reset_ms((p.reset_ms > 10) ? p.reset_ms - 10 : 0);
+                     }
+                     return false;
+
       case SCRL_DZ_U:
                      if (record->event.pressed) {
                        g_scroll_deadzone = _CONSTRAIN(g_scroll_deadzone + 1, 0, 32);
