@@ -93,57 +93,46 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   int16_t sy = (int16_t)report->y;
   uint8_t sdiv = keyball_get_scroll_div();
 
-  // 調整無効モード: デッドゾーンとヒステリシスが両方0なら値をそのまま出力
-  if (g_scroll_deadzone == 0 && g_scroll_hysteresis == 0) {
-    g_dbg_sx = sx;
-    g_dbg_sy = sy;
-    output->h = -CONSTRAIN_HV(sx);
-    output->v = CONSTRAIN_HV(sy);
-
-    if (is_left) {
-      output->h = -output->h;
-      output->v = -output->v;
-    } else if (kbpf.inv[keyball_os_idx()]) {
-      output->h = -output->h;
-      output->v = -output->v;
-    }
-
-    if (keyball.scroll_mode) {
-      output->h = -output->h;
-      output->v = -output->v;
-    }
-
-    g_dbg_h = output->h;
-    g_dbg_v = output->v;
-    return;
-  }
+  // デッドゾーンとヒステリシスを適用するか
+  bool disable_filters = (g_scroll_deadzone == 0 && g_scroll_hysteresis == 0);
 
   // デッドゾーン適用
-  if (abs(sx) <= g_scroll_deadzone)
-    sx = 0;
-  if (abs(sy) <= g_scroll_deadzone)
-    sy = 0;
+  if (!disable_filters) {
+    if (abs(sx) <= g_scroll_deadzone)
+      sx = 0;
+    if (abs(sy) <= g_scroll_deadzone)
+      sy = 0;
+  }
 
   // ヒステリシス処理（方向反転のゆらぎ抑制）
   int8_t dir_x = (sx > 0) - (sx < 0);
   int8_t dir_y = (sy > 0) - (sy < 0);
-  if (dir_x && dir_x != last_dir_x) {
-    if (last_dir_x && abs(sx) <= g_scroll_hysteresis) {
-      sx = 0;
-      dir_x = 0;
-    } else {
-      acc_x_mac = acc_x_gen = 0;
+  if (!disable_filters) {
+    if (dir_x && dir_x != last_dir_x) {
+      if (last_dir_x && abs(sx) <= g_scroll_hysteresis) {
+        sx = 0;
+        dir_x = 0;
+      } else {
+        acc_x_mac = acc_x_gen = 0;
+        last_dir_x = dir_x;
+      }
+    } else if (dir_x) {
       last_dir_x = dir_x;
     }
-  }
-  if (dir_y && dir_y != last_dir_y) {
-    if (last_dir_y && abs(sy) <= g_scroll_hysteresis) {
-      sy = 0;
-      dir_y = 0;
-    } else {
-      acc_y_mac = acc_y_gen = 0;
+    if (dir_y && dir_y != last_dir_y) {
+      if (last_dir_y && abs(sy) <= g_scroll_hysteresis) {
+        sy = 0;
+        dir_y = 0;
+      } else {
+        acc_y_mac = acc_y_gen = 0;
+        last_dir_y = dir_y;
+      }
+    } else if (dir_y) {
       last_dir_y = dir_y;
     }
+  } else {
+    last_dir_x = dir_x;
+    last_dir_y = dir_y;
   }
 
   g_dbg_sx = sx;
