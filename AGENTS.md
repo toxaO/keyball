@@ -1,5 +1,9 @@
 # AGENTS Instructions
 
+- 環境作成のためには　scripts/setup_and_build.sh を使用すること
+
+- コードの編集後にテストビルドすること。
+
 - QMK コマンドは常に Python の仮想環境上で実行すること。
 
   ```bash
