@@ -33,6 +33,9 @@ SRC += lib/oledkit/oledkit.c    # OLED utility for Keyball series.
 
 # Include common library
 SRC += lib/keyball/keyball.c
+SRC += lib/keyball/keyball_move.c
+SRC += lib/keyball/keyball_scroll.c
+SRC += lib/keyball/keyball_keycodes.c
 SRC += lib/keyball/keyball_swipe.c
 SRC += lib/keyball/keyball_oled.c
 SRC += lib/keyball/keyball_kbpf.c

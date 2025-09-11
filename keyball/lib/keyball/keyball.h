@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball_swipe.h"
 #include "keyball_oled.h"
 #include "keyball_kbpf.h"
+#include "keyball_move.h"
+#include "keyball_scroll.h"
+#include "keyball_keycodes.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
@@ -174,14 +177,11 @@ enum keyball_keycodes {
     SCRL_INV = QK_KB_16, // scroll direction inverse.
 
 
-    MVGL_UP = QK_KB_17,   // 低速ゲイン↑
-    MVGL_DN = QK_KB_18,   // 低速ゲイン↓
+    MVGL    = QK_KB_17,   // 低速ゲイン調整(Shiftで減少)
     MVTH1   = QK_KB_19,   // しきい値1調整(Shiftで減少)
 
-    SW_ST_U = QK_KB_21, // スワイプ閾値上昇
-    SW_ST_D = QK_KB_22, // スワイプ閾値下降
-    SW_DZ_U = QK_KB_23, // スワイプゆらぎ抑制（強）
-    SW_DZ_D = QK_KB_24, // スワイプゆらぎ抑制（弱）
+    SW_ST   = QK_KB_21, // スワイプ閾値調整(Shiftで減少)
+    SW_DZ   = QK_KB_23, // スワイプゆらぎ抑制調整(Shiftで減少)
     SW_FRZ  = QK_KB_25, // スワイプのポインタフリーズ
     SW_RT   = QK_KB_4,  // スワイプリセット遅延調整(Shiftで減少)
 
@@ -222,11 +222,6 @@ typedef struct {
 
 typedef uint8_t keyball_cpi_t;
 
-typedef enum {
-    KEYBALL_SCROLLSNAP_MODE_VERTICAL   = 0,
-    KEYBALL_SCROLLSNAP_MODE_HORIZONTAL = 1,
-    KEYBALL_SCROLLSNAP_MODE_FREE       = 2,
-} keyball_scrollsnap_mode_t;
 
 typedef struct {
     bool this_have_ball;
@@ -310,12 +305,6 @@ bool keyball_get_scroll_mode(void);
 
 /// keyball_set_scroll_mode modify scroll mode.
 void keyball_set_scroll_mode(bool mode);
-
-/// keyball_get_scrollsnap_mode gets current scroll snap mode.
-keyball_scrollsnap_mode_t keyball_get_scrollsnap_mode(void);
-
-/// keyball_set_scrollsnap_mode change scroll snap mode.
-void keyball_set_scrollsnap_mode(keyball_scrollsnap_mode_t mode);
 
 /// keyball_get_scroll_div gets current scroll divider.
 /// See also keyball_set_scroll_div for the scroll divider's detail.
