@@ -22,3 +22,5 @@ void keyball_set_scroll_div(uint8_t div);
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              report_mouse_t *output,
                                              bool is_left);
+
+void keyball_scroll_get_dbg(int16_t *sx, int16_t *sy, int16_t *h, int16_t *v);

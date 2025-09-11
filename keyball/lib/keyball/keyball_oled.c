@@ -12,7 +12,7 @@ static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
 static bool           g_dbg_en   = true;
 static uint8_t        g_oled_page = 0;
 
-#define KB_OLED_PAGE_COUNT      4
+#define KB_OLED_PAGE_COUNT      5
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -227,6 +227,19 @@ void keyball_oled_render_debug(void) {
 
             snprintf(line, sizeof(line), "D%4u U%4u Pg:%u/%u",
                      clip0_9999(ad), clip0_9999(au),
+                     (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_ln(line, false);
+        } break;
+
+        case 4: {
+            int16_t sx, sy, h, v;
+            keyball_scroll_get_dbg(&sx, &sy, &h, &v);
+
+            snprintf(line, sizeof(line), "Sx:%4d Sy:%4d", sx, sy);
+            oled_write_ln(line, false);
+
+            snprintf(line, sizeof(line), "H:%4d V:%4d Pg:%u/%u",
+                     h, v,
                      (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_ln(line, false);
         } break;

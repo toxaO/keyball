@@ -1,30 +1,47 @@
-#include <stdint.h>
-#include <stdlib.h>
+#include "keyball_scroll.h"
+#include "keyball.h"
+#include "os_detection.h"
 #include "quantum.h"
 #include "timer.h"
-#include "os_detection.h"
-#include "keyball.h"
-#include "keyball_scroll.h"
+#include <stdint.h>
+#include <stdlib.h>
 
-#define _CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
-#define CONSTRAIN_HV(val) (mouse_hv_report_t)_CONSTRAIN(val, MOUSE_REPORT_HV_MIN, MOUSE_REPORT_HV_MAX)
+#define _CONSTRAIN(amt, low, high)                                             \
+  ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#define CONSTRAIN_HV(val)                                                      \
+  (mouse_hv_report_t) _CONSTRAIN(val, MOUSE_REPORT_HV_MIN, MOUSE_REPORT_HV_MAX)
 
 #define array_size(a) (sizeof(a) / sizeof((a)[0]))
 
 extern const uint8_t SCROLL_DIV_MAX;
 
 static inline uint8_t clamp_sdiv(uint8_t v) {
-  if (v < 1) v = 1;
-  if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
+  if (v < 1)
+    v = 1;
+  if (v > SCROLL_DIV_MAX)
+    v = SCROLL_DIV_MAX;
   return v;
 }
 
-uint8_t g_scroll_deadzone   = KB_SCROLL_DEADZONE;
+uint8_t g_scroll_deadzone = KB_SCROLL_DEADZONE;
 uint8_t g_scroll_hysteresis = KB_SCROLL_HYST;
 
-bool keyball_get_scroll_mode(void) {
-  return keyball.scroll_mode;
+// Debug info ---------------------------------------------------------------
+static int16_t g_dbg_sx = 0, g_dbg_sy = 0; // raw scroll input after filters
+static int16_t g_dbg_h = 0, g_dbg_v = 0;   // final output values
+
+void keyball_scroll_get_dbg(int16_t *sx, int16_t *sy, int16_t *h, int16_t *v) {
+  if (sx)
+    *sx = g_dbg_sx;
+  if (sy)
+    *sy = g_dbg_sy;
+  if (h)
+    *h = g_dbg_h;
+  if (v)
+    *v = g_dbg_v;
 }
+
+bool keyball_get_scroll_mode(void) { return keyball.scroll_mode; }
 
 void keyball_set_scroll_mode(bool mode) {
   if (mode != keyball.scroll_mode) {
@@ -76,9 +93,36 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   int16_t sy = (int16_t)report->y;
   uint8_t sdiv = keyball_get_scroll_div();
 
+  // 調整無効モード: デッドゾーンとヒステリシスが両方0なら値をそのまま出力
+  if (g_scroll_deadzone == 0 && g_scroll_hysteresis == 0) {
+    g_dbg_sx = sx;
+    g_dbg_sy = sy;
+    output->h = -CONSTRAIN_HV(sx);
+    output->v = CONSTRAIN_HV(sy);
+
+    if (is_left) {
+      output->h = -output->h;
+      output->v = -output->v;
+    } else if (kbpf.inv[keyball_os_idx()]) {
+      output->h = -output->h;
+      output->v = -output->v;
+    }
+
+    if (keyball.scroll_mode) {
+      output->h = -output->h;
+      output->v = -output->v;
+    }
+
+    g_dbg_h = output->h;
+    g_dbg_v = output->v;
+    return;
+  }
+
   // デッドゾーン適用
-  if (abs(sx) <= g_scroll_deadzone) sx = 0;
-  if (abs(sy) <= g_scroll_deadzone) sy = 0;
+  if (abs(sx) <= g_scroll_deadzone)
+    sx = 0;
+  if (abs(sy) <= g_scroll_deadzone)
+    sy = 0;
 
   // ヒステリシス処理（方向反転のゆらぎ抑制）
   int8_t dir_x = (sx > 0) - (sx < 0);
@@ -102,8 +146,12 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     }
   }
 
+  g_dbg_sx = sx;
+  g_dbg_sy = sy;
+
   // 感度変更やアイドルで余りリセット
-  if (sdiv != last_sdiv || TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
+  if (sdiv != last_sdiv ||
+      TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
     acc_x_mac = acc_y_mac = 0;
     acc_x_gen = acc_y_gen = 0;
     last_sdiv = sdiv;
@@ -112,26 +160,35 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   last_ts = now;
 
   switch (detected_host_os()) {
-    case OS_MACOS: {
-      static const uint8_t mac_div[] = { 48, 24, 12, 6, 3, 2, 1 };
-      if (sdiv >= array_size(mac_div)) sdiv = array_size(mac_div) - 1;
-      int16_t sdiv_mac = mac_div[sdiv];
-      acc_x_mac += sx;
-      acc_y_mac += sy;
-      if (sdiv_mac) { out_x = (int16_t)(acc_x_mac / sdiv_mac); }
-      if (sdiv_mac) { out_y = (int16_t)(acc_y_mac / sdiv_mac); }
-      acc_x_mac -= (int32_t)out_x * sdiv_mac;
-      acc_y_mac -= (int32_t)out_y * sdiv_mac;
-    } break;
-    default: {
-      int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
-      acc_x_gen += sx;
-      acc_y_gen += sy;
-      if (sdiv_gen) { out_x = (int16_t)(acc_x_gen / sdiv_gen); }
-      if (sdiv_gen) { out_y = (int16_t)(acc_y_gen / sdiv_gen); }
-      acc_x_gen -= (int32_t)out_x * sdiv_gen;
-      acc_y_gen -= (int32_t)out_y * sdiv_gen;
+  case OS_MACOS: {
+    static const uint8_t mac_div[] = {48, 24, 12, 6, 3, 2, 1};
+    if (sdiv >= array_size(mac_div))
+      sdiv = array_size(mac_div) - 1;
+    int16_t sdiv_mac = mac_div[sdiv];
+    acc_x_mac += sx;
+    acc_y_mac += sy;
+    if (sdiv_mac) {
+      out_x = (int16_t)(acc_x_mac / sdiv_mac);
     }
+    if (sdiv_mac) {
+      out_y = (int16_t)(acc_y_mac / sdiv_mac);
+    }
+    acc_x_mac -= (int32_t)out_x * sdiv_mac;
+    acc_y_mac -= (int32_t)out_y * sdiv_mac;
+  } break;
+  default: {
+    int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
+    acc_x_gen += sx;
+    acc_y_gen += sy;
+    if (sdiv_gen) {
+      out_x = (int16_t)(acc_x_gen / sdiv_gen);
+    }
+    if (sdiv_gen) {
+      out_y = (int16_t)(acc_y_gen / sdiv_gen);
+    }
+    acc_x_gen -= (int32_t)out_x * sdiv_gen;
+    acc_y_gen -= (int32_t)out_y * sdiv_gen;
+  }
   }
 
   // スナップスクロール関連
@@ -140,28 +197,30 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   if (keyball.scroll_snap_last == 0) {
     keyball.scroll_snap_tension_h = out_y;
     keyball.scroll_snap_last = now;
-  } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
+  } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >=
+             KEYBALL_SCROLLSNAP_RESET_TIMER) {
     keyball.scroll_snap_last = 0;
     keyball.scroll_snap_tension_h = 0;
-  } else if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
+  } else if (abs(keyball.scroll_snap_tension_h) <
+             KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
     keyball.scroll_snap_tension_h += out_y;
     out_y = 0;
   }
 #elif KEYBALL_SCROLLSNAP_ENABLE == 2
   switch (keyball_get_scrollsnap_mode()) {
-    case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
-      out_y = 0;
-      break;
-    case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
-      out_x = 0;
-      break;
-    default:
-      break;
+  case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
+    out_y = 0;
+    break;
+  case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
+    out_x = 0;
+    break;
+  default:
+    break;
   }
 #endif
 
   output->h = -CONSTRAIN_HV(out_x);
-  output->v =  CONSTRAIN_HV(out_y);
+  output->v = CONSTRAIN_HV(out_y);
 
   // invert
   if (is_left) {
@@ -175,8 +234,10 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   // prevent to send 1 for MAC
   if (output->h != 0 || output->v != 0) {
     if (detected_host_os() == OS_MACOS) {
-      if (output->h == 1 || output->h == -1) output->h = 0;
-      if (output->v == 1 || output->v == -1) output->v = 0;
+      if (output->h == 1 || output->h == -1)
+        output->h = 0;
+      if (output->v == 1 || output->v == -1)
+        output->v = 0;
     }
   } else {
     acc_x_mac = acc_y_mac = 0;
@@ -188,4 +249,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->h = -output->h;
     output->v = -output->v;
   }
+
+  g_dbg_h = output->h;
+  g_dbg_v = output->v;
 }
