@@ -329,7 +329,7 @@ typedef struct __attribute__((packed)) {
   uint16_t version;         // 1
   uint16_t reserved;        // 0
   uint16_t cpi[8];          // 100..CPI_MAX
-  uint8_t sdiv[8];          // 1..SCROLL_DIV_MAX
+  uint8_t sdiv[8];          // 0..SCROLL_DIV_MAX
   uint8_t inv[8];           // 0/1
   uint8_t mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
   uint8_t mv_th1[8];        // 0..(mv_th2-1)

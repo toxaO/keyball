@@ -62,7 +62,6 @@ static inline uint16_t clamp_cpi(uint16_t c) {
   return c;
 }
 static inline uint8_t clamp_sdiv(uint8_t v) {
-  if (v < 1) v = 1;
   if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
   return v;
 }
