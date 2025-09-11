@@ -16,5 +16,5 @@
 - ファームウェアをビルドする際はアクティブな仮想環境上で次を使う。
 
   ```bash
-  qmk compile -kb keyball/keyball39 -km <keymap>
+  qmk compile -kb keyball/keyball39 -km mymap
   ```

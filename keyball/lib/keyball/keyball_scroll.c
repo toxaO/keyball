@@ -155,16 +155,28 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     if (idx >= array_size(mac_div))
       idx = array_size(mac_div) - 1;
     uint16_t sdiv_mac = mac_div[idx];
+    // Accumulate raw deltas but drop any fractional remainder so that the
+    // scroll does not "charge" before moving (i.e. avoid high-resolution
+    // behaviour on macOS).
+
     acc_x_mac += sx;
     acc_y_mac += sy;
     if (sdiv_mac) {
-      out_x = (int16_t)(acc_x_mac / sdiv_mac);
+      if (acc_x_mac >= sdiv_mac) {
+        out_x = 1;
+        acc_x_mac = 0;
+      } else if (acc_x_mac <= -(int32_t)sdiv_mac) {
+        out_x = -1;
+        acc_x_mac = 0;
+      }
+      if (acc_y_mac >= sdiv_mac) {
+        out_y = 1;
+        acc_y_mac = 0;
+      } else if (acc_y_mac <= -(int32_t)sdiv_mac) {
+        out_y = -1;
+        acc_y_mac = 0;
+      }
     }
-    if (sdiv_mac) {
-      out_y = (int16_t)(acc_y_mac / sdiv_mac);
-    }
-    acc_x_mac -= (int32_t)out_x * sdiv_mac;
-    acc_y_mac -= (int32_t)out_y * sdiv_mac;
   } break;
   default: {
     int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
