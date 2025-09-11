@@ -78,73 +78,12 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              bool is_left) {
   int16_t out_x = 0;
   int16_t out_y = 0;
-
-  // 32bitにして余裕を持たせる（高速回転や高CPIでのあふれ対策）
-  static int32_t acc_x_mac = 0, acc_y_mac = 0;
-  static int32_t acc_x_gen = 0, acc_y_gen = 0;
-  static uint8_t last_sdiv = 0;
-  static uint32_t last_ts = 0;
-  static int8_t last_dir_x = 0, last_dir_y = 0;
-
-  uint32_t now = timer_read32();
   int16_t sx = (int16_t)report->x;
   int16_t sy = (int16_t)report->y;
   uint8_t sdiv = keyball_get_scroll_div();
 
-  // デッドゾーンとヒステリシスを適用するか
-  bool disable_filters = (g_scroll_deadzone == 0 && g_scroll_hysteresis == 0);
-
-  // デッドゾーン適用
-  if (!disable_filters) {
-    if (abs(sx) <= g_scroll_deadzone)
-      sx = 0;
-    if (abs(sy) <= g_scroll_deadzone)
-      sy = 0;
-  }
-
-  // ヒステリシス処理（方向反転のゆらぎ抑制）
-  int8_t dir_x = (sx > 0) - (sx < 0);
-  int8_t dir_y = (sy > 0) - (sy < 0);
-  if (!disable_filters) {
-    if (dir_x && dir_x != last_dir_x) {
-      if (last_dir_x && abs(sx) <= g_scroll_hysteresis) {
-        sx = 0;
-        dir_x = 0;
-      } else {
-        acc_x_mac = acc_x_gen = 0;
-        last_dir_x = dir_x;
-      }
-    } else if (dir_x) {
-      last_dir_x = dir_x;
-    }
-    if (dir_y && dir_y != last_dir_y) {
-      if (last_dir_y && abs(sy) <= g_scroll_hysteresis) {
-        sy = 0;
-        dir_y = 0;
-      } else {
-        acc_y_mac = acc_y_gen = 0;
-        last_dir_y = dir_y;
-      }
-    } else if (dir_y) {
-      last_dir_y = dir_y;
-    }
-  } else {
-    last_dir_x = dir_x;
-    last_dir_y = dir_y;
-  }
-
   g_dbg_sx = sx;
   g_dbg_sy = sy;
-
-  // 感度変更やアイドルで余りリセット
-  if (sdiv != last_sdiv ||
-      TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
-    acc_x_mac = acc_y_mac = 0;
-    acc_x_gen = acc_y_gen = 0;
-    last_sdiv = sdiv;
-    last_dir_x = last_dir_y = 0;
-  }
-  last_ts = now;
 
   switch (detected_host_os()) {
   case OS_MACOS: {
@@ -156,58 +95,19 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
       idx = array_size(mac_div) - 1;
     }
     int16_t sdiv_mac = (int16_t)mac_div[idx];
-    acc_x_mac += sx;
-    acc_y_mac += sy;
     if (sdiv_mac) {
-      out_x = (int16_t)(acc_x_mac / sdiv_mac);
-      out_y = (int16_t)(acc_y_mac / sdiv_mac);
-      acc_x_mac -= (int32_t)out_x * sdiv_mac;
-      acc_y_mac -= (int32_t)out_y * sdiv_mac;
-
+      out_x = sx / sdiv_mac;
+      out_y = sy / sdiv_mac;
     }
   } break;
   default: {
     int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
-    acc_x_gen += sx;
-    acc_y_gen += sy;
     if (sdiv_gen) {
-      out_x = (int16_t)(acc_x_gen / sdiv_gen);
+      out_x = sx / sdiv_gen;
+      out_y = sy / sdiv_gen;
     }
-    if (sdiv_gen) {
-      out_y = (int16_t)(acc_y_gen / sdiv_gen);
-    }
-    acc_x_gen -= (int32_t)out_x * sdiv_gen;
-    acc_y_gen -= (int32_t)out_y * sdiv_gen;
   }
   }
-
-  // スナップスクロール関連
-#if KEYBALL_SCROLLSNAP_ENABLE == 1
-  // 「初速」っぽい調整
-  if (keyball.scroll_snap_last == 0) {
-    keyball.scroll_snap_tension_h = out_y;
-    keyball.scroll_snap_last = now;
-  } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >=
-             KEYBALL_SCROLLSNAP_RESET_TIMER) {
-    keyball.scroll_snap_last = 0;
-    keyball.scroll_snap_tension_h = 0;
-  } else if (abs(keyball.scroll_snap_tension_h) <
-             KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
-    keyball.scroll_snap_tension_h += out_y;
-    out_y = 0;
-  }
-#elif KEYBALL_SCROLLSNAP_ENABLE == 2
-  switch (keyball_get_scrollsnap_mode()) {
-  case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
-    out_y = 0;
-    break;
-  case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
-    out_x = 0;
-    break;
-  default:
-    break;
-  }
-#endif
 
   output->h = -CONSTRAIN_HV(out_x);
   output->v = CONSTRAIN_HV(out_y);
@@ -219,14 +119,6 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   } else if (kbpf.inv[keyball_os_idx()]) {
     output->h = -output->h;
     output->v = -output->v;
-  }
-
-
-  // For macOS, leave acceleration to the OS after applying divisors above.
-
-  if (output->h == 0 && output->v == 0) {
-    acc_x_mac = acc_y_mac = 0;
-    acc_x_gen = acc_y_gen = 0;
   }
 
   // invert v
