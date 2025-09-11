@@ -297,14 +297,13 @@ uint8_t keyball_get_scroll_div(void);
 /// The scroll divider is the number that divides the raw value when applying
 /// trackball motion to scrolling.  The CPI value of the trackball is very
 /// high, so if you apply it to scrolling as is, it will scroll too much.
-/// In order to adjust the scroll amount to be appropriate, it is applied after
-/// dividing it by a scroll divider.  The actual denominator is determined by
-/// the following formula:
+/// Adjusts the scroll amount by dividing motion counts.  The mapping from the
+/// scroll divider value (`div`) to the actual divisor depends on the host OS:
+/// macOS uses a lookup table while other OSes use `KEYBALL_SCROLL_FINE_DEN <<
+/// div`.
 ///
-///   denominator = 2 ^ (div - 1) ^2
-///
-/// Valid values are between 1 and 7, KEYBALL_SCROLL_DIV_DEFAULT is used when 0
-/// is specified.
+/// Valid values are between 0 and `SCROLL_DIV_MAX`; out-of-range values are
+/// clamped to the nearest valid value.
 void keyball_set_scroll_div(uint8_t div);
 
 /// keyball_get_cpi gets current CPI of trackball.
@@ -329,7 +328,7 @@ typedef struct __attribute__((packed)) {
   uint16_t version;         // 1
   uint16_t reserved;        // 0
   uint16_t cpi[8];          // 100..CPI_MAX
-  uint8_t sdiv[8];          // 1..SCROLL_DIV_MAX
+  uint8_t sdiv[8];          // 0..SCROLL_DIV_MAX
   uint8_t inv[8];           // 0/1
   uint8_t mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
   uint8_t mv_th1[8];        // 0..(mv_th2-1)

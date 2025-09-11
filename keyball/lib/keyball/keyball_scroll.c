@@ -16,8 +16,6 @@
 extern const uint8_t SCROLL_DIV_MAX;
 
 static inline uint8_t clamp_sdiv(uint8_t v) {
-  if (v < 1)
-    v = 1;
   if (v > SCROLL_DIV_MAX)
     v = SCROLL_DIV_MAX;
   return v;
@@ -150,20 +148,21 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
   switch (detected_host_os()) {
   case OS_MACOS: {
-    static const uint8_t mac_div[] = {48, 24, 12, 6, 3, 2, 1};
-    if (sdiv >= array_size(mac_div))
-      sdiv = array_size(mac_div) - 1;
-    int16_t sdiv_mac = mac_div[sdiv];
+    // Widen the adjustment range using a lookup table of divisors
+    static const uint16_t mac_div[] = {64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1};
+    uint8_t idx = sdiv;
+    if (idx >= array_size(mac_div)) {
+      idx = array_size(mac_div) - 1;
+    }
+    int16_t sdiv_mac = (int16_t)mac_div[idx];
     acc_x_mac += sx;
     acc_y_mac += sy;
     if (sdiv_mac) {
       out_x = (int16_t)(acc_x_mac / sdiv_mac);
-    }
-    if (sdiv_mac) {
       out_y = (int16_t)(acc_y_mac / sdiv_mac);
+      acc_x_mac -= (int32_t)out_x * sdiv_mac;
+      acc_y_mac -= (int32_t)out_y * sdiv_mac;
     }
-    acc_x_mac -= (int32_t)out_x * sdiv_mac;
-    acc_y_mac -= (int32_t)out_y * sdiv_mac;
   } break;
   default: {
     int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
@@ -220,15 +219,8 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->v = -output->v;
   }
 
-  // prevent to send 1 for MAC
-  if (output->h != 0 || output->v != 0) {
-    if (detected_host_os() == OS_MACOS) {
-      if (output->h == 1 || output->h == -1)
-        output->h = 0;
-      if (output->v == 1 || output->v == -1)
-        output->v = 0;
-    }
-  } else {
+  // For macOS, leave acceleration to the OS after applying divisors above.
+  if (output->h == 0 && output->v == 0) {
     acc_x_mac = acc_y_mac = 0;
     acc_x_gen = acc_y_gen = 0;
   }
