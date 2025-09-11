@@ -148,6 +148,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
   switch (detected_host_os()) {
   case OS_MACOS: {
+
     // Widen the adjustment range using a lookup table of divisors
     static const uint16_t mac_div[] = {64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1};
     uint8_t idx = sdiv;
@@ -162,6 +163,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
       out_y = (int16_t)(acc_y_mac / sdiv_mac);
       acc_x_mac -= (int32_t)out_x * sdiv_mac;
       acc_y_mac -= (int32_t)out_y * sdiv_mac;
+
     }
   } break;
   default: {
@@ -219,7 +221,9 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->v = -output->v;
   }
 
+
   // For macOS, leave acceleration to the OS after applying divisors above.
+
   if (output->h == 0 && output->v == 0) {
     acc_x_mac = acc_y_mac = 0;
     acc_x_gen = acc_y_gen = 0;
