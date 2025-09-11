@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "my_keycode.h"
 #include "os_detection.h"
 #include "features/util.h"
-#include "features/swipe.h"
 #include "features/macro_key.h"
 #include "features/layer.h"
 #ifdef OLED_ENABLE
@@ -122,11 +121,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_Scr] = LAYOUT_universal(
  //,--------------------------------------------------------------------------.                                  ,--------------------------------------------------------------------------.
-     RGB_HUI      , RGB_SAI      , RGB_VAI      , SCRL_DVI     , CPI_I100     ,                                    XXX          , MVGL_UP      , KC_TAB       , XXX          , XXX          ,
+     RGB_HUI      , RGB_SAI      , RGB_VAI      , SCRL_DVI     , CPI_I100     ,                                    XXX          , MVGL      , KC_TAB       , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     KBC_SAVE     , RGB_TOG      , XXX          , SCRL_INV     , XXX          ,                                    MVTH1_DN     , MVTH1_UP     , KC_BTN4      , _______      , XXX          ,
+     KBC_SAVE     , RGB_TOG      , XXX          , SCRL_INV     , XXX          ,                                    MVTH1     , MVTH1     , KC_BTN4      , _______      , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     RGB_HUD      , RGB_SAD      , RGB_VAD      , SCRL_DVD     , CPI_D100     ,                                    XXX          , MVGL_DN      , XXX          , XXX          , XXX          ,
+     RGB_HUD      , RGB_SAD      , RGB_VAD      , SCRL_DVD     , CPI_D100     ,                                    XXX          , MVGL      , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
      EEPROM_RST   , XXX          , XXX          , XXX          , XXX          , XXX          ,      XXX          , MO(_NumP)    , XXXXXXX      , XXXXXXX      , XXXXXXX      , XXX
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.

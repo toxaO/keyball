@@ -1,5 +1,83 @@
 # Keyball Core Function Library
 
+## Feature Overview / 機能概要
+
+### Pointer movement adjustment / ポインタ移動量調整
+Adjust low-speed gain and threshold to fine-tune cursor control. The values can
+be increased with single press of `MVGL`/`MVTH1` and decreased while holding
+`Shift`.
+
+低速ゲインとしきい値を調整してポインタの移動量を微調整できます。
+`MVGL` や `MVTH1` を単押しで増加、`Shift` 併用で減少させます。
+
+### Scroll adjustment / スクロール調整
+Deadzone and reverse-direction hysteresis suppress wobble at the end of a
+scroll. Use `SCRL_DZ` and `SCRL_HY` to tweak sensitivity on the fly.
+
+スクロール終端での逆方向ビビりを抑えるため、デッドゾーンとヒステリシスを導入
+しています。`SCRL_DZ` と `SCRL_HY` で感度を即時に調整できます。
+
+### Swipe adjustment / スワイプ調整
+Swipe gestures accumulate trackball motion and fire once thresholds are
+reached. `SW_ST`, `SW_DZ`, and `SW_RT` adjust the trigger threshold, deadzone,
+and reset delay. `SW_FRZ` toggles pointer freeze during swipe.
+
+トラックボールの蓄積量がしきい値を超えるとスワイプが発火します。`SW_ST`,
+`SW_DZ`, `SW_RT` で閾値・デッドゾーン・リセット遅延を調整し、`SW_FRZ` でスワイ
+プ中のポインタ凍結を切り替えます。
+
+**Example / 例:**
+
+```c
+// Start swipe mode while holding a key
+case KC_SWIPE:
+  if (record->event.pressed) {
+    keyball_swipe_begin(0);
+  } else {
+    keyball_swipe_end();
+  }
+  return false;
+```
+
+```c
+// React to swipe events
+void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
+  if (dir == KB_SWIPE_UP) {
+    tap_code(KC_VOLU);
+  } else if (dir == KB_SWIPE_DOWN) {
+    tap_code(KC_VOLD);
+  }
+}
+```
+
+### OLED debug mode / OLEDデバッグモード
+`DBG_TOG` toggles a multi-page OLED view that shows current settings and swipe
+status. `DBG_NP` and `DBG_PP` cycle through pages.
+
+`DBG_TOG` で各種設定やスワイプ状態を表示するデバッグページを切り替え、
+`DBG_NP` / `DBG_PP` でページ送り・戻しができます。
+
+## API Reference / APIリファレンス
+
+### Swipe API / スワイプAPI
+- `keyball_swipe_begin(tag)` / `keyball_swipe_end()`
+- `keyball_on_swipe_fire(tag, dir)` (weak callback)
+- `keyball_swipe_set_step`, `keyball_swipe_set_deadzone`,
+  `keyball_swipe_set_reset_ms`, `keyball_swipe_toggle_freeze`
+
+### Scroll API / スクロールAPI
+- `keyball_set_scroll_mode`, `keyball_get_scroll_mode`
+- `keyball_set_scroll_div`, `keyball_get_scroll_div`
+- Variables `g_scroll_deadzone`, `g_scroll_hysteresis`
+
+### Pointer API / ポインタAPI
+- Variables `g_move_gain_lo_fp`, `g_move_th1`
+- `keyball_on_apply_motion_to_mouse_move()` hook
+
+### OLED API / OLED API
+- `keyball_oled_mode_toggle`, `keyball_oled_next_page`, `keyball_oled_prev_page`
+- `keyball_oled_render_debug`, `keyball_oled_render_ballinfo` など
+
 ## Scroll snap mode
 
 When scrolling with the trackball, the scroll direction is restricted.
