@@ -148,34 +148,22 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
   switch (detected_host_os()) {
   case OS_MACOS: {
-    // Increase the number of steps slightly to widen the adjustment range
-    // (adjust to your preference)
+
+    // Widen the adjustment range using a lookup table of divisors
     static const uint16_t mac_div[] = {64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1};
     uint8_t idx = sdiv;
-    if (idx >= array_size(mac_div))
+    if (idx >= array_size(mac_div)) {
       idx = array_size(mac_div) - 1;
-    uint16_t sdiv_mac = mac_div[idx];
-    // Accumulate raw deltas but drop any fractional remainder so that the
-    // scroll does not "charge" before moving (i.e. avoid high-resolution
-    // behaviour on macOS).
-
+    }
+    int16_t sdiv_mac = (int16_t)mac_div[idx];
     acc_x_mac += sx;
     acc_y_mac += sy;
     if (sdiv_mac) {
-      if (acc_x_mac >= sdiv_mac) {
-        out_x = 1;
-        acc_x_mac = 0;
-      } else if (acc_x_mac <= -(int32_t)sdiv_mac) {
-        out_x = -1;
-        acc_x_mac = 0;
-      }
-      if (acc_y_mac >= sdiv_mac) {
-        out_y = 1;
-        acc_y_mac = 0;
-      } else if (acc_y_mac <= -(int32_t)sdiv_mac) {
-        out_y = -1;
-        acc_y_mac = 0;
-      }
+      out_x = (int16_t)(acc_x_mac / sdiv_mac);
+      out_y = (int16_t)(acc_y_mac / sdiv_mac);
+      acc_x_mac -= (int32_t)out_x * sdiv_mac;
+      acc_y_mac -= (int32_t)out_y * sdiv_mac;
+
     }
   } break;
   default: {
@@ -233,12 +221,9 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->v = -output->v;
   }
 
-  // macOS rounds to ±1 per report and chops it up finely (leaving
-  // acceleration to the OS)
-  if (detected_host_os() == OS_MACOS) {
-    output->h = (output->h > 0) - (output->h < 0); // -1,0,+1
-    output->v = (output->v > 0) - (output->v < 0);
-  }
+
+  // For macOS, leave acceleration to the OS after applying divisors above.
+
   if (output->h == 0 && output->v == 0) {
     acc_x_mac = acc_y_mac = 0;
     acc_x_gen = acc_y_gen = 0;

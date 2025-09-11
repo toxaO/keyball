@@ -109,7 +109,7 @@ static void kbpf_validate(void) {
   }
   for (int i = 0; i < 8; ++i) {
     kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
-    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
+    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i]);
     kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
   }
   if (kbpf.version == 1) {
