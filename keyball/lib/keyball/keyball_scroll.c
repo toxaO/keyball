@@ -158,6 +158,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     // Accumulate raw deltas but drop any fractional remainder so that the
     // scroll does not "charge" before moving (i.e. avoid high-resolution
     // behaviour on macOS).
+
     acc_x_mac += sx;
     acc_y_mac += sy;
     if (sdiv_mac) {
