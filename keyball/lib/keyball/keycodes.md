@@ -19,6 +19,11 @@
 | `SCRL_DZ` | `Kb 29`         | `0x7e1d` | Adjust scroll deadzone (Shift: decrease)                          |
 | `SCRL_HY` | `Kb 31`         | `0x7e1f` | Adjust scroll hysteresis (Shift: decrease)                        |
 | `SW_RT`   | `Kb 4`          | `0x7e04` | Adjust swipe reset delay (Shift: decrease)                        |
+| `MVGL`    | `Kb 17`         | `0x7e11` | Adjust low-speed pointer gain (Shift: decrease)                   |
+| `MVTH1`   | `Kb 19`         | `0x7e13` | Adjust pointer threshold1 (Shift: decrease)                       |
+| `SW_ST`   | `Kb 21`         | `0x7e15` | Adjust swipe trigger threshold (Shift: decrease)                  |
+| `SW_DZ`   | `Kb 23`         | `0x7e17` | Adjust swipe deadzone (Shift: decrease)                           |
+| `SW_FRZ`  | `Kb 25`         | `0x7e19` | Toggle swipe pointer freeze                                      |
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | Toggle automatic mouse layer                                      |
 | `AML_I50`  | `Kb 11`         | `0x7e0b` | Increase 50ms automatic mouse layer timeout (max 1000ms)          |
 | `AML_D50`  | `Kb 12`         | `0x7e0c` | Decrease 50ms automatic mouse layer timeout (min 100ms)           |
@@ -44,6 +49,11 @@
 | `SCRL_DZ` | `Kb 29`         | `0x7e1d` | スクロールのデッドゾーンを調整します(Shiftで減少)                 |
 | `SCRL_HY` | `Kb 31`         | `0x7e1f` | スクロール反転ヒステリシスを調整します(Shiftで減少)               |
 | `SW_RT`   | `Kb 4`          | `0x7e04` | スワイプリセット遅延を調整します(Shiftで短縮)                     |
+| `MVGL`    | `Kb 17`         | `0x7e11` | 低速ゲインを調整します(Shiftで減少)                               |
+| `MVTH1`   | `Kb 19`         | `0x7e13` | ポインタしきい値1を調整します(Shiftで減少)                        |
+| `SW_ST`   | `Kb 21`         | `0x7e15` | スワイプ閾値を調整します(Shiftで減少)                             |
+| `SW_DZ`   | `Kb 23`         | `0x7e17` | スワイプゆらぎ抑制を調整します(Shiftで減少)                       |
+| `SW_FRZ`  | `Kb 25`         | `0x7e19` | スワイプ時のポインタフリーズを切り替えます                        |
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | 自動マウスレイヤーをトグルします。                                |
 | `AML_I50`  | `Kb 11`         | `0x7e0b` | 自動マウスレイヤーのタイムアウトを50msec増やします (max 1000ms)   |
 | `AML_D50`  | `Kb 12`         | `0x7e0c` | 自動マウスレイヤーのタイムアウトを50msec減らします (min 100ms)    |
