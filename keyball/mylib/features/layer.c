@@ -42,7 +42,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     switch (layer) {
         case _Def:
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 0);
-            keyball_oled_set_mode(KB_OLED_MODE_NORMAL);
             break;
         case _Sym:
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
@@ -67,7 +66,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             break;
         case _Set:
             rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-            keyball_oled_set_mode(KB_OLED_MODE_DEBUG);
             break;
     }
 
