@@ -22,10 +22,10 @@ MUSIC_MODE = no
 KEYBOARD_SHARED_EP = no
 
 # Include my library
-SRC += mylib/features/layer.c
-SRC += mylib/features/macro_key.c
-SRC += mylib/features/oled.c
-# SRC += mylib/features/swipe.c
-SRC += mylib/features/swipe_user.c
-SRC += mylib/features/util.c
-SRC += mylib/features/combo.c
+SRC += lib_user/features/layer_user.c
+SRC += lib_user/features/macro_user.c
+SRC += lib_user/features/oled_user.c
+# SRC += lib_user/features/swipe_user.c
+SRC += lib_user/features/swipe_user.c
+SRC += lib_user/features/util_user.c
+SRC += lib_user/features/combo_user.c

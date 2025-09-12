@@ -41,8 +41,8 @@
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | Toggle automatic mouse layer                                      |
-| `AML_I50`  | `Kb 11`         | `0x7e0b` | Increase 50ms automatic mouse layer timeout (max 1000ms)          |
-| `AML_D50`  | `Kb 12`         | `0x7e0c` | Decrease 50ms automatic mouse layer timeout (min 100ms)           |
+| `AML_I50`  | `Kb 11`         | `0x7e0b` | Increase 50ms automatic mouse layer timeout (max 3000ms)         |
+| `AML_D50`  | `Kb 12`         | `0x7e0c` | Decrease 50ms automatic mouse layer timeout (min 300ms)          |
 
 ### Swipe control
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
@@ -106,8 +106,8 @@
 | キーコード | Remap上での表記 | 値       | 説明                                                              |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `AML_TO`   | `Kb 10`         | `0x7e0a` | 自動マウスレイヤーをトグルします                                  |
-| `AML_I50`  | `Kb 11`         | `0x7e0b` | 自動マウスレイヤーのタイムアウトを50msec増やします (最大1000ms)   |
-| `AML_D50`  | `Kb 12`         | `0x7e0c` | 自動マウスレイヤーのタイムアウトを50msec減らします (最小100ms)    |
+| `AML_I50`  | `Kb 11`         | `0x7e0b` | 自動マウスレイヤーのタイムアウトを50msec増やします (最大3000ms)  |
+| `AML_D50`  | `Kb 12`         | `0x7e0c` | 自動マウスレイヤーのタイムアウトを50msec減らします (最小300ms)   |
 
 ### スワイプ制御
 | キーコード | Remap上での表記 | 値       | 説明                                                              |

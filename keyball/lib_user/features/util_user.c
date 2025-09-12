@@ -28,13 +28,13 @@ void keyboard_post_init_user(void) {
 #endif
 }
 
-// 自前の絶対数を返す関数。 Functions that return absolute numbers.
-int16_t my_abs(int16_t num) {
-  if (num < 0) {
-    num = -num;
-  }
-  return num;
-}
+// // 自前の絶対数を返す関数。 Functions that return absolute numbers.
+// int16_t my_abs(int16_t num) {
+//   if (num < 0) {
+//     num = -num;
+//   }
+//   return num;
+// }
 
 
 void tap_code16_os(
@@ -62,6 +62,6 @@ void tap_code16_os(
   }
 }
 
-void reset_eeprom(void) {
-  eeconfig_init();
-}
+// void reset_eeprom(void) {
+//   eeconfig_init();
+// }

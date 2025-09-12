@@ -4,7 +4,7 @@
 
 extern int host_os;
 
-int16_t my_abs(int16_t num);
+// int16_t my_abs(int16_t num);
 
 void tap_code16_os(
     uint16_t win,
@@ -14,6 +14,6 @@ void tap_code16_os(
     uint16_t unsure
     );
 
-void reset_eeprom(void);
+// void reset_eeprom(void);
 
 #endif // UTIL_H

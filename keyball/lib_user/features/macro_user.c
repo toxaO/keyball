@@ -237,7 +237,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
 
         // 以下スワイプジェスチャー
-        case APP_SWIPE:
+        case APP_SW:
             if (record->event.pressed) {
                 layer_on(_Lock);
                 keyball_swipe_begin(KBS_TAG_APP);
@@ -253,7 +253,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case VOL_SWIPE:
+        case VOL_SW:
             if (record->event.pressed) {
                 layer_on(_Lock);
                 keyball_swipe_begin(KBS_TAG_VOL);
@@ -268,7 +268,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case BROWSE_SWIPE:
+        case BRO_SW:
             if (record->event.pressed) {
                 layer_on(_Lock);
                 keyball_swipe_begin(KBS_TAG_BRO);
@@ -283,7 +283,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case TAB_SWIPE:
+        case TAB_SW:
             if (record->event.pressed) {
                 layer_on(_Lock);
                 keyball_swipe_begin(KBS_TAG_TAB);
@@ -298,7 +298,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case WIN_SWIPE:
+        case WIN_SW:
             if (record->event.pressed) {
                 layer_on(_Lock);
                 // スワイプ中のみマウスレイヤを強制ON（OSに応じたターゲット）

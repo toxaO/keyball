@@ -206,12 +206,12 @@ enum layer_names {
 
 // custom keycode --------------------
 enum custom_keycodes {
-    /* APP_SWIPE = KEYBALL_SAFE_RANGE, */
-    APP_SWIPE = QK_USER,
-    VOL_SWIPE,
-    BROWSE_SWIPE,
-    TAB_SWIPE,
-    WIN_SWIPE,
+    /* APP_SW = KEYBALL_SAFE_RANGE, */
+    APP_SW = QK_USER,
+    VOL_SW,
+    BRO_SW,
+    TAB_SW,
+    WIN_SW,
     MULTI_A,
     MULTI_B,
     EISU_S_N,

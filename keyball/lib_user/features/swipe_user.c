@@ -50,19 +50,19 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_TAB:
         switch (dir) {
         case KB_SWIPE_UP:
-            dprintf("TAB_SWIPE UP (OS=%d)\n", host_os);
+            dprintf("TAB_SW UP (OS=%d)\n", host_os);
             tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
             break;
         case KB_SWIPE_DOWN:
-            dprintf("TAB_SWIPE DOWN (OS=%d)\n", host_os);
+            dprintf("TAB_SW DOWN (OS=%d)\n", host_os);
             tap_code16_os(w_CLOSE, m_CLOSE, m_CLOSE, KC_NO, KC_NO);
             break;
         case KB_SWIPE_LEFT:
-            dprintf("TAB_SWIPE LEFT (OS=%d)\n", host_os);
+            dprintf("TAB_SW LEFT (OS=%d)\n", host_os);
             tap_code16(S(C(KC_TAB)));
             break;
         case KB_SWIPE_RIGHT:
-            dprintf("TAB_SWIPE RIGHT (OS=%d)\n", host_os);
+            dprintf("TAB_SW RIGHT (OS=%d)\n", host_os);
             tap_code16(C(KC_TAB));
             break;
         default: break;

@@ -64,24 +64,30 @@ There are three keymaps provided at least:
 * `test` - Easy-to-use version for checking operation at build time
 * `default` - Base version for creating your own customized firmware
 
-## How to create your keymap
+## Build on GitHub Actions / キーマップ作成とActionsビルド
 
-1. Fork this Yowkees/keyball repository
-2. Checkout forked repository
-3. (OPTIONAL) Create a new branch
-4. Add a your keymap, or make some changes
-5. Commit changes and push it to your forked repository
-6. Open your forked repository with web browser
-7. Click and open "Actions" tab
-8. Click "Build a firmware on demand" in Workflows on left panel
-9. Press "Run workflow" button on right side, then you will see forms
-10. (OPTIONAL) Select a your working branch
-11. Select a "Keyboard" from drop-down list
-12. Enter the "keymap" you want to build
-13. Click "Run workflow"
-14. Wait a minute until the firmware build is finished
-15. Click a latest workflow run and open details
-16. Download built firmware in "Artifacts" section
+1. リポジトリをFork（GitHub上でこのリポジトリを自分のアカウントへフォーク）
+2. ローカルへクローンし、リモートを自分のForkへ向ける
+   - `git clone https://github.com/<your-account>/keyball.git`
+   - `cd keyball`
+   - `git remote -v` で origin が自分のForkを指していることを確認
+3. （任意）作業ブランチを作る
+   - `git checkout -b mymap-work`
+4. キーマップを作成/編集
+5. コミットして自分のForkへPush
+   - `git add -A && git commit -m "Add my keymap"`
+   - `git push -u origin mymap-work`
+6. GitHub上の自分のForkを開く
+7. Actionsタブを開く
+8. 左のWorkflowsから "Build a firmware on demand" を選択
+9. 右側の "Run workflow" を押してフォームを開く
+10. 対象ブランチを選択（例: mymap-work）
+11. Keyboard を選ぶ（例: keyball/keyball44）
+12. keymap を入力（例: mymap）
+13. Run workflow を押す
+14. ビルド完了まで待つ（数分）
+15. 最新のワークフロー実行を開く（詳細へ）
+16. Artifacts セクションから生成物（UF2等）をダウンロード
 # Keyball
 ## 追加: lib/keyball の主な機能まとめ
 
@@ -115,3 +121,46 @@ There are three keymaps provided at least:
 備考:
 - 既存の `SCRL_DVI`/`SCRL_DVD` は後方互換のため残していますが、ドキュメントとキーマップでは `SCRL_STI`/`SCRL_STD` の使用を推奨します。
 - 既定のSTは `KEYBALL_SCROLL_STEP_DEFAULT`（従来 `KEYBALL_SCROLL_DIV_DEFAULT`）。
+## ローカルビルド手順（CUI向け）
+
+以下はCUIに慣れた方向けの導入とビルドの概要です。
+
+- 重要: 本リポジトリでビルドに使用できる QMK は「同梱の `qmk_firmware` ディレクトリ（keyball ブランチ）」のみです。上流の任意バージョンや別ブランチではビルドできない／挙動が一致しない可能性があります。
+
+- 前提
+  - git / Python 3.10+ が導入済みであること
+  - pipx もしくは pip で QMK CLI を導入可能なこと
+
+- 手順（手動セットアップ）
+  - リポジトリを取得
+    - `git clone https://github.com/<your-account>/keyball.git`
+    - `cd keyball`
+  - QMK CLI を導入（いずれか）
+    - pipx を使う場合: `pipx install qmk`
+    - pip を使う場合: `python3 -m pip install --user qmk`
+  - QMK のホームを本リポジトリ同梱の `qmk_firmware`（keyball ブランチ）に指定
+    - `qmk setup -H "$PWD/qmk_firmware"`
+      - 初回は依存取得等で時間がかかる場合があります
+  - サブモジュールの取得（必要時）
+    - `git -C qmk_firmware submodule sync --recursive`
+    - `git -C qmk_firmware submodule update --init --recursive --depth 1`
+  - キーボードディレクトリのリンク（必要時）
+    - `ln -s ../../keyball "$PWD/qmk_firmware/keyboards/keyball"`（scripts参照）
+  - ビルド
+    - keyball44/mymap: `qmk compile -kb keyball/keyball44 -km mymap`
+    - keyball39/mymap: `qmk compile -kb keyball/keyball39 -km mymap`
+
+- 手順（スクリプト利用）
+  - ルート直下で実行: `bash scripts/setup_and_build.sh`
+    - していること（要約）
+      - `qmk_firmware` のサブモジュール同期・初期化
+      - venv 構築＋QMK CLI 導入＋ `qmk setup -H` の実行
+      - `qmk_firmware/keyboards/keyball -> ../../keyball` のシンボリックリンク作成
+      - `keyball39:mymap` と `keyball44:mymap` を連続ビルド
+    - 最新の `qmk_firmware` ブランチ（keyball）を使いたい場合: `QMK_FLOAT=1 bash scripts/setup_and_build.sh`
+
+- 備考
+  - 現在、ビルド確認済みなのは `keyball39` と `keyball44` の `mymap` のみです。
+  - 生成物（UF2等）は `qmk_firmware/.build/` 配下に出力されます。
+  - Linuxで書き込みやデバイスアクセスを行う場合、必要に応じてudev設定等も整備してください（本書では割愛）。
+  - GitHub Actions によるビルドも利用可能です（本README上部「Actions」の手順参照）。

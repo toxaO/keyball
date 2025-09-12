@@ -2,6 +2,8 @@
 # macOS / Ubuntu 用
 # 目的: venv + qmk セットアップ → keyboards/keyball の丸ごとリンク → 複数ターゲットを連続ビルド
 # 実行場所: ルート（keyball/ と qmk_firmware/ が並んでいる）
+# 注意: 本プロジェクトで使用できる QMK は「同梱の qmk_firmware（keyball ブランチ）」のみです。
+#       上流の任意バージョンや別ブランチではビルドできない／挙動が一致しない可能性があります。
 # 使い方:
 #   bash scripts/setup_and_build.sh
 #   QMK_FLOAT=1 bash scripts/setup_and_build.sh   # ← qmk_firmware を keyball ブランチの最新へ進めてからビルド
@@ -61,7 +63,7 @@ QMK_HOME_ABS="$(cd "$QMK_DIR" && pwd)"
 say "qmk setup -H $QMK_HOME_ABS"
 qmk setup -H "$QMK_HOME_ABS" -y || true
 
-# keyboards/keyball → ../../keyball へ「丸ごとリンク」（lib/mylib も見せる）
+# keyboards/keyball → ../../keyball へ「丸ごとリンク」（lib_user も見せる）
 LINK_FROM="$QMK_DIR/keyboards/keyball"
 LINK_TO="../../$KEYBALL_DIR"
 [ -e "$LINK_FROM" ] || [ -L "$LINK_FROM" ] && rm -rf "$LINK_FROM"

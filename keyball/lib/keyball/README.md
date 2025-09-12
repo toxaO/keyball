@@ -67,6 +67,118 @@ status. `DBG_NP` and `DBG_PP` cycle through pages.
 - `keyball_swipe_set_step`, `keyball_swipe_set_deadzone`,
   `keyball_swipe_set_reset_ms`, `keyball_swipe_toggle_freeze`
 
+## Swipe Integration Guide / スワイプ導入手順（詳細）
+
+ここではユーザーレベル（`keyball/lib_user` 配下）におけるスワイプ導入の実例と注意点を、`BRO_SW`（旧 `BROWSE_SWIPE`）を例に詳しく説明します。
+
+### 前提
+- スワイプは「押下で開始（`keyball_swipe_begin(tag)`）し、解放で終了（`keyball_swipe_end()`）」のペアで運用します。
+- 方向判定・しきい値はKBレベルで行い、発火時の実アクションは `keyball_on_swipe_fire(tag, dir)`（weak）で実装します。
+- 分割環境では発火（アクション送出）はマスター側で行われます（実装済）。
+
+### 1) キーコードの用意
+- 任意のユーザーキーコード（例: `BRO_SW`）を `keyball/lib_user/my_keycode.h` の enum に定義します。
+  - 本リポジトリでは既に `BRO_SW` が定義済みです。
+
+### 2) キーマップにスワイプキーを配置
+- 例：マウスレイヤ `_mMou/_wMou` に `BRO_SW` を割り当てます。
+  - 下位レイヤの Mod-Tap 影響を避けるため、押下中だけ「全キーXXX」の `_Lock` レイヤをONにする方法を推奨します（解放でOFF）。
+
+### 3) 押下/解放で begin/end を呼ぶ（単押し動作も）
+- `keyball/lib_user/features/macro_key.c`（process_record_user）に以下のような分岐を追加します。
+
+```c
+case BRO_SW:
+  if (record->event.pressed) {
+    // 下位レイヤ無効化（Lock）
+    layer_on(_Lock);
+    // スワイプ開始（任意のタグ: 例ではKBS_TAG_BRO）
+    keyball_swipe_begin(KBS_TAG_BRO);
+    swipe_timer = timer_read();
+  } else {
+    // スワイプ終了
+    keyball_swipe_end();
+    layer_off(_Lock);
+    // 単押し（タップ）扱い: TAPPING_TERM内かつ未発火なら代替アクション
+    if (timer_elapsed(swipe_timer) < TAPPING_TERM && !keyball_swipe_fired_since_begin()) {
+      // 例：ブラウザのアドレスバー呼び出し（OS別）
+      tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+    }
+  }
+  return false; // 以降の処理へ流さない
+```
+
+ポイント:
+- 「単押し対応」は「押下〜解放の時間が短くて、かつスワイプ発火がなかった場合」に代替のタップを送る方式です。
+- `_Lock` レイヤを併用することで、押下中に下位レイヤ（Mod-Tap等）の影響を遮断できます。
+
+### 4) 方向ごとのアクションを実装
+- `keyball/lib_user/features/swipe_user.c` に `keyball_on_swipe_fire(tag, dir)` を実装します。
+
+```c
+void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
+  switch (tag) {
+  case KBS_TAG_BRO:
+    switch (dir) {
+    case KB_SWIPE_UP:    tap_code16_os(C(KC_C), G(KC_C), G(KC_C), KC_NO, KC_NO); break;
+    case KB_SWIPE_DOWN:  tap_code16_os(C(KC_V), G(KC_V), G(KC_V), KC_NO, KC_NO); break;
+    case KB_SWIPE_LEFT:  tap_code16_os(KC_WBAK, G(KC_LEFT),  G(KC_LEFT),  KC_NO, KC_NO); break;
+    case KB_SWIPE_RIGHT: tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO); break;
+    default: break;
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+// 終了時の後始末（必要に応じて）
+void keyball_on_swipe_end(kb_swipe_tag_t tag) {
+  layer_off(_Lock); // Lockレイヤが残らないように保険
+}
+```
+
+### 5) デバッグ・チューニング
+- OLEDデバッグ（`DBG_TOG`）のページで直感的に監視できます。
+  - Mouse / AML / Scroll Param / Scroll Snap / Scroll Raw / Swipe Config / Swipe Monitor
+- コンソール（`qmk console`）の利用：
+  - `SWIPE FIRE tag=.. dir=..` で発火状況
+  - 任意の `dprintf()` を追加して分岐確認
+
+### 6) よくある注意点
+- 下位レイヤに Mod-Tap がある位置にスワイプキーを置く場合は `_Lock` レイヤ方式を使うと安全です。
+- AML の timeout が短いと押下/解放のレイヤ解決がズレやすくなります。現在の調整範囲は 300–3000ms（50ms刻み）です。
+
+### 7) 具体例: canceller（macのSpotlight/App View対応）
+
+意図:
+- macOS で、トラックパッドのジェスチャ方向（上/下）に合わせて Spotlight（上）や App View（下）を呼び出し、もう一度同じ操作方向でキャンセル（ESC）させる体験をキーボードでも再現することを目的に実装。
+
+実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_APP`）:
+- UP/DOWN の発火で Spotlight/App View 相当のショートカットを `tap_code16_os()` で送出。
+- 直前に同機能を発火した“キャンセル状態”を `canceller` で保持し、同方向の次回発火で `ESC` を送って閉じる。
+
+補足:
+- `canceller` はユーザ管理のフラグなので、実装側の任意のタイミング（発火直後など）で `true/false` を切り替えます。
+
+### 8) 具体例: Windows の Winスワイプ（ウィンドウスナップ）
+
+意図:
+- Windows では `Win + 矢印` により、ウィンドウのスナップ/最大化/最小化等を行えます。任意の状態へ移動するまで Win を押しっぱなしにして矢印を複数回送る必要があるため、スワイプ押下中は Win を維持し、離した時に解除する実装にしています。
+
+実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_WIN`）:
+- 発火時は `register_code(KC_LGUI); tap_code(KC_↑/↓/←/→);` を送る。
+- 解放時（`keyball_on_swipe_end()` など）に `unregister_code(KC_LGUI)` でWinを確実に解除。
+- 押下中のみ `_mMou/_wMou` や `_Lock` を併用して、下位レイヤからの影響を抑制するのが安全です。
+
+### 9) 補足: tap_code16_os について
+
+`tap_code16_os(win, mac, ios, linux, unsure)` は OS 検出結果（`host_os = detected_host_os()`）に応じて、OSごとのキーストロークを選択して送出するユーティリティです（`keyball/lib_user/features/util.c`）。
+- 例: `tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO)` は
+  - Windows: `Ctrl + L`、macOS/iOS: `Cmd + L`、Linux: 無効（KC_NO）
+- OSごとにショートカットが異なる場面で、コード分岐を簡潔にできます。
+
+
 ### Scroll API / スクロールAPI
 - `keyball_set_scroll_mode`, `keyball_get_scroll_mode`
 - `keyball_set_scroll_div`, `keyball_get_scroll_div`
