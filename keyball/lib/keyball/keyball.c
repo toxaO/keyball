@@ -31,7 +31,7 @@
 
 // Anything above this value makes the cursor fly across the screen.
 const uint16_t CPI_MAX        = 4000;
-const uint8_t SCROLL_DIV_MAX = 7;
+const uint8_t SCROLL_DIV_MAX = 11;
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
 const uint16_t AML_TIMEOUT_MIN = 100;

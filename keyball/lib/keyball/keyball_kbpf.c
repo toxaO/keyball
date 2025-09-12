@@ -62,7 +62,6 @@ static inline uint16_t clamp_cpi(uint16_t c) {
   return c;
 }
 static inline uint8_t clamp_sdiv(uint8_t v) {
-  if (v < 1) v = 1;
   if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
   return v;
 }
@@ -110,7 +109,7 @@ static void kbpf_validate(void) {
   }
   for (int i = 0; i < 8; ++i) {
     kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
-    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
+    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i]);
     kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
   }
   if (kbpf.version == 1) {
