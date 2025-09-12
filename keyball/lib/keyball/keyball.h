@@ -165,6 +165,11 @@ enum keyball_keycodes {
   SCRL_DVI = QK_KB_8,  // Increment scroll divider
   SCRL_DVD = QK_KB_9,  // Decrement scroll divider
   SCRL_INV = QK_KB_16, // scroll direction inverse
+  // 新スクロールパラメータ（interval/value）の調整
+  SCRL_IVI = QK_KB_18, // interval を増加(Shiftで減少)
+  SCRL_IVD = QK_KB_20, // interval を大きく/小さく微調整用（別段差が欲しい場合に使用可）
+  SCRL_VLI = QK_KB_22, // value を増加(Shiftで減少)
+  SCRL_VLD = QK_KB_24, // value を大きく/小さく微調整用（別段差が欲しい場合に使用可）
   SCRL_DZ = QK_KB_29,  // スクロールデッドゾーン調整(Shiftで減少)
   SCRL_HY = QK_KB_31,  // スクロールヒステリシス調整(Shiftで減少)
 
@@ -333,6 +338,11 @@ typedef struct __attribute__((packed)) {
   uint8_t mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
   uint8_t mv_th1[8];        // 0..(mv_th2-1)
   uint8_t mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
+  // スクロールの新パラメータ（OS別保存）。sdivはレベル(感度段)として利用する。
+  // interval: 蓄積のしきい値（大きいほどゆっくり）
+  // value   : 出力量の分母（大きいほど小さく出る）
+  uint8_t sc_interval[8];
+  uint8_t sc_value[8];
   uint16_t step;            // 発火しきい値
   uint8_t deadzone;         // デッドゾーン
   uint8_t freeze;           // bit0: freeze (1=FREEZE ON)
@@ -367,4 +377,4 @@ extern keyball_profiles_t kbpf;
 #endif
 
 #define KBPF_VER_OLD 1 // 例：既存
-#define KBPF_VER_CUR 4 // ★ 今回の拡張版
+#define KBPF_VER_CUR 5 // ★ スクロール interval/value 追加

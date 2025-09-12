@@ -92,6 +92,12 @@ void kbpf_defaults(void) {
     kbpf.mv_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
     kbpf.mv_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
     if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
+
+    // 新スクロールパラメータの初期値
+    // Windows 通常風: interval=120, value=1 / mac 通常風: interval=120, value=120
+    // ここでは OS 固有分岐は行わず、両方に無難な初期値を与える（ユーザーがOS別に調整保存）
+    kbpf.sc_interval[i] = 120; // 1..200 程度を想定
+    kbpf.sc_value[i]    = 1;   // 1..200 程度を想定（macは調整で120へ）
   }
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;
@@ -102,7 +108,7 @@ void kbpf_defaults(void) {
 // Ensure loaded data is sane and migrate from older versions when needed.
 static void kbpf_validate(void) {
   if (kbpf.magic != KBPF_MAGIC ||
-      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != 3 && kbpf.version != KBPF_VER_CUR)) {
+      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != 3 && kbpf.version != 4 && kbpf.version != KBPF_VER_CUR)) {
     // Corrupted or unknown layout -> fall back to defaults.
     kbpf_defaults();
     return;
@@ -111,20 +117,38 @@ static void kbpf_validate(void) {
     kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
     kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i]);
     kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
+    // 範囲ガード（既存データや未初期化対策）
+    if (kbpf.sc_interval[i] == 0) kbpf.sc_interval[i] = 120;
+    if (kbpf.sc_value[i]    == 0) kbpf.sc_value[i]    = 1;
+    if (kbpf.sc_interval[i] > 200) kbpf.sc_interval[i] = 200;
+    if (kbpf.sc_value[i]    > 200) kbpf.sc_value[i]    = 200;
   }
   if (kbpf.version == 1) {
     // Migrate from v1 -> v3 by populating all new fields with defaults.
     kbpf_set_swipe_defaults(&kbpf);
+    // v1 にはスクロール interval/value が無いのでデフォルト付与
+    for (int i = 0; i < 8; ++i) { kbpf.sc_interval[i] = 120; kbpf.sc_value[i] = 1; }
     kbpf.version = KBPF_VER_CUR; // actual write happens on save
   } else if (kbpf.version == 2) {
     // v2 lacked scroll deadzone/hysteresis
     kbpf.sc_dz   = KB_SCROLL_DEADZONE;
     kbpf.sc_hyst = KB_SCROLL_HYST;
+    // interval/value 新規
+    for (int i = 0; i < 8; ++i) { kbpf.sc_interval[i] = 120; kbpf.sc_value[i] = 1; }
     kbpf.version = KBPF_VER_CUR;
   } else if (kbpf.version == 3) {
     // v3 lacked swipe reset delay
     kbpf.sw_rst_ms = KB_SW_RST_MS;
+    // interval/value 新規
+    for (int i = 0; i < 8; ++i) { kbpf.sc_interval[i] = 120; kbpf.sc_value[i] = 1; }
     kbpf.version   = KBPF_VER_CUR;
+  } else if (kbpf.version == 4) {
+    // v4 → v5 の追加: interval/value
+    for (int i = 0; i < 8; ++i) {
+      if (kbpf.sc_interval[i] == 0) kbpf.sc_interval[i] = 120;
+      if (kbpf.sc_value[i] == 0)    kbpf.sc_value[i]    = 1;
+    }
+    kbpf.version = KBPF_VER_CUR;
   }
   // Range guard for current fields
   if (kbpf.step < 1 || kbpf.step > 2000) kbpf.step = KB_SW_STEP;
@@ -151,4 +175,3 @@ void kbpf_write(void) {
   // Persist entire profile structure back to EEPROM.
   eeprom_update_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
 }
-

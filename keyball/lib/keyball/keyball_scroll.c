@@ -28,6 +28,9 @@ uint8_t g_scroll_hysteresis = KB_SCROLL_HYST;
 static int16_t g_dbg_sx = 0, g_dbg_sy = 0; // raw scroll input after filters
 static int16_t g_dbg_h = 0, g_dbg_v = 0;   // final output values
 
+// 12/10 ≒ 1.2 倍を整数近似するための補助関数
+static inline uint32_t kb_mul12_div10(uint32_t v) { return (uint32_t)((v * 12u + 5u) / 10u); }
+
 void keyball_scroll_get_dbg(int16_t *sx, int16_t *sy, int16_t *h, int16_t *v) {
   if (sx)
     *sx = g_dbg_sx;
@@ -76,43 +79,102 @@ void keyball_set_scroll_div(uint8_t div) {
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              report_mouse_t *output,
                                              bool is_left) {
-  int16_t out_x = 0;
-  int16_t out_y = 0;
+  // 新ロジック：
+  // - 対角線付近(0.5..2.0倍)の比率では出力を抑制
+  // - 主成分(横/縦)のみ蓄積してしきい値到達で出力
+  // - sdiv は「スクロール感度レベル(SL)」として interval/value に乗算スケール
+  // - OS 分岐は行わず、パラメータは kbpf に OS 別保存
+  // - デッドゾーン／ヒステリシスは今回未使用（パラメータのみ維持）
+
+  static int32_t acc_h = 0, acc_v = 0; // 蓄積（高分解能用）
+  static int16_t prev_x = 0, prev_y = 0;
+  static uint32_t last_ts = 0;
+
   int16_t sx = (int16_t)report->x;
   int16_t sy = (int16_t)report->y;
-  uint8_t sdiv = keyball_get_scroll_div();
-
   g_dbg_sx = sx;
   g_dbg_sy = sy;
 
-  switch (detected_host_os()) {
-  case OS_MACOS: {
+  // アイドルで蓄積をリセット
+  uint32_t now = timer_read32();
+  if (TIMER_DIFF_32(now, last_ts) > KEYBALL_SCROLL_IDLE_RESET_MS) {
+    acc_h = 0;
+    acc_v = 0;
+  }
+  last_ts = now;
 
-    // Widen the adjustment range using a lookup table of divisors
-    static const uint16_t mac_div[] = {64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1};
-    uint8_t idx = sdiv;
-    if (idx >= array_size(mac_div)) {
-      idx = array_size(mac_div) - 1;
+  // sdiv を「SL(感度レベル)」としてスケール化
+  static const uint16_t sl_scale[] = {1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64};
+  uint8_t sl = keyball_get_scroll_div();
+  if (sl >= array_size(sl_scale)) sl = (uint8_t)(array_size(sl_scale) - 1);
+  uint16_t scale = sl_scale[sl];
+
+  // OS 分岐はしない。OS 別の値は kbpf のスロット差し替えにより表現
+  uint8_t os = keyball_os_idx();
+  uint16_t base_interval = kbpf.sc_interval[os]; // 1..200 程度
+  uint16_t base_value    = kbpf.sc_value[os];    // 1..200 程度
+  if (base_interval < 1) base_interval = 1;
+  if (base_value < 1)    base_value    = 1;
+
+  // 実効値（sdiv=SL に応じたレンジ拡大）
+  uint32_t eff_interval = (uint32_t)base_interval * scale;
+  uint32_t eff_value    = (uint32_t)base_value * scale;
+
+  uint32_t thr_iv  = kb_mul12_div10(eff_interval); // 発火しきい値
+  uint32_t denom_v = kb_mul12_div10(eff_value);    // 出力の分母
+  if (denom_v == 0) denom_v = 1;
+
+  // 主成分選択（対角帯は不感）
+  int32_t absx = (sx >= 0) ? sx : -sx;
+  int32_t absy = (sy >= 0) ? sy : -sy;
+
+  if (absx == 0 && absy == 0) {
+    // 何もしない
+  } else {
+    // ratio = |y|/|x|, diagonal_limit=0.5 → 帯域 (0.5, 2.0)
+    bool diag_band = false;
+    if (absx != 0 && absy != 0) {
+      // 0.5 < absy/absx < 2.0  ⇔  5*absy < 10*absx && 10*absy < 20*absx
+      // 比較を左右入れ替えて両辺整数化
+      diag_band = (absy * 10 > absx * 5) && (absy * 10 < absx * 20);
     }
-    int16_t sdiv_mac = (int16_t)mac_div[idx];
-    if (sdiv_mac) {
-      out_x = sx / sdiv_mac;
-      out_y = sy / sdiv_mac;
-    }
-  } break;
-  default: {
-    int16_t sdiv_gen = (int16_t)(KEYBALL_SCROLL_FINE_DEN << sdiv);
-    if (sdiv_gen) {
-      out_x = sx / sdiv_gen;
-      out_y = sy / sdiv_gen;
+
+    if (!diag_band) {
+      // 主成分のみ蓄積
+      if (absx == 0 || (absy * 2 >= absx * 4)) {
+        // absy/absx >= 2.0 → 垂直優位（または absx=0）
+        // 方向反転時の跳ね返り抑制
+        if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
+        acc_v += sy;
+      } else {
+        // absy/absx <= 0.5 → 水平優位
+        if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
+        acc_h += sx;
+      }
     }
   }
+
+  int16_t out_h = 0, out_v = 0;
+  // しきい値超過時に出力し、蓄積はフラッシュ
+  if ((uint32_t)((acc_v >= 0) ? acc_v : -acc_v) >= thr_iv) {
+    int32_t emit = acc_v / (int32_t)denom_v; // 比例出力
+    if (emit != 0) {
+      out_v = (int16_t)emit;
+      acc_v = 0;
+    }
+  }
+  if ((uint32_t)((acc_h >= 0) ? acc_h : -acc_h) >= thr_iv) {
+    int32_t emit = acc_h / (int32_t)denom_v;
+    if (emit != 0) {
+      out_h = (int16_t)emit;
+      acc_h = 0;
+    }
   }
 
-  output->h = -CONSTRAIN_HV(out_x);
-  output->v = CONSTRAIN_HV(out_y);
+  output->h = -CONSTRAIN_HV(out_h);
+  output->v = CONSTRAIN_HV(out_v);
 
-  // invert
+  // invert（左右/設定に応じた反転）
   if (is_left) {
     output->h = -output->h;
     output->v = -output->v;
@@ -121,7 +183,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
     output->v = -output->v;
   }
 
-  // invert v
+  // スクロールモード時の反転（既存仕様を踏襲）
   if (keyball.scroll_mode) {
     output->h = -output->h;
     output->v = -output->v;
@@ -129,4 +191,5 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
   g_dbg_h = output->h;
   g_dbg_v = output->v;
+  (void)prev_x; (void)prev_y; // 現状未使用（将来のフィルタ用に残置）
 }

@@ -92,6 +92,46 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case SCRL_DVD:
       keyball_set_scroll_div(keyball_get_scroll_div() - 1);
       break;
+    case SCRL_IVI: { // interval 調整（単押し:+1 / Shift:-1）
+      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
+      uint8_t i = keyball_os_idx();
+      int v = (int)kbpf.sc_interval[i] + delta;
+      if (v < 1) v = 1;
+      if (v > 200) v = 200;
+      kbpf.sc_interval[i] = (uint8_t)v;
+      dprintf("scroll: interval(OS=%u)=%u\n", i, (unsigned)kbpf.sc_interval[i]);
+      return false;
+    }
+    case SCRL_IVD: { // interval 微調整（単押し:+10 / Shift:-10）
+      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -10 : 10;
+      uint8_t i = keyball_os_idx();
+      int v = (int)kbpf.sc_interval[i] + delta;
+      if (v < 1) v = 1;
+      if (v > 200) v = 200;
+      kbpf.sc_interval[i] = (uint8_t)v;
+      dprintf("scroll: interval10(OS=%u)=%u\n", i, (unsigned)kbpf.sc_interval[i]);
+      return false;
+    }
+    case SCRL_VLI: { // value 調整（単押し:+1 / Shift:-1）
+      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
+      uint8_t i = keyball_os_idx();
+      int v = (int)kbpf.sc_value[i] + delta;
+      if (v < 1) v = 1;
+      if (v > 200) v = 200;
+      kbpf.sc_value[i] = (uint8_t)v;
+      dprintf("scroll: value(OS=%u)=%u\n", i, (unsigned)kbpf.sc_value[i]);
+      return false;
+    }
+    case SCRL_VLD: { // value 微調整（単押し:+10 / Shift:-10）
+      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -10 : 10;
+      uint8_t i = keyball_os_idx();
+      int v = (int)kbpf.sc_value[i] + delta;
+      if (v < 1) v = 1;
+      if (v > 200) v = 200;
+      kbpf.sc_value[i] = (uint8_t)v;
+      dprintf("scroll: value10(OS=%u)=%u\n", i, (unsigned)kbpf.sc_value[i]);
+      return false;
+    }
     case SCRL_INV: {
       uint8_t i = keyball_os_idx();
       kbpf.inv[i] = !kbpf.inv[i];
