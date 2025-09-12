@@ -1,6 +1,6 @@
-#include "layer.h"
+#include "layer_user.h"
 #include "quantum.h"
-#include "my_keycode.h"
+#include "../keycode_user.h"
 #include "lib/keyball/keyball.h"
 
 /*

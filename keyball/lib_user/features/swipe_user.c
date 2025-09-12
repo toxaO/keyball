@@ -1,5 +1,6 @@
 #include "quantum.h"
-#include "my_keycode.h"
+#include "../keycode_user.h"
+#include "../features/util_user.h"
 #include "print.h"
 #include "os_detection.h"
 
@@ -99,7 +100,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 // セッション終了時のクリーンアップ（Windowsスワイプで押しっぱなしのWinキーを解放）
 void keyball_on_swipe_end(kb_swipe_tag_t tag) {
     // Lockレイヤを確実に解除（押しっぱなし等で取りこぼしを防ぐ）
-    layer_off(_Lock);
+    layer_off(_SW_Block);
     if (tag == KBS_TAG_WIN) {
         if (host_os == OS_WINDOWS) {
             unregister_code(KC_LGUI);

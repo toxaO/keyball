@@ -12,14 +12,14 @@
 ## 回避策（今回の実装）
 
 1) Lock レイヤで下位レイヤを遮断
-- すべて `XXX` の `_Lock` レイヤを用意し、マウスレイヤ（`_mMou/_wMou`）の“下”に置く。
-- スワイプキー押下時に `layer_on(_Lock)`、解放時に `layer_off(_Lock)` する。
+- すべて `XXX` の `_SW_Block` レイヤを用意し、マウスレイヤ（`_mMou/_wMou`）の“下”に置く。
+- スワイプキー押下時に `layer_on(_SW_Block)`、解放時に `layer_off(_SW_Block)` する。
 - これにより押下中は下位レイヤの Mod-Tap 判定が無効化され、修飾混入を防げる。
 
 2) スワイプ終了の確実化
 - 押下開始の物理位置（row/col）を記録し、その物理キーの解放を検知したら必ず `keyball_swipe_end()` を呼ぶ（レイヤ差異の影響を受けにくい）。
 - 分割構成では発火処理をマスター側に限定して送出の取りこぼしを防止。
-- セッション終了フック `keyball_on_swipe_end(tag)` を実装し、保険として `_Lock` の解除や Windows の `KC_LGUI` 解除を行う。
+- セッション終了フック `keyball_on_swipe_end(tag)` を実装し、保険として `_SW_Block` の解除を行う。
 
 3) Winスワイプの保護（一般論）
 - 押下中のみ必要な修飾＋送出を行い、解放時に通常状態へ戻す実装にする。
@@ -33,7 +33,7 @@
 
 - `process_record_user()` 内で begin/end を必ずペアにする（押下で `keyball_swipe_begin(tag)`、解放で `keyball_swipe_end()`）。
 - 送出は基本 `tap_code`/`tap_code16` を使う。`register_code` を使う場合は、解放パスですべて確実に `unregister_code` する（`keyball_on_swipe_end()` での後始末も推奨）。
-- Mod-Tap を重ねる位置にスワイプキーを置かないか、置く場合は `_Lock` レイヤ方式で下位を遮断する。
+- Mod-Tap を重ねる位置にスワイプキーを置かないか、置く場合は `_SW_Block` レイヤ方式で下位を遮断する。
 - AML 有効時のレイヤ遷移に注意：スワイプ押下中は `_mMou/_wMou` 等のみで完結するよう設計する（今回実装のように押下中だけ補助レイヤON/解放でOFFなど）。
 - 分割構成では発火処理をマスター側で行う（実装済・変更不要）。
 - OLED/コンソールで状態を確認しながら調整する：
@@ -43,7 +43,7 @@
 ## 既知の落とし穴と対策まとめ
 
 - 短すぎる AML timeout → 300ms 以上を推奨。現行は 300〜3000ms に拡張済み。
-- 下位レイヤに Mod-Tap → `_Lock` レイヤで押下中だけ遮断する。
+- 下位レイヤに Mod-Tap → `_SW_Block` レイヤで押下中だけ遮断する。
 - スワイプ中にレイヤ/AMLが切り替わる → 物理位置での終了補足＋終了フックで必ず終わるようにする。
 
 ## 最小サンプル（概念）
@@ -52,11 +52,11 @@
 // 抜粋: macro_key.c
 case TAB_SW:
   if (record->event.pressed) {
-    layer_on(_Lock);
+    layer_on(_SW_Block);
     keyball_swipe_begin(KBS_TAG_TAB);
   } else {
     keyball_swipe_end();
-    layer_off(_Lock);
+    layer_off(_SW_Block);
   }
   return false;
 
@@ -65,7 +65,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
   // 方向に応じて tap_code16() 等で送出
 }
 void keyball_on_swipe_end(kb_swipe_tag_t tag) {
-  layer_off(_Lock);
+  layer_off(_SW_Block);
 }
 ```
 

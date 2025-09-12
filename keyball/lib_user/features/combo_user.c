@@ -1,4 +1,4 @@
-#include "my_keycode.h"
+#include "../keycode_user.h"
 #include "quantum.h"
 
 enum {

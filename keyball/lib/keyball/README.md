@@ -77,12 +77,12 @@ status. `DBG_NP` and `DBG_PP` cycle through pages.
 - 分割環境では発火（アクション送出）はマスター側で行われます（実装済）。
 
 ### 1) キーコードの用意
-- 任意のユーザーキーコード（例: `BRO_SW`）を `keyball/lib_user/my_keycode.h` の enum に定義します。
+- 任意のユーザーキーコード（例: `BRO_SW`）を `keyball/lib_user/keycode_user.h` の enum に定義します。
   - 本リポジトリでは既に `BRO_SW` が定義済みです。
 
 ### 2) キーマップにスワイプキーを配置
 - 例：マウスレイヤ `_mMou/_wMou` に `BRO_SW` を割り当てます。
-  - 下位レイヤの Mod-Tap 影響を避けるため、押下中だけ「全キーXXX」の `_Lock` レイヤをONにする方法を推奨します（解放でOFF）。
+  - 下位レイヤの Mod-Tap 影響を避けるため、押下中だけ「全キーXXX」の `_SW_Block` レイヤをONにする方法を推奨します（解放でOFF）。
 
 ### 3) 押下/解放で begin/end を呼ぶ（単押し動作も）
 - `keyball/lib_user/features/macro_key.c`（process_record_user）に以下のような分岐を追加します。
@@ -90,15 +90,15 @@ status. `DBG_NP` and `DBG_PP` cycle through pages.
 ```c
 case BRO_SW:
   if (record->event.pressed) {
-    // 下位レイヤ無効化（Lock）
-    layer_on(_Lock);
+    // 下位レイヤ無効化（SW_Block）
+    layer_on(_SW_Block);
     // スワイプ開始（任意のタグ: 例ではKBS_TAG_BRO）
     keyball_swipe_begin(KBS_TAG_BRO);
     swipe_timer = timer_read();
   } else {
     // スワイプ終了
     keyball_swipe_end();
-    layer_off(_Lock);
+    layer_off(_SW_Block);
     // 単押し（タップ）扱い: TAPPING_TERM内かつ未発火なら代替アクション
     if (timer_elapsed(swipe_timer) < TAPPING_TERM && !keyball_swipe_fired_since_begin()) {
       // 例：ブラウザのアドレスバー呼び出し（OS別）
@@ -110,7 +110,7 @@ case BRO_SW:
 
 ポイント:
 - 「単押し対応」は「押下〜解放の時間が短くて、かつスワイプ発火がなかった場合」に代替のタップを送る方式です。
-- `_Lock` レイヤを併用することで、押下中に下位レイヤ（Mod-Tap等）の影響を遮断できます。
+- `_SW_Block` レイヤを併用することで、押下中に下位レイヤ（Mod-Tap等）の影響を遮断できます。
 
 ### 4) 方向ごとのアクションを実装
 - `keyball/lib_user/features/swipe_user.c` に `keyball_on_swipe_fire(tag, dir)` を実装します。
@@ -134,7 +134,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
 // 終了時の後始末（必要に応じて）
 void keyball_on_swipe_end(kb_swipe_tag_t tag) {
-  layer_off(_Lock); // Lockレイヤが残らないように保険
+  layer_off(_SW_Block); // SW_Block レイヤが残らないように保険
 }
 ```
 
@@ -169,7 +169,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_WIN`）:
 - 発火時は `register_code(KC_LGUI); tap_code(KC_↑/↓/←/→);` を送る。
 - 解放時（`keyball_on_swipe_end()` など）に `unregister_code(KC_LGUI)` でWinを確実に解除。
-- 押下中のみ `_mMou/_wMou` や `_Lock` を併用して、下位レイヤからの影響を抑制するのが安全です。
+- 押下中のみ `_mMou/_wMou` や `_SW_Block` を併用して、下位レイヤからの影響を抑制するのが安全です。
 
 ### 9) 補足: tap_code16_os について
 

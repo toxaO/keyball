@@ -2,7 +2,7 @@
 #include "util.h"
 #include "os_detection.h"
 #include "lib/keyball/keyball.h"
-#include "my_keycode.h"
+#include "../keycode_user.h"
 
 int host_os;
 

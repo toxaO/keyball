@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 
 #include "quantum.h"
-#include "my_keycode.h"
+// #include "keycode_user.h" // old keymap does not rely on lib_user
 #include "os_detection.h"
 #include "features/util.h"
 // #include "features/swipe.h"

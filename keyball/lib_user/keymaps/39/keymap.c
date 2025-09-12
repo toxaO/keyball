@@ -21,14 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 
 #include "quantum.h"
-#include "my_keycode.h"
+#include "../../keycode_user.h"
 #include "os_detection.h"
-#include "features/util.h"
-#include "features/macro_key.h"
-#include "features/layer.h"
+#include "../../features/util_user.h"
+#include "../../features/macro_user.h"
+#include "../../features/layer_user.h"
 #ifdef OLED_ENABLE
 #include "lib/oledkit/oledkit.h"
-#include "features/oled.h"
+#include "../../features/oled_user.h"
 #endif
 
 
@@ -121,25 +121,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_Scr] = LAYOUT_universal(
  //,--------------------------------------------------------------------------.                                  ,--------------------------------------------------------------------------.
-     RGB_HUI      , RGB_SAI      , RGB_VAI      , SCRL_STI     , CPI_I100     ,                                    XXX          , MVGL         , KC_TAB       , XXX          , XXX          ,
+     XXX          , XXX          , XXX          , XXX          , XXX          ,                                    XXX          , XXX          , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     KBC_SAVE     , RGB_TOG      , XXX          , SCRL_INV     , XXX          ,                                    MVTH1        , MVTH1        , KC_BTN4      , _______      , XXX          ,
+     XXX          , XXX          , XXX          , XXX          , XXX          ,                                    SSNP_FRE     , SSNP_HOR     , SSNP_VRT     , _______      , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     RGB_HUD      , RGB_SAD      , RGB_VAD      , SCRL_STD     , CPI_D100     ,                                    XXX          , MVGL         , XXX          , XXX          , XXX          ,
+     XXX          , XXX          , XXX          , XXX          , XXX          ,                                    XXX          , XXX          , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
-     EEPROM_RST   , XXX          , XXX          , XXX          , XXX          , XXX          ,      XXX          , MO(_NumP)    , XXXXXXX      , XXXXXXX      , XXXXXXX      , TG(_Set)
+     XXX          , XXX          , XXX          , XXX          , XXX          , XXX          ,      TG(_Set)     , XXX          , XXXXXXX      , XXXXXXX      , XXXXXXX      , XXX
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.
   ),
 
   [_Set] = LAYOUT_universal(
  //,--------------------------------------------------------------------------.                                  ,--------------------------------------------------------------------------.
-     RGB_HUI      , RGB_SAI      , RGB_VAI      , SCRL_STI     , CPI_I100     ,                                    SW_RT        , MVGL         , XXX          , XXX          , XXX          ,
+     MVGL         , MVTH1        , AML_I50      , SCRL_STI     , CPI_I100     ,                                    SW_RT        , MVGL         , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     XXX          , RGB_TOG      , XXX          , SCRL_INV     , XXX          ,                                    SW_ST        , MVTH1        , XXX          , _______      , KC_LSFT      ,
+     SW_ST        , SW_DZ        , AML_TO       , SCRL_INV     , SCRL_PST     ,                                    SW_ST        , MVTH1        , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------.                                  ,--------------+--------------+--------------+--------------+--------------.
-     RGB_HUD      , RGB_SAD      , RGB_VAD      , SCRL_STD     , CPI_D100     ,                                    SW_DZ        , SW_FRZ       , XXX          , XXX          , XXX          ,
+     SW_RT        , SW_FRZ       , AML_D50      , SCRL_STD     , CPI_D100     ,                                    SW_DZ        , SW_FRZ       , XXX          , XXX          , XXX          ,
  //,--------------+--------------+--------------+--------------+--------------+--------------.    ,--------------+--------------+--------------+--------------+--------------+--------------.
-     EEPROM_RST   , KBC_RST      , KBC_SAVE     , DBG_PP       , DBG_TOG      , DBG_NP       ,      DBG_PP       , DBG_NP       , XXXXXXX      , XXXXXXX      , XXXXXXX      , TG(_Set)
+     KC_LSFT      , XXX          , XXX          , DBG_PP       , DBG_TOG      , DBG_NP       ,      KBC_SAVE     , XXX          , XXXXXXX      , XXXXXXX      , XXXXXXX      , TG(_Set)
  //,-----------------------------------------------------------------------------------------.    ,-----------------------------------------------------------------------------------------.
   ),
 };

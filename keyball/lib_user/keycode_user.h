@@ -196,7 +196,7 @@ enum layer_names {
     _mCur,
     _wCur,
     _NumP,
-    _Lock,
+    _SW_Block,
     _mMou,
     _wMou,
     _Scr,

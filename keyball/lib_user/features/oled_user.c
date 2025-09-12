@@ -1,6 +1,6 @@
 #include "quantum.h"
-#include "oled.h"
-#include "my_keycode.h"
+#include "../features/oled_user.h"
+#include "../keycode_user.h"
 #include "lib/keyball/keyball.h"
 
 void oled_render_layer_state(void) {
