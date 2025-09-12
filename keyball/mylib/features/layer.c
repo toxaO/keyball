@@ -37,6 +37,8 @@ layer_state_t layer_state_set_user(layer_state_t state) {
       keyball_oled_set_mode(KB_OLED_MODE_DEBUG);
     };
 
+    // （元に戻す）ここではスワイプレイヤ固定を行わない
+
     //LED------------------------------
     uint8_t layer = biton32(state);
     switch (layer) {

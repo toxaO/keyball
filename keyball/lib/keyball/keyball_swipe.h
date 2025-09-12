@@ -29,6 +29,8 @@ bool            keyball_swipe_consume_fired(void);      // ↑を取得して fa
 
 // KB → user：発火イベント（弱シンボル；実装は user 側。未定義なら呼ばない）
 __attribute__((weak)) void keyball_on_swipe_fire(kb_swipe_tag_t mode_tag, kb_swipe_dir_t dir);
+// セッション終了時のクリーンアップ用フック（任意実装）
+__attribute__((weak)) void keyball_on_swipe_end(kb_swipe_tag_t mode_tag);
 
 // ==== Swipe runtime params ====
 typedef struct {
@@ -56,4 +58,3 @@ void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is
 
 // Debug helpers
 void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u);
-

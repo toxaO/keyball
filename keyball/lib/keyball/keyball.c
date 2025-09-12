@@ -34,8 +34,8 @@ const uint16_t CPI_MAX        = 4000;
 const uint8_t SCROLL_DIV_MAX = 7; // ST は 1..7 の 7 段階（4 が中心）
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-const uint16_t AML_TIMEOUT_MIN = 100;
-const uint16_t AML_TIMEOUT_MAX = 1000;
+const uint16_t AML_TIMEOUT_MIN = 300;
+const uint16_t AML_TIMEOUT_MAX = 3000;
 const uint16_t AML_TIMEOUT_QU  = 50;   // Quantization Unit
 #endif
 
@@ -292,6 +292,9 @@ bool is_mouse_record_kb(uint16_t keycode, keyrecord_t* record) {
 }
 #endif
 
+static bool s_swipe_has_origin = false;
+static keypos_t s_swipe_origin;
+
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   // store last keycode, row, and col for OLED
   keyball.last_kc  = keycode;
@@ -299,7 +302,26 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
   pressing_keys_update(keycode, record);
 
-  if (!process_record_user(keycode, record)) {
+  bool was_swipe_active = keyball_swipe_is_active();
+  bool user_result = process_record_user(keycode, record);
+
+  // スワイプの起点キー（物理位置）を記録（ユーザがbeginを呼んだ直後）
+  if (record->event.pressed) {
+    if (!was_swipe_active && keyball_swipe_is_active() && !s_swipe_has_origin) {
+      s_swipe_origin = record->event.key;
+      s_swipe_has_origin = true;
+    }
+  } else {
+    // キー解放時に、起点の物理位置と一致したら必ずスワイプを終了
+    if (s_swipe_has_origin && keyball_swipe_is_active()) {
+      if (record->event.key.row == s_swipe_origin.row && record->event.key.col == s_swipe_origin.col) {
+        keyball_swipe_end();
+        s_swipe_has_origin = false;
+      }
+    }
+  }
+
+  if (!user_result) {
     return false;
   }
 

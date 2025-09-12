@@ -167,7 +167,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       break;
     case AML_I50: {
       uint16_t v = get_auto_mouse_timeout() + 50;
-      if (v > 1000) v = 1000;
+      if (v > 3000) v = 3000;
       set_auto_mouse_timeout(v);
       kbpf.aml_timeout = get_auto_mouse_timeout();
       dprintf("AML: timeout=%u\n", (unsigned)get_auto_mouse_timeout());
@@ -175,7 +175,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case AML_D50: {
       uint16_t v = get_auto_mouse_timeout();
       v = (v > 50) ? (uint16_t)(v - 50) : 0;
-      if (v < 100) v = 100;
+      if (v < 300) v = 300;
       set_auto_mouse_timeout(v);
       kbpf.aml_timeout = get_auto_mouse_timeout();
       dprintf("AML: timeout=%u\n", (unsigned)get_auto_mouse_timeout());

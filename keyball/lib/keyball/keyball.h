@@ -317,6 +317,7 @@ uint16_t keyball_get_cpi(void);
 /// to 34 (3500CPI).
 void keyball_set_cpi(uint16_t cpi);
 
+
 // ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
 typedef struct __attribute__((packed)) {
   uint32_t magic;           // 'KBP1'

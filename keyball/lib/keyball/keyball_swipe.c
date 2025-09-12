@@ -33,11 +33,16 @@ void keyball_swipe_begin(kb_swipe_tag_t mode_tag) {
   g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
 }
 void keyball_swipe_end(void) {
+  kb_swipe_tag_t prev_tag = g_sw.tag;
   g_sw.active   = false;
   g_sw.tag      = 0;
   g_sw.fired_any= false;
   g_sw.last_dir = KB_SWIPE_NONE;
   g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+  // user側クリーンアップフック（終了前のタグを渡す）
+  if (keyball_on_swipe_end) {
+    keyball_on_swipe_end(prev_tag);
+  }
 }
 bool           keyball_swipe_is_active(void)         { return g_sw.active; }
 kb_swipe_tag_t keyball_swipe_mode_tag(void)          { return g_sw.tag; }
@@ -90,7 +95,13 @@ static void kb_sw_try_fire(kb_swipe_dir_t dir,
 
   while (*acc_target >= kbpf.swipe_step) {
     if (keyball_on_swipe_fire) {
+#ifdef SPLIT_KEYBOARD
+      if (is_keyboard_master()) {
+        keyball_on_swipe_fire(g_sw.tag, dir);
+      }
+#else
       keyball_on_swipe_fire(g_sw.tag, dir);
+#endif
     }
     g_sw.fired_any = true;
     g_sw.last_dir  = dir;

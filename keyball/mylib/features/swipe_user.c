@@ -1,5 +1,6 @@
 #include "quantum.h"
 #include "my_keycode.h"
+#include "print.h"
 #include "os_detection.h"
 
 #include "swipe_user.h"
@@ -8,6 +9,7 @@
 
 
 void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
+    dprintf("SWIPE FIRE tag=%u dir=%u\n", (unsigned)tag, (unsigned)dir);
     switch (tag) {
     case KBS_TAG_APP:
         switch (dir) {
@@ -47,10 +49,22 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
     case KBS_TAG_TAB:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO); break;
-        case KB_SWIPE_DOWN:  tap_code16_os(w_CLOSE,    m_CLOSE,    m_CLOSE,    KC_NO, KC_NO); break;
-        case KB_SWIPE_LEFT:  tap_code16(S(C(KC_TAB))); break;
-        case KB_SWIPE_RIGHT: tap_code16(C(KC_TAB));    break;
+        case KB_SWIPE_UP:
+            dprintf("TAB_SWIPE UP (OS=%d)\n", host_os);
+            tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
+            break;
+        case KB_SWIPE_DOWN:
+            dprintf("TAB_SWIPE DOWN (OS=%d)\n", host_os);
+            tap_code16_os(w_CLOSE, m_CLOSE, m_CLOSE, KC_NO, KC_NO);
+            break;
+        case KB_SWIPE_LEFT:
+            dprintf("TAB_SWIPE LEFT (OS=%d)\n", host_os);
+            tap_code16(S(C(KC_TAB)));
+            break;
+        case KB_SWIPE_RIGHT:
+            dprintf("TAB_SWIPE RIGHT (OS=%d)\n", host_os);
+            tap_code16(C(KC_TAB));
+            break;
         default: break;
         }
         break;
@@ -79,5 +93,16 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
     default:
         break;
+    }
+}
+
+// セッション終了時のクリーンアップ（Windowsスワイプで押しっぱなしのWinキーを解放）
+void keyball_on_swipe_end(kb_swipe_tag_t tag) {
+    // Lockレイヤを確実に解除（押しっぱなし等で取りこぼしを防ぐ）
+    layer_off(_Lock);
+    if (tag == KBS_TAG_WIN) {
+        if (host_os == OS_WINDOWS) {
+            unregister_code(KC_LGUI);
+        }
     }
 }

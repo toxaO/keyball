@@ -196,6 +196,7 @@ enum layer_names {
     _mCur,
     _wCur,
     _NumP,
+    _Lock,
     _mMou,
     _wMou,
     _Scr,
@@ -215,5 +216,4 @@ enum custom_keycodes {
     MULTI_B,
     EISU_S_N,
     KANA_C_N,
-    EEPROM_RST,
 };
