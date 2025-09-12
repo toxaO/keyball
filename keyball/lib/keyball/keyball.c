@@ -31,7 +31,7 @@
 
 // Anything above this value makes the cursor fly across the screen.
 const uint16_t CPI_MAX        = 4000;
-const uint8_t SCROLL_DIV_MAX = 11;
+const uint8_t SCROLL_DIV_MAX = 7; // ST は 1..7 の 7 段階（4 が中心）
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
 const uint16_t AML_TIMEOUT_MIN = 100;
@@ -233,8 +233,6 @@ void keyboard_post_init_kb(void) {
   keyball_set_scroll_div(keyball_get_scroll_div());
   g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
   g_move_th1        = kbpf.mv_th1[osi()];
-  g_scroll_deadzone   = kbpf.sc_dz;
-  g_scroll_hysteresis = kbpf.sc_hyst;
   keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
   keyboard_post_init_user();
 }

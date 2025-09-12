@@ -25,15 +25,10 @@
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `SCRL_TO`  | `Kb 6`          | `0x7e06` | Toggle scroll mode                                                |
 | `SCRL_MO`  | `Kb 7`          | `0x7e07` | Enable scroll mode while pressed                                  |
-| `SCRL_DVI` | `Kb 8`          | `0x7e08` | Increase scroll divider (max D7 = 1/128)                          |
-| `SCRL_DVD` | `Kb 9`          | `0x7e09` | Decrease scroll divider (min D0 = 1/1)                            |
+| `SCRL_DVI` | `Kb 8`          | `0x7e08` | Increase ST (scroll step), higher is faster (1..7, default 4)     |
+| `SCRL_DVD` | `Kb 9`          | `0x7e09` | Decrease ST (scroll step), lower is slower (1..7, default 4)      |
 | `SCRL_INV` | `Kb 16`         | `0x7e10` | Invert scroll direction                                           |
-| `SCRL_IVI` | `Kb 18`         | `0x7e12` | Adjust scroll interval (+1 / Shift: -1)                           |
-| `SCRL_IVD` | `Kb 20`         | `0x7e14` | Adjust scroll interval coarse (+10 / Shift: -10)                  |
-| `SCRL_VLI` | `Kb 22`         | `0x7e16` | Adjust scroll value (+1 / Shift: -1)                              |
-| `SCRL_VLD` | `Kb 24`         | `0x7e18` | Adjust scroll value coarse (+10 / Shift: -10)                     |
-| `SCRL_DZ`  | `Kb 29`         | `0x7e1d` | Adjust scroll deadzone (Shift: decrease)                          |
-| `SCRL_HY`  | `Kb 31`         | `0x7e1f` | Adjust scroll hysteresis (Shift: decrease)                        |
+| `SCRL_PST` | `Kb 5`          | `0x7e05` | Switch scroll preset: mac={120,120}, others={120,1}<->{1,1}       |
 
 ### Scroll snap
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
@@ -88,23 +83,17 @@
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `SCRL_TO`  | `Kb 6`          | `0x7e06` | タップごとにスクロールモードのON/OFFを切り替えます                |
 | `SCRL_MO`  | `Kb 7`          | `0x7e07` | キーを押している間、スクロールモードになります                    |
-| `SCRL_DVI` | `Kb 8`          | `0x7e08` | スクロール除数を１つ上げます(max D7 = 1/128)←最もスクロール遅い   |
-| `SCRL_DVD` | `Kb 9`          | `0x7e09` | スクロール除数を１つ下げます(min D0 = 1/1)←最もスクロール速い     |
+| `SCRL_DVI` | `Kb 8`          | `0x7e08` | ST(スクロールステップ)を1つ上げます。値が大きいほど速い(1..7/既定4) |
+| `SCRL_DVD` | `Kb 9`          | `0x7e09` | ST(スクロールステップ)を1つ下げます。値が小さいほど遅い(1..7/既定4) |
 | `SCRL_INV` | `Kb 16`         | `0x7e10` | スクロール方向を反転します                                       |
-| `SCRL_IVI` | `Kb 18`         | `0x7e12` | スクロール interval を調整(+1 / Shift:-1)                         |
-| `SCRL_IVD` | `Kb 20`         | `0x7e14` | スクロール interval を粗く調整(+10 / Shift:-10)                   |
-| `SCRL_VLI` | `Kb 22`         | `0x7e16` | スクロール value を調整(+1 / Shift:-1)                            |
-| `SCRL_VLD` | `Kb 24`         | `0x7e18` | スクロール value を粗く調整(+10 / Shift:-10)                      |
-| `SCRL_DZ`  | `Kb 29`         | `0x7e1d` | スクロールのデッドゾーンを調整します(Shiftで減少)                 |
-| `SCRL_HY`  | `Kb 31`         | `0x7e1f` | スクロール反転ヒステリシスを調整します(Shiftで減少)               |
+| `SCRL_PST` | `Kb 5`          | `0x7e05` | プリセット切替: mac={120,120}, それ以外={120,1}<->{1,1}           |
 
-## Scroll interval/value (新実装の補足)
+## スクロールの調整（ST とプリセット）
 
-- sdiv は除数ではなく「スクロール感度レベル (SL)」として扱います。
-- 実際の挙動は interval（蓄積のしきい値）と value（出力の分母）で決まります。
-- Windows の例: interval=1, value=1 で高精度、interval=120, value=1 で通常風。
-- macOS の例: interval=120, value=120 で通常風。
-- OS ごとに `KBC_SAVE` で保存すれば、以降は OS 検出によるスロット切替だけで同じロジックが動きます（OS 分岐コードはありません）。
+- ST は「スクロール速度の段階」です。中心は ST=4（基準速度）で、1..7 の範囲です。
+- 数値を上げると速く、下げると遅くなります。変化は大きめに設定しています。
+- プリセットは OS ごとに保存され、mac は {120,120} 固定、それ以外は {120,1} ↔ {1,1} を切替できます。
+- `KBC_SAVE` で現在の OS スロットの設定を EEPROM に保存します。
 
 ### スクロールスナップ
 | キーコード | Remap上での表記 | 値       | 説明                                                              |

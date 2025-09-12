@@ -75,8 +75,8 @@ void keyball_oled_render_ballinfo(void) {
         snprintf(b, sizeof b, "%4u", (unsigned)keyball_get_cpi());
         oled_write(b, false);
     }
-    // sdiv は除数ではなく "感度レベル(SL)" として運用
-    oled_write_P(PSTR(" SL:"), false);
+    // sdiv は除数ではなく "感度レベル(ST)" として運用
+    oled_write_P(PSTR(" ST:"), false);
     {
         char b[4];
         snprintf(b, sizeof b, "%u", (unsigned)keyball_get_scroll_div());
@@ -177,20 +177,13 @@ void keyball_oled_render_debug(void) {
         } break;
 
         case 1: {
-            // Scroll：SL(sdiv), Interval, Value を表示
-            snprintf(line, sizeof(line), "SL:%u Dz:%u",
-                     (unsigned)keyball_get_scroll_div(),
-                     (unsigned)kbpf.sc_dz);
+            // Scroll: ST と INV のみ表示
+            snprintf(line, sizeof(line), "ST:%u",
+                     (unsigned)keyball_get_scroll_div());
             oled_write_ln(line, false);
 
-            snprintf(line, sizeof(line), "Inv:%u Hy:%u",
-                     (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0),
-                     (unsigned)kbpf.sc_hyst);
-            oled_write_ln(line, false);
-
-            snprintf(line, sizeof(line), "Iv:%u Vl:%u",
-                     (unsigned)kbpf.sc_interval[keyball_os_idx()],
-                     (unsigned)kbpf.sc_value[keyball_os_idx()]);
+            snprintf(line, sizeof(line), "Inv:%u",
+                     (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0));
             oled_write_ln(line, false);
 
             oled_write_ln("Scroll", false);

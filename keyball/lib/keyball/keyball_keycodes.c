@@ -3,6 +3,7 @@
 #include "keyball_move.h"
 #include "keyball_oled.h"
 #include "keyball_scroll.h"
+#include "os_detection.h"
 #include "keyball_swipe.h"
 
 #define _CONSTRAIN(amt, low, high)                                             \
@@ -25,14 +26,12 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     switch (keycode) {
     // Configuration
-    case KBC_RST:
+  case KBC_RST:
       kbpf_defaults();
       keyball_set_cpi(kbpf.cpi[keyball_os_idx()]);
       keyball_set_scroll_div(kbpf.sdiv[keyball_os_idx()]);
       g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[keyball_os_idx()];
       g_move_th1 = kbpf.mv_th1[keyball_os_idx()];
-      g_scroll_deadzone = kbpf.sc_dz;
-      g_scroll_hysteresis = kbpf.sc_hyst;
       keyball_swipe_set_step(kbpf.step);
       keyball_swipe_set_deadzone(kbpf.deadzone);
       keyball_swipe_set_reset_ms(kbpf.sw_rst_ms);
@@ -50,8 +49,6 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
       kbpf.mv_th1[keyball_os_idx()] =
           (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.mv_th2[keyball_os_idx()] - 1);
-      kbpf.sc_dz = g_scroll_deadzone;
-      kbpf.sc_hyst = g_scroll_hysteresis;
       kbpf_write(); // OSごとの全データを一括保存
       dprintf("KB profiles saved (magic=0x%08lX ver=%u)\n",
               (unsigned long)kbpf.magic, kbpf.version);
@@ -86,50 +83,37 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case SCRL_TO:
       keyball_set_scroll_mode(!keyball_get_scroll_mode());
       break;
-    case SCRL_DVI:
-      keyball_set_scroll_div(keyball_get_scroll_div() + 1);
-      break;
-    case SCRL_DVD:
-      keyball_set_scroll_div(keyball_get_scroll_div() - 1);
-      break;
-    case SCRL_IVI: { // interval 調整（単押し:+1 / Shift:-1）
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
-      uint8_t i = keyball_os_idx();
-      int v = (int)kbpf.sc_interval[i] + delta;
-      if (v < 1) v = 1;
-      if (v > 200) v = 200;
-      kbpf.sc_interval[i] = (uint8_t)v;
-      dprintf("scroll: interval(OS=%u)=%u\n", i, (unsigned)kbpf.sc_interval[i]);
-      return false;
-    }
-    case SCRL_IVD: { // interval 微調整（単押し:+10 / Shift:-10）
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -10 : 10;
-      uint8_t i = keyball_os_idx();
-      int v = (int)kbpf.sc_interval[i] + delta;
-      if (v < 1) v = 1;
-      if (v > 200) v = 200;
-      kbpf.sc_interval[i] = (uint8_t)v;
-      dprintf("scroll: interval10(OS=%u)=%u\n", i, (unsigned)kbpf.sc_interval[i]);
-      return false;
-    }
-    case SCRL_VLI: { // value 調整（単押し:+1 / Shift:-1）
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
-      uint8_t i = keyball_os_idx();
-      int v = (int)kbpf.sc_value[i] + delta;
-      if (v < 1) v = 1;
-      if (v > 200) v = 200;
-      kbpf.sc_value[i] = (uint8_t)v;
-      dprintf("scroll: value(OS=%u)=%u\n", i, (unsigned)kbpf.sc_value[i]);
-      return false;
-    }
-    case SCRL_VLD: { // value 微調整（単押し:+10 / Shift:-10）
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -10 : 10;
-      uint8_t i = keyball_os_idx();
-      int v = (int)kbpf.sc_value[i] + delta;
-      if (v < 1) v = 1;
-      if (v > 200) v = 200;
-      kbpf.sc_value[i] = (uint8_t)v;
-      dprintf("scroll: value10(OS=%u)=%u\n", i, (unsigned)kbpf.sc_value[i]);
+    case SCRL_DVI: {
+      uint8_t v = keyball_get_scroll_div();
+      keyball_set_scroll_div(v + 1); // 上限は内部でクランプ
+    } break;
+    case SCRL_DVD: {
+      uint8_t v = keyball_get_scroll_div();
+      if (v > 0) keyball_set_scroll_div(v - 1); // 下限未満での回り込み防止
+    } break;
+    case SCRL_PST: { // プリセット切替
+      uint8_t os = keyball_os_idx();
+      uint8_t host = (uint8_t)detected_host_os();
+      if (host == OS_MACOS) {
+        // macOS は固定: {120,120}
+        kbpf.sc_interval[os] = 120;
+        kbpf.sc_value[os]    = 120;
+        kbpf.sc_preset[os]   = 2; // MAC
+        dprintf("scroll preset(OS=%u): mac {120,120}\n", os);
+      } else {
+        // それ以外: {120,1} <-> {1,1}
+        if (kbpf.sc_preset[os] == 1) {
+          kbpf.sc_preset[os] = 0;
+          kbpf.sc_interval[os] = 120;
+          kbpf.sc_value[os]    = 1;
+          dprintf("scroll preset(OS=%u): {120,1}\n", os);
+        } else {
+          kbpf.sc_preset[os] = 1;
+          kbpf.sc_interval[os] = 1;
+          kbpf.sc_value[os]    = 1;
+          dprintf("scroll preset(OS=%u): {1,1}\n", os);
+        }
+      }
       return false;
     }
     case SCRL_INV: {
@@ -137,20 +121,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       kbpf.inv[i] = !kbpf.inv[i];
       dprintf("invert toggle OS=%u -> %u\n", i, kbpf.inv[i]);
     } break;
-    case SCRL_DZ: {
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
-      g_scroll_deadzone = _CONSTRAIN(g_scroll_deadzone + delta, 0, 32);
-      kbpf.sc_dz = g_scroll_deadzone;
-      dprintf("scroll: deadzone=%u\n", g_scroll_deadzone);
-      return false;
-    }
-    case SCRL_HY: {
-      int8_t delta = (get_mods() & MOD_MASK_SHIFT) ? -1 : 1;
-      g_scroll_hysteresis = _CONSTRAIN(g_scroll_hysteresis + delta, 0, 32);
-      kbpf.sc_hyst = g_scroll_hysteresis;
-      dprintf("scroll: hyst=%u\n", g_scroll_hysteresis);
-      return false;
-    }
+    // SCRL_DZ / SCRL_HY は廃止
 
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
     // Scroll snap

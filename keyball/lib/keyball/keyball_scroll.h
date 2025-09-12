@@ -9,8 +9,6 @@ typedef enum {
     KEYBALL_SCROLLSNAP_MODE_FREE       = 2,
 } keyball_scrollsnap_mode_t;
 
-extern uint8_t g_scroll_deadzone;
-extern uint8_t g_scroll_hysteresis;
 
 bool keyball_get_scroll_mode(void);
 void keyball_set_scroll_mode(bool mode);

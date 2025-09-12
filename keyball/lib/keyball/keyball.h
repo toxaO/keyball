@@ -28,11 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Configurations
 
 #ifndef KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 500
+#define KEYBALL_CPI_DEFAULT 2200
 #endif
 
 #ifndef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 3
+#define KEYBALL_SCROLL_DIV_DEFAULT 4
 #endif
 
 // 1 なら従来、2 で半段階、3 なら 1/3 ...（分解能を上げたいほど大きく）
@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // 速度の近似は max(|x|,|y|) を使用（軽い・十分）
 #ifndef KEYBALL_MOVE_TH1
-#define KEYBALL_MOVE_TH1 2 // ここまでは低速域ゲイン
+#define KEYBALL_MOVE_TH1 3 // ここまでは低速域ゲイン
 #endif
 #ifndef KEYBALL_MOVE_TH2
 #define KEYBALL_MOVE_TH2 12 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
@@ -165,13 +165,9 @@ enum keyball_keycodes {
   SCRL_DVI = QK_KB_8,  // Increment scroll divider
   SCRL_DVD = QK_KB_9,  // Decrement scroll divider
   SCRL_INV = QK_KB_16, // scroll direction inverse
-  // 新スクロールパラメータ（interval/value）の調整
-  SCRL_IVI = QK_KB_18, // interval を増加(Shiftで減少)
-  SCRL_IVD = QK_KB_20, // interval を大きく/小さく微調整用（別段差が欲しい場合に使用可）
-  SCRL_VLI = QK_KB_22, // value を増加(Shiftで減少)
-  SCRL_VLD = QK_KB_24, // value を大きく/小さく微調整用（別段差が欲しい場合に使用可）
-  SCRL_DZ = QK_KB_29,  // スクロールデッドゾーン調整(Shiftで減少)
-  SCRL_HY = QK_KB_31,  // スクロールヒステリシス調整(Shiftで減少)
+  // プリセット（OS別）切替: macOS は {120,120} 固定 / それ以外は {120,1} と {1,1} をトグル
+  SCRL_PST = QK_KB_5,
+  // SCRL_DZ / SCRL_HY は廃止
 
   // Scroll snap
   SSNP_VRT = QK_KB_13, // Set scroll snap mode as vertical
@@ -293,22 +289,14 @@ bool keyball_get_scroll_mode(void);
 /// keyball_set_scroll_mode modify scroll mode.
 void keyball_set_scroll_mode(bool mode);
 
-/// keyball_get_scroll_div gets current scroll divider.
-/// See also keyball_set_scroll_div for the scroll divider's detail.
+/// keyball_get_scroll_div gets current scroll step (ST) level.
+/// See also keyball_set_scroll_div for details.
 uint8_t keyball_get_scroll_div(void);
 
-/// keyball_set_scroll_div changes scroll divider.
+/// keyball_set_scroll_div changes scroll step (ST) level.
 ///
-/// The scroll divider is the number that divides the raw value when applying
-/// trackball motion to scrolling.  The CPI value of the trackball is very
-/// high, so if you apply it to scrolling as is, it will scroll too much.
-/// Adjusts the scroll amount by dividing motion counts.  The mapping from the
-/// scroll divider value (`div`) to the actual divisor depends on the host OS:
-/// macOS uses a lookup table while other OSes use `KEYBALL_SCROLL_FINE_DEN <<
-/// div`.
-///
-/// Valid values are between 0 and `SCROLL_DIV_MAX`; out-of-range values are
-/// clamped to the nearest valid value.
+/// ST はスクロール速度の段階を表し、数値が大きいほど速くなります。
+/// 有効範囲は 1..SCROLL_DIV_MAX（既定=4）で、範囲外はクランプされます。
 void keyball_set_scroll_div(uint8_t div);
 
 /// keyball_get_cpi gets current CPI of trackball.
@@ -338,11 +326,14 @@ typedef struct __attribute__((packed)) {
   uint8_t mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
   uint8_t mv_th1[8];        // 0..(mv_th2-1)
   uint8_t mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
-  // スクロールの新パラメータ（OS別保存）。sdivはレベル(感度段)として利用する。
+  // スクロールの新パラメータ（OS別保存）。sdiv は ST(感度段)として利用する。
   // interval: 蓄積のしきい値（大きいほどゆっくり）
   // value   : 出力量の分母（大きいほど小さく出る）
   uint8_t sc_interval[8];
   uint8_t sc_value[8];
+  // スクロールプリセット選択（OS別保存）
+  // 0: {120,1}, 1: {1,1}, 2: {120,120}
+  uint8_t sc_preset[8];
   uint16_t step;            // 発火しきい値
   uint8_t deadzone;         // デッドゾーン
   uint8_t freeze;           // bit0: freeze (1=FREEZE ON)
@@ -357,7 +348,7 @@ extern keyball_profiles_t kbpf;
 
 // 既定値（ビルド時デフォルトを反映）
 #ifndef KB_SW_STEP
-#define KB_SW_STEP 200
+#define KB_SW_STEP 180
 #endif
 #ifndef KB_SW_DEADZONE
 #define KB_SW_DEADZONE 1
@@ -366,7 +357,7 @@ extern keyball_profiles_t kbpf;
 #define KB_SWIPE_FREEZE_POINTER 1
 #endif
 #ifndef KB_SW_RST_MS
-#define KB_SW_RST_MS 80
+#define KB_SW_RST_MS 30
 #endif
 
 #ifndef KB_SCROLL_DEADZONE
@@ -377,4 +368,4 @@ extern keyball_profiles_t kbpf;
 #endif
 
 #define KBPF_VER_OLD 1 // 例：既存
-#define KBPF_VER_CUR 5 // ★ スクロール interval/value 追加
+#define KBPF_VER_CUR 6 // v6: スクロールプリセット選択 sc_preset[] を追加

@@ -94,10 +94,11 @@ void kbpf_defaults(void) {
     if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
 
     // 新スクロールパラメータの初期値
-    // Windows 通常風: interval=120, value=1 / mac 通常風: interval=120, value=120
-    // ここでは OS 固有分岐は行わず、両方に無難な初期値を与える（ユーザーがOS別に調整保存）
+    // 既定: interval=120, value=1（Windows/Linux 通常風）。
+    // macOS はプリセット切替キーで {120,120} に設定可能。
     kbpf.sc_interval[i] = 120; // 1..200 程度を想定
     kbpf.sc_value[i]    = 1;   // 1..200 程度を想定（macは調整で120へ）
+    kbpf.sc_preset[i]   = 0;   // 0:{120,1} / 1:{1,1} / 2:{120,120}
   }
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;
@@ -108,7 +109,7 @@ void kbpf_defaults(void) {
 // Ensure loaded data is sane and migrate from older versions when needed.
 static void kbpf_validate(void) {
   if (kbpf.magic != KBPF_MAGIC ||
-      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != 3 && kbpf.version != 4 && kbpf.version != KBPF_VER_CUR)) {
+      (kbpf.version != 1 && kbpf.version != 2 && kbpf.version != 3 && kbpf.version != 4 && kbpf.version != 5 && kbpf.version != KBPF_VER_CUR)) {
     // Corrupted or unknown layout -> fall back to defaults.
     kbpf_defaults();
     return;
@@ -122,6 +123,16 @@ static void kbpf_validate(void) {
     if (kbpf.sc_value[i]    == 0) kbpf.sc_value[i]    = 1;
     if (kbpf.sc_interval[i] > 200) kbpf.sc_interval[i] = 200;
     if (kbpf.sc_value[i]    > 200) kbpf.sc_value[i]    = 200;
+    // v6 以降の sc_preset 初期化（既存データから推定）
+    if (kbpf.version < 6) {
+      if (kbpf.sc_interval[i] == 120 && kbpf.sc_value[i] == 120) {
+        kbpf.sc_preset[i] = 2; // mac 風
+      } else if (kbpf.sc_interval[i] == 1 && kbpf.sc_value[i] == 1) {
+        kbpf.sc_preset[i] = 1; // 微細
+      } else {
+        kbpf.sc_preset[i] = 0; // 通常
+      }
+    }
   }
   if (kbpf.version == 1) {
     // Migrate from v1 -> v3 by populating all new fields with defaults.
@@ -148,6 +159,9 @@ static void kbpf_validate(void) {
       if (kbpf.sc_interval[i] == 0) kbpf.sc_interval[i] = 120;
       if (kbpf.sc_value[i] == 0)    kbpf.sc_value[i]    = 1;
     }
+    kbpf.version = KBPF_VER_CUR;
+  } else if (kbpf.version == 5) {
+    // v5 → v6: sc_preset[] 追加（既存値から推定し初期化は上で実施済み）
     kbpf.version = KBPF_VER_CUR;
   }
   // Range guard for current fields

@@ -21,8 +21,7 @@ static inline uint8_t clamp_sdiv(uint8_t v) {
   return v;
 }
 
-uint8_t g_scroll_deadzone = KB_SCROLL_DEADZONE;
-uint8_t g_scroll_hysteresis = KB_SCROLL_HYST;
+// deadzone/hysteresis は廃止（互換のため定義自体は削除）
 
 // Debug info ---------------------------------------------------------------
 static int16_t g_dbg_sx = 0, g_dbg_sy = 0; // raw scroll input after filters
@@ -103,11 +102,16 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   }
   last_ts = now;
 
-  // sdiv を「SL(感度レベル)」としてスケール化
-  static const uint16_t sl_scale[] = {1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64};
-  uint8_t sl = keyball_get_scroll_div();
-  if (sl >= array_size(sl_scale)) sl = (uint8_t)(array_size(sl_scale) - 1);
-  uint16_t scale = sl_scale[sl];
+  // ST(スクロールステップ) による強いスケーリング（中心=4）。
+  // f = num/den。f が大きいほど速く、小さいほど遅い。
+  // ST=1..7 に対して: [1/8, 1/4, 1/2, 1, 2, 4, 8]
+  static const uint16_t st_num[] = {1, 1, 1, 1, 2, 4, 8};
+  static const uint16_t st_den[] = {8, 4, 2, 1, 1, 1, 1};
+  uint8_t st = keyball_get_scroll_div();
+  if (st == 0) st = 1; // 0 は最小と同等
+  if (st > 7) st = 7;
+  uint16_t f_num = st_num[st - 1];
+  uint16_t f_den = st_den[st - 1];
 
   // OS 分岐はしない。OS 別の値は kbpf のスロット差し替えにより表現
   uint8_t os = keyball_os_idx();
@@ -116,9 +120,12 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   if (base_interval < 1) base_interval = 1;
   if (base_value < 1)    base_value    = 1;
 
-  // 実効値（sdiv=SL に応じたレンジ拡大）
-  uint32_t eff_interval = (uint32_t)base_interval * scale;
-  uint32_t eff_value    = (uint32_t)base_value * scale;
+  // 実効値（ST によりベース値を倍率変換）
+  // 速くする＝しきい値/分母を小さくするため、interval/value を 1/f で縮める
+  uint32_t eff_interval = ((uint32_t)base_interval * f_den + (f_num/2)) / f_num;
+  if (eff_interval < 1) eff_interval = 1;
+  uint32_t eff_value    = ((uint32_t)base_value    * f_den + (f_num/2)) / f_num;
+  if (eff_value < 1) eff_value = 1;
 
   uint32_t thr_iv  = kb_mul12_div10(eff_interval); // 発火しきい値
   uint32_t denom_v = kb_mul12_div10(eff_value);    // 出力の分母
@@ -158,6 +165,8 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   // しきい値超過時に出力し、蓄積はフラッシュ
   if ((uint32_t)((acc_v >= 0) ? acc_v : -acc_v) >= thr_iv) {
     int32_t emit = acc_v / (int32_t)denom_v; // 比例出力
+    // 追加ゲイン: emit に f を乗算（丸め込み）
+    emit = (int32_t)((emit * (int32_t)f_num + (int32_t)(f_den / 2)) / (int32_t)f_den);
     if (emit != 0) {
       out_v = (int16_t)emit;
       acc_v = 0;
@@ -165,6 +174,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   }
   if ((uint32_t)((acc_h >= 0) ? acc_h : -acc_h) >= thr_iv) {
     int32_t emit = acc_h / (int32_t)denom_v;
+    emit = (int32_t)((emit * (int32_t)f_num + (int32_t)(f_den / 2)) / (int32_t)f_den);
     if (emit != 0) {
       out_h = (int16_t)emit;
       acc_h = 0;
