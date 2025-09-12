@@ -103,6 +103,16 @@ void kbpf_defaults(void) {
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;
   kbpf.reserved = 0;
+  // AML: 初期は未設定（レイヤはOS依存とするため0xFFを入れておく）、無効化
+  kbpf.aml_enable  = 0;
+  kbpf.aml_layer   = 0xFFu; // sentinel: unset
+  kbpf.aml_timeout = 500;   // ms
+  // Scroll snap: 既定は Vertical
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+  kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL;
+#else
+  kbpf.scrollsnap_mode = 0;
+#endif
   kbpf_set_swipe_defaults(&kbpf);
 }
 
@@ -129,6 +139,14 @@ static void kbpf_validate(void) {
   if (kbpf.swipe_reset_ms > 250) kbpf.swipe_reset_ms = KB_SW_RST_MS;
   if (kbpf.scroll_deadzone > 32)    kbpf.scroll_deadzone   = KB_SCROLL_DEADZONE;
   if (kbpf.scroll_hysteresis > 32)  kbpf.scroll_hysteresis = KB_SCROLL_HYST;
+  // AML
+  kbpf.aml_enable &= 1u;
+  // layer は 0..31 程度（0xFFは未設定とみなす）
+  if (kbpf.aml_layer != 0xFFu && kbpf.aml_layer > 31u) kbpf.aml_layer = 0;
+  if (kbpf.aml_timeout < 50u) kbpf.aml_timeout = 100u;
+  if (kbpf.aml_timeout > 2000u) kbpf.aml_timeout = 1000u;
+  // Scroll snap
+  if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = 0u;
 }
 
 void kbpf_after_load_fixup(void) {
