@@ -61,17 +61,19 @@ static inline uint16_t clamp_cpi(uint16_t c) {
   if (c > CPI_MAX) c = CPI_MAX;
   return c;
 }
-static inline uint8_t clamp_sdiv(uint8_t v) {
-  if (v < 1) v = 1;
+static inline uint8_t clamp_step(uint8_t v) {
   if (v > SCROLL_DIV_MAX) v = SCROLL_DIV_MAX;
   return v;
 }
 
 // Set swipe-related defaults for a given profile structure.
 static void kbpf_set_swipe_defaults(keyball_profiles_t *p){
-  p->step     = KB_SW_STEP;
-  p->deadzone = KB_SW_DEADZONE;
-  p->freeze   = (KB_SWIPE_FREEZE_POINTER ? 1 : 0);
+  p->swipe_step       = KB_SW_STEP;
+  p->swipe_deadzone   = KB_SW_DEADZONE;
+  p->swipe_freeze     = (KB_SWIPE_FREEZE_POINTER ? 1 : 0);
+  p->swipe_reset_ms   = KB_SW_RST_MS;
+  p->scroll_deadzone  = KB_SCROLL_DEADZONE;
+  p->scroll_hysteresis= KB_SCROLL_HYST;
 }
 
 //-------------------------------------------------------------------------
@@ -82,14 +84,21 @@ void kbpf_defaults(void) {
   // Populate kbpf with build-time defaults so the device works even with
   // completely blank EEPROM.
   for (int i = 0; i < 8; ++i) {
-    kbpf.cpi[i]  = KEYBALL_CPI_DEFAULT;
-    kbpf.sdiv[i] = KEYBALL_SCROLL_DIV_DEFAULT;
-    kbpf.inv[i]  = (KEYBALL_SCROLL_INVERT != 0);
+    kbpf.cpi[i]          = KEYBALL_CPI_DEFAULT;
+    kbpf.scroll_step[i]  = KEYBALL_SCROLL_STEP_DEFAULT;
+    kbpf.scroll_invert[i]= (KEYBALL_SCROLL_INVERT != 0);
 
-    kbpf.mv_gain_lo_fp[i] = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_GAIN_LO_FP, 1, 255);
-    kbpf.mv_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
-    kbpf.mv_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
-    if (kbpf.mv_th1[i] >= kbpf.mv_th2[i]) kbpf.mv_th1[i] = kbpf.mv_th2[i] - 1;
+    kbpf.move_gain_lo_fp[i] = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_GAIN_LO_FP, 1, 255);
+    kbpf.move_th1[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH1, 0, 63);
+    kbpf.move_th2[i]        = (uint8_t)_CONSTRAIN(KEYBALL_MOVE_TH2, 1, 63);
+    if (kbpf.move_th1[i] >= kbpf.move_th2[i]) kbpf.move_th1[i] = kbpf.move_th2[i] - 1;
+
+    // 新スクロールパラメータの初期値
+    // 既定: interval=120, value=1（Windows/Linux 通常風）。
+    // macOS はプリセット切替キーで {120,120} に設定可能。
+    kbpf.scroll_interval[i] = 120; // 1..200 程度を想定
+    kbpf.scroll_value[i]     = 1;   // 1..200 程度を想定（macは調整で120へ）
+    kbpf.scroll_preset[i]    = 0;   // 0:{120,1} / 1:{1,1} / 2:{120,120}
   }
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;
@@ -97,27 +106,29 @@ void kbpf_defaults(void) {
   kbpf_set_swipe_defaults(&kbpf);
 }
 
-// Ensure loaded data is sane and migrate from older versions when needed.
+// Ensure loaded data is sane. 互換は持たず、異なる版はデフォルトに初期化。
 static void kbpf_validate(void) {
-  if (kbpf.magic != KBPF_MAGIC || (kbpf.version != 1 && kbpf.version != KBPF_VER_CUR)) {
-    // Corrupted or unknown layout -> fall back to defaults.
+  if (kbpf.magic != KBPF_MAGIC || kbpf.version != KBPF_VER_CUR) {
     kbpf_defaults();
     return;
   }
   for (int i = 0; i < 8; ++i) {
-    kbpf.cpi[i]  = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
-    kbpf.sdiv[i] = clamp_sdiv(kbpf.sdiv[i] ? kbpf.sdiv[i] : KEYBALL_SCROLL_DIV_DEFAULT);
-    kbpf.inv[i]  = kbpf.inv[i] ? 1 : 0;
+    kbpf.cpi[i]           = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KEYBALL_CPI_DEFAULT);
+    kbpf.scroll_step[i]   = clamp_step(kbpf.scroll_step[i]);
+    kbpf.scroll_invert[i] = kbpf.scroll_invert[i] ? 1 : 0;
+    // 範囲ガード
+    if (kbpf.scroll_interval[i] == 0) kbpf.scroll_interval[i] = 120;
+    if (kbpf.scroll_value[i]    == 0) kbpf.scroll_value[i]    = 1;
+    if (kbpf.scroll_interval[i] > 200) kbpf.scroll_interval[i] = 200;
+    if (kbpf.scroll_value[i]    > 200) kbpf.scroll_value[i]    = 200;
   }
-  if (kbpf.version == 1) {
-    // Migrate from v1 -> v2 by populating new fields with defaults.
-    kbpf_set_swipe_defaults(&kbpf);
-    kbpf.version = KBPF_VER_CUR; // actual write happens on save
-  }
-  // Range guard for v2 fields
-  if (kbpf.step < 1 || kbpf.step > 2000) kbpf.step = KB_SW_STEP;
-  if (kbpf.deadzone > 32)                kbpf.deadzone = KB_SW_DEADZONE;
-  kbpf.freeze &= 0x01;
+  // Range guard for swipe fields
+  if (kbpf.swipe_step < 1 || kbpf.swipe_step > 2000) kbpf.swipe_step = KB_SW_STEP;
+  if (kbpf.swipe_deadzone > 32)                      kbpf.swipe_deadzone = KB_SW_DEADZONE;
+  kbpf.swipe_freeze &= 0x01;
+  if (kbpf.swipe_reset_ms > 250) kbpf.swipe_reset_ms = KB_SW_RST_MS;
+  if (kbpf.scroll_deadzone > 32)    kbpf.scroll_deadzone   = KB_SCROLL_DEADZONE;
+  if (kbpf.scroll_hysteresis > 32)  kbpf.scroll_hysteresis = KB_SCROLL_HYST;
 }
 
 void kbpf_after_load_fixup(void) {
@@ -136,4 +147,3 @@ void kbpf_write(void) {
   // Persist entire profile structure back to EEPROM.
   eeprom_update_block(&kbpf, (void*)KBPF_EE_ADDR, KBPF_EE_SIZE);
 }
-

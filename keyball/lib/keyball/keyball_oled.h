@@ -17,3 +17,11 @@ void        keyball_oled_next_page(void);
 void        keyball_oled_prev_page(void);
 uint8_t     keyball_oled_get_page(void);
 uint8_t     keyball_oled_get_page_count(void);
+
+void        keyball_oled_render_debug(void);
+
+// Simple info renderers
+void keyball_oled_render_ballinfo(void);
+void keyball_oled_render_keyinfo(void);
+void keyball_oled_render_layerinfo(void);
+void keyball_oled_render_ballsubinfo(void);

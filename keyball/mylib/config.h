@@ -49,9 +49,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #endif
 
+// Auto Mouse Layer を有効化
+#ifndef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#endif
+
 // scroll snap
 #undef KEYBALL_SCROLLSNAP_ENABLE
-#define KEYBALL_SCROLLSNAP_ENABLE 1
+#define KEYBALL_SCROLLSNAP_ENABLE 2
 
 // scroll_inv
 #define KEYBALL_SCROLL_INVERT 1
@@ -64,8 +69,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef  KEYBALL_CPI_DEFAULT
 #define KEYBALL_CPI_DEFAULT 2000
 
-#undef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 3
+#undef KEYBALL_SCROLL_STEP_DEFAULT
+#define KEYBALL_SCROLL_STEP_DEFAULT 3
 
 // tap dance
 #define TAPPING_TERM 175

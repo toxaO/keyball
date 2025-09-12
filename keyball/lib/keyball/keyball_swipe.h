@@ -34,6 +34,7 @@ __attribute__((weak)) void keyball_on_swipe_fire(kb_swipe_tag_t mode_tag, kb_swi
 typedef struct {
     uint16_t step;     // 発火しきい値（counts）
     uint8_t  deadzone; // デッドゾーン（counts）
+    uint8_t  reset_ms; // 停止後リセット遅延(ms)
     bool     freeze;   // スワイプ中ポインタ凍結
 } kb_swipe_params_t;
 
@@ -41,6 +42,7 @@ typedef struct {
 kb_swipe_params_t keyball_swipe_get_params(void);
 void keyball_swipe_set_step(uint16_t v);
 void keyball_swipe_set_deadzone(uint8_t v);
+void keyball_swipe_set_reset_ms(uint8_t v);
 void keyball_swipe_set_freeze(bool on);
 void keyball_swipe_toggle_freeze(void);
 
@@ -52,6 +54,6 @@ void keyball_swipe_cfg_reset(void);  // 既定値に戻して保存（=工場出
 // Apply swipe motion to mouse report
 void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is_left);
 
-// Render swipe debug to OLED
-void keyball_swipe_render_debug(void);
+// Debug helpers
+void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u);
 
