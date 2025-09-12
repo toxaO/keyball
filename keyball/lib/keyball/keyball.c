@@ -233,6 +233,17 @@ void keyboard_post_init_kb(void) {
   keyball_set_scroll_div(keyball_get_scroll_div());
   g_move_gain_lo_fp = kbpf.move_gain_lo_fp[osi()];
   g_move_th1        = kbpf.move_th1[osi()];
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+  // Apply persisted AML settings if available
+  set_auto_mouse_enable(kbpf.aml_enable ? true : false);
+  set_auto_mouse_timeout(kbpf.aml_timeout);
+  if (kbpf.aml_layer != 0xFFu) {
+    set_auto_mouse_layer(kbpf.aml_layer);
+  }
+#endif
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+  keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)kbpf.scrollsnap_mode);
+#endif
   keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
   keyboard_post_init_user();
 }

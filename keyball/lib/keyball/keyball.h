@@ -346,6 +346,12 @@ typedef struct __attribute__((packed)) {
   // 互換保持のため残置（現行ロジックでは未使用）
   uint8_t scroll_deadzone;   // スクロール用デッドゾーン
   uint8_t scroll_hysteresis; // スクロール反転ヒステリシス
+  // Auto mouse layer settings
+  uint8_t  aml_enable;      // 0/1
+  uint8_t  aml_layer;       // target layer index (0..31, 0xFF=unset)
+  uint16_t aml_timeout;     // ms
+  // Scroll snap (global)
+  uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
 } keyball_profiles_t;
 
 #define KBPF_MAGIC 0x4B425031u /* 'KBP1' */
@@ -373,5 +379,5 @@ extern keyball_profiles_t kbpf;
 #define KB_SCROLL_HYST 0
 #endif
 
-#define KBPF_VER_OLD 6
-#define KBPF_VER_CUR 7 // v7: フィールド名の見直しと簡略化（EEPROM互換なし）
+#define KBPF_VER_OLD 7
+#define KBPF_VER_CUR 8 // v8: AMLとスクロールスナップの永続化を追加（互換なし）

@@ -39,8 +39,9 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_swipe_end();
       kbpf_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-      set_auto_mouse_enable(false);
-      set_auto_mouse_timeout(AUTO_MOUSE_TIME);
+      set_auto_mouse_enable(kbpf.aml_enable ? true : false);
+      set_auto_mouse_timeout(kbpf.aml_timeout);
+      if (kbpf.aml_layer != 0xFFu) set_auto_mouse_layer(kbpf.aml_layer);
 #endif
       break;
 
@@ -49,9 +50,21 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
       kbpf.move_th1[keyball_os_idx()] =
           (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.move_th2[keyball_os_idx()] - 1);
-      kbpf_write(); // OSごとの全データを一括保存
-      dprintf("KB profiles saved (magic=0x%08lX ver=%u)\n",
-              (unsigned long)kbpf.magic, kbpf.version);
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+      kbpf.aml_enable  = get_auto_mouse_enable() ? 1 : 0;
+      kbpf.aml_timeout = get_auto_mouse_timeout();
+      kbpf.aml_layer   = get_auto_mouse_layer();
+#endif
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+      kbpf.scrollsnap_mode = (uint8_t)keyball_get_scrollsnap_mode();
+#endif
+      kbpf_write(); // OSごとの全データ+グローバルを一括保存
+      dprintf("KBPF saved (ver=%u) AML(en=%u,tg=%u,to=%u) SSNP=%u\n",
+              kbpf.version,
+              (unsigned)kbpf.aml_enable,
+              (unsigned)kbpf.aml_layer,
+              (unsigned)kbpf.aml_timeout,
+              (unsigned)kbpf.scrollsnap_mode);
       break;
 
     // Pointer settings
@@ -127,14 +140,17 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     // Scroll snap
     case SSNP_HOR:
       keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_HORIZONTAL);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_HORIZONTAL;
       dprintf("SSNP: mode=HOR\n");
       break;
     case SSNP_VRT:
       keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL;
       dprintf("SSNP: mode=VRT\n");
       break;
     case SSNP_FRE:
       keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_FREE);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_FREE;
       dprintf("SSNP: mode=FRE\n");
       break;
 #endif
@@ -143,6 +159,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     // Automatic mouse layer
     case AML_TO:
       set_auto_mouse_enable(!get_auto_mouse_enable());
+      kbpf.aml_enable = get_auto_mouse_enable() ? 1 : 0;
       dprintf("AML: enable=%u layer=%u timeout=%u\n",
               get_auto_mouse_enable() ? 1u : 0u,
               (unsigned)get_auto_mouse_layer(),
@@ -152,6 +169,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       uint16_t v = get_auto_mouse_timeout() + 50;
       if (v > 1000) v = 1000;
       set_auto_mouse_timeout(v);
+      kbpf.aml_timeout = get_auto_mouse_timeout();
       dprintf("AML: timeout=%u\n", (unsigned)get_auto_mouse_timeout());
     } break;
     case AML_D50: {
@@ -159,6 +177,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       v = (v > 50) ? (uint16_t)(v - 50) : 0;
       if (v < 100) v = 100;
       set_auto_mouse_timeout(v);
+      kbpf.aml_timeout = get_auto_mouse_timeout();
       dprintf("AML: timeout=%u\n", (unsigned)get_auto_mouse_timeout());
     } break;
 #endif
