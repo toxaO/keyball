@@ -65,14 +65,14 @@ void keyball_set_scrollsnap_mode(keyball_scrollsnap_mode_t mode) {
 }
 
 uint8_t keyball_get_scroll_div(void) {
-  return clamp_sdiv(kbpf.sdiv[keyball_os_idx()]);
+  return clamp_sdiv(kbpf.scroll_step[keyball_os_idx()]);
 }
 
 void keyball_set_scroll_div(uint8_t div) {
   div = clamp_sdiv(div);
   uint8_t i = keyball_os_idx();
-  kbpf.sdiv[i] = div;
-  dprintf("keyball: sdiv set OS=%u -> %u\n", i, div);
+  kbpf.scroll_step[i] = div;
+  dprintf("keyball: scroll_step set OS=%u -> %u\n", i, div);
 }
 
 void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
@@ -115,8 +115,8 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 
   // OS 分岐はしない。OS 別の値は kbpf のスロット差し替えにより表現
   uint8_t os = keyball_os_idx();
-  uint16_t base_interval = kbpf.sc_interval[os]; // 1..200 程度
-  uint16_t base_value    = kbpf.sc_value[os];    // 1..200 程度
+  uint16_t base_interval = kbpf.scroll_interval[os]; // 1..200 程度
+  uint16_t base_value    = kbpf.scroll_value[os];    // 1..200 程度
   if (base_interval < 1) base_interval = 1;
   if (base_value < 1)    base_value    = 1;
 
@@ -131,30 +131,35 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   uint32_t denom_v = kb_mul12_div10(eff_value);    // 出力の分母
   if (denom_v == 0) denom_v = 1;
 
-  // 主成分選択（対角帯は不感）
+  // 主成分選択 / スクロールスナップ適用
+  keyball_scrollsnap_mode_t snap = keyball_get_scrollsnap_mode();
   int32_t absx = (sx >= 0) ? sx : -sx;
   int32_t absy = (sy >= 0) ? sy : -sy;
 
   if (absx == 0 && absy == 0) {
     // 何もしない
+  } else if (snap == KEYBALL_SCROLLSNAP_MODE_VERTICAL) {
+    // 垂直専用
+    if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
+    acc_v += sy;
+  } else if (snap == KEYBALL_SCROLLSNAP_MODE_HORIZONTAL) {
+    // 水平専用
+    if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
+    acc_h += sx;
   } else {
-    // ratio = |y|/|x|, diagonal_limit=0.5 → 帯域 (0.5, 2.0)
+    // Free: 対角帯は不感 + 主成分のみ蓄積
     bool diag_band = false;
     if (absx != 0 && absy != 0) {
-      // 0.5 < absy/absx < 2.0  ⇔  5*absy < 10*absx && 10*absy < 20*absx
-      // 比較を左右入れ替えて両辺整数化
+      // 0.5 < absy/absx < 2.0 の帯域は捨てる
       diag_band = (absy * 10 > absx * 5) && (absy * 10 < absx * 20);
     }
-
     if (!diag_band) {
-      // 主成分のみ蓄積
       if (absx == 0 || (absy * 2 >= absx * 4)) {
-        // absy/absx >= 2.0 → 垂直優位（または absx=0）
-        // 方向反転時の跳ね返り抑制
+        // 垂直優位
         if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
         acc_v += sy;
       } else {
-        // absy/absx <= 0.5 → 水平優位
+        // 水平優位
         if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
         acc_h += sx;
       }
@@ -188,7 +193,7 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   if (is_left) {
     output->h = -output->h;
     output->v = -output->v;
-  } else if (kbpf.inv[keyball_os_idx()]) {
+  } else if (kbpf.scroll_invert[keyball_os_idx()]) {
     output->h = -output->h;
     output->v = -output->v;
   }

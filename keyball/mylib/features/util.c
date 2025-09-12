@@ -2,11 +2,30 @@
 #include "util.h"
 #include "os_detection.h"
 #include "lib/keyball/keyball.h"
+#include "my_keycode.h"
 
 int host_os;
 
 void keyboard_post_init_user(void) {
     host_os = detected_host_os();
+    // Auto Mouse Layer を有効化し、OSに応じてターゲットレイヤーを設定
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+    set_auto_mouse_enable(true);
+    switch (host_os) {
+      case OS_MACOS:
+      case OS_IOS:
+        set_auto_mouse_layer(_mMou);
+        break;
+      case OS_WINDOWS:
+      default:
+        set_auto_mouse_layer(_wMou);
+        break;
+    }
+#endif
+    // スクロールスナップはデフォルトでON（垂直）
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+    keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+#endif
 }
 
 // 自前の絶対数を返す関数。 Functions that return absolute numbers.

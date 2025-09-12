@@ -31,8 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_CPI_DEFAULT 2200
 #endif
 
-#ifndef KEYBALL_SCROLL_DIV_DEFAULT
-#define KEYBALL_SCROLL_DIV_DEFAULT 4
+#ifndef KEYBALL_SCROLL_STEP_DEFAULT
+#define KEYBALL_SCROLL_STEP_DEFAULT 4
 #endif
 
 // 1 なら従来、2 で半段階、3 なら 1/3 ...（分解能を上げたいほど大きく）
@@ -162,8 +162,8 @@ enum keyball_keycodes {
   // Scroll control
   SCRL_TO = QK_KB_6,   // Toggle scroll mode
   SCRL_MO = QK_KB_7,   // Momentary scroll mode
-  SCRL_DVI = QK_KB_8,  // Increment scroll divider
-  SCRL_DVD = QK_KB_9,  // Decrement scroll divider
+  SCRL_STI = QK_KB_8,  // Increase scroll step (ST)
+  SCRL_STD = QK_KB_9,  // Decrease scroll step (ST)
   SCRL_INV = QK_KB_16, // scroll direction inverse
   // プリセット（OS別）切替: macOS は {120,120} 固定 / それ以外は {120,1} と {1,1} をトグル
   SCRL_PST = QK_KB_5,
@@ -194,11 +194,13 @@ enum keyball_keycodes {
   KEYBALL_SAFE_RANGE = QK_USER_0,
 };
 
+// 互換用のエイリアスは削除しました
+
 typedef union {
   uint32_t raw;
   struct {
     uint16_t cpi;
-    uint8_t sdiv : 3; // scroll divider
+    uint8_t sdiv : 3; // scroll divider (deprecated, kept for bitfield layout)
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     uint8_t amle : 1;   // automatic mouse layer enabled
     uint16_t amlto : 5; // automatic mouse layer timeout
@@ -318,28 +320,32 @@ void keyball_set_cpi(uint16_t cpi);
 // ---- Keyball専用 EEPROM ブロック（VIA不使用前提）----
 typedef struct __attribute__((packed)) {
   uint32_t magic;           // 'KBP1'
-  uint16_t version;         // 1
+  uint16_t version;         // structure version
   uint16_t reserved;        // 0
   uint16_t cpi[8];          // 100..CPI_MAX
-  uint8_t sdiv[8];          // 0..SCROLL_DIV_MAX
-  uint8_t inv[8];           // 0/1
-  uint8_t mv_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
-  uint8_t mv_th1[8];        // 0..(mv_th2-1)
-  uint8_t mv_th2[8];        // 1..63 など適当な上限（今回は固定でも可）
-  // スクロールの新パラメータ（OS別保存）。sdiv は ST(感度段)として利用する。
+  // スクロール設定
+  uint8_t scroll_step[8];   // ST: 1..7（内部的には1..7相当。0は最小相当）
+  uint8_t scroll_invert[8]; // 0/1
+  // ポインタ移動（Move shaping）設定
+  uint8_t move_gain_lo_fp[8]; // 固定小数点(1/256)。16..255 推奨
+  uint8_t move_th1[8];        // 0..(move_th2-1)
+  uint8_t move_th2[8];        // 1..63 など適当な上限
+  // スクロールの新パラメータ（OS別保存）。scroll_step は ST(感度段)として利用する。
   // interval: 蓄積のしきい値（大きいほどゆっくり）
   // value   : 出力量の分母（大きいほど小さく出る）
-  uint8_t sc_interval[8];
-  uint8_t sc_value[8];
+  uint8_t scroll_interval[8];
+  uint8_t scroll_value[8];
   // スクロールプリセット選択（OS別保存）
   // 0: {120,1}, 1: {1,1}, 2: {120,120}
-  uint8_t sc_preset[8];
-  uint16_t step;            // 発火しきい値
-  uint8_t deadzone;         // デッドゾーン
-  uint8_t freeze;           // bit0: freeze (1=FREEZE ON)
-  uint8_t sw_rst_ms;        // スワイプ蓄積リセット遅延(ms)
-  uint8_t sc_dz;            // スクロール用デッドゾーン
-  uint8_t sc_hyst;          // スクロール反転ヒステリシス
+  uint8_t scroll_preset[8];
+  // スワイプ設定
+  uint16_t swipe_step;       // 発火しきい値
+  uint8_t  swipe_deadzone;   // デッドゾーン
+  uint8_t  swipe_freeze;     // bit0: freeze (1=FREEZE ON)
+  uint8_t  swipe_reset_ms;   // スワイプ蓄積リセット遅延(ms)
+  // 互換保持のため残置（現行ロジックでは未使用）
+  uint8_t scroll_deadzone;   // スクロール用デッドゾーン
+  uint8_t scroll_hysteresis; // スクロール反転ヒステリシス
 } keyball_profiles_t;
 
 #define KBPF_MAGIC 0x4B425031u /* 'KBP1' */
@@ -367,5 +373,5 @@ extern keyball_profiles_t kbpf;
 #define KB_SCROLL_HYST 0
 #endif
 
-#define KBPF_VER_OLD 1 // 例：既存
-#define KBPF_VER_CUR 6 // v6: スクロールプリセット選択 sc_preset[] を追加
+#define KBPF_VER_OLD 6
+#define KBPF_VER_CUR 7 // v7: フィールド名の見直しと簡略化（EEPROM互換なし）

@@ -12,7 +12,7 @@ static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
 static bool           g_dbg_en   = true;
 static uint8_t        g_oled_page = 0;
 
-#define KB_OLED_PAGE_COUNT      5
+#define KB_OLED_PAGE_COUNT      7
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -83,7 +83,7 @@ void keyball_oled_render_ballinfo(void) {
         oled_write(b, false);
     }
     oled_write_P(PSTR(" INV:"), false);
-    oled_write_char(kbpf.inv[keyball_os_idx()] ? '1' : '0', false);
+    oled_write_char(kbpf.scroll_invert[keyball_os_idx()] ? '1' : '0', false);
     oled_write_ln_P(PSTR(""), false);
 }
 
@@ -110,9 +110,9 @@ void keyball_oled_render_layerinfo(void) {
 #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     oled_write_P(PSTR("\xC2\xC3"), false);
     if (get_auto_mouse_enable()) {
-        oled_write_P(LFSTR_ON, false);
+        oled_write_P(PSTR("ON "), false);
     } else {
-        oled_write_P(LFSTR_OFF, false);
+        oled_write_P(PSTR("OFF"), false);
     }
     {
         char b[8];
@@ -156,90 +156,122 @@ void keyball_oled_render_debug(void) {
 
     uint8_t page = keyball_oled_get_page();
     switch (page) {
-        case 0: {
+        case 0: { // 1: Mouse Config
+            oled_write_ln("[Mouse Config]", false);
             uint16_t cpi = keyball_get_cpi();
             snprintf(line, sizeof(line), "CPI:%u OS:%u", (unsigned)cpi, (unsigned)keyball_os_idx());
             oled_write_ln(line, false);
 
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
             snprintf(line, sizeof(line), "Glo:%u Th1:%u",
-                     (unsigned)kbpf.mv_gain_lo_fp[keyball_os_idx()],
-                     (unsigned)kbpf.mv_th1[keyball_os_idx()]);
+                     (unsigned)kbpf.move_gain_lo_fp[keyball_os_idx()],
+                     (unsigned)kbpf.move_th1[keyball_os_idx()]);
+            oled_write_ln(line, false);
 #else
-            snprintf(line, sizeof(line), "MoveShape:OFF");
+            oled_write_ln("MoveShape:OFF", false);
 #endif
-            oled_write_ln(line, false);
 
-            oled_write_ln("", false);
             snprintf(line, sizeof(line), "Pg:%u/%u",
                      (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_ln(line, false);
         } break;
 
-        case 1: {
-            // Scroll: ST と INV のみ表示
-            snprintf(line, sizeof(line), "ST:%u",
-                     (unsigned)keyball_get_scroll_div());
+        case 1: { // 2: Auto Mouse Layer
+            oled_write_ln("[Auto Mouse Layer]", false);
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+            // Enabled / Timeout
+            snprintf(line, sizeof(line), "EN:%u TO:%u",
+                     get_auto_mouse_enable() ? 1u : 0u,
+                     (unsigned)get_auto_mouse_timeout());
             oled_write_ln(line, false);
-
-            snprintf(line, sizeof(line), "Inv:%u",
-                     (unsigned)(kbpf.inv[keyball_os_idx()] ? 1 : 0));
+            // Target Layer index
+            snprintf(line, sizeof(line), "TG:%u", (unsigned)get_auto_mouse_layer());
             oled_write_ln(line, false);
-
-            oled_write_ln("Scroll", false);
+#else
+            oled_write_ln("Disabled", false);
+#endif
             snprintf(line, sizeof(line), "Pg:%u/%u",
                      (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_ln(line, false);
         } break;
 
-        case 2: {
+        case 2: { // 3: Scroll Param
+            oled_write_ln("[Scroll Param]", false);
+            uint8_t os = keyball_os_idx();
+            uint8_t st = keyball_get_scroll_div();
+            uint8_t inv = kbpf.scroll_invert[os] ? 1 : 0;
+            uint8_t preset = kbpf.scroll_preset[os];
+            snprintf(line, sizeof(line), "ST:%u Inv:%u", (unsigned)st, (unsigned)inv);
+            oled_write_ln(line, false);
+            const char *plabel = (preset == 2) ? "MAC" : (preset == 1) ? "FINE" : "NORM";
+            snprintf(line, sizeof(line), "PST:%s", plabel);
+            oled_write_ln(line, false);
+            snprintf(line, sizeof(line), "Pg:%u/%u",
+                     (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_ln(line, false);
+        } break;
+
+        case 3: { // 4: Scroll Snap
+            oled_write_ln("[Scroll Snap]", false);
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+            keyball_scrollsnap_mode_t m = keyball_get_scrollsnap_mode();
+            const char *ml = (m == KEYBALL_SCROLLSNAP_MODE_VERTICAL) ? "VRT" :
+                             (m == KEYBALL_SCROLLSNAP_MODE_HORIZONTAL) ? "HOR" : "FRE";
+            snprintf(line, sizeof(line), "Mode:%s", ml);
+            oled_write_ln(line, false);
+            snprintf(line, sizeof(line), "Thr:%u Rst:%u",
+                     (unsigned)KEYBALL_SCROLLSNAP_TENSION_THRESHOLD,
+                     (unsigned)KEYBALL_SCROLLSNAP_RESET_TIMER);
+            oled_write_ln(line, false);
+#else
+            oled_write_ln("Disabled", false);
+#endif
+            snprintf(line, sizeof(line), "Pg:%u/%u",
+                     (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_ln(line, false);
+        } break;
+
+        case 4: { // 5: Scroll Raw Monitor
+            oled_write_ln("[Scroll Monitor]", false);
+            int16_t sx, sy, h, v;
+            keyball_scroll_get_dbg(&sx, &sy, &h, &v);
+            snprintf(line, sizeof(line), "Sx:%4d Sy:%4d", sx, sy);
+            oled_write_ln(line, false);
+            snprintf(line, sizeof(line), "H:%4d V:%4d", h, v);
+            oled_write_ln(line, false);
+            snprintf(line, sizeof(line), "Pg:%u/%u",
+                     (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_ln(line, false);
+        } break;
+
+        case 5: { // 6: Swipe Config
             kb_swipe_params_t p = keyball_swipe_get_params();
+            oled_write_ln("[Swipe Config]", false);
             snprintf(line, sizeof(line), "St:%u Dz:%u",
                      (unsigned)p.step, (unsigned)p.deadzone);
             oled_write_ln(line, false);
-
             snprintf(line, sizeof(line), "Rt:%u Fz:%u",
                      (unsigned)p.reset_ms, p.freeze ? 1u : 0u);
             oled_write_ln(line, false);
-
-            oled_write_ln("SwipeCfg", false);
             snprintf(line, sizeof(line), "Pg:%u/%u",
                      (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_ln(line, false);
         } break;
 
-        case 3: {
+        case 6: { // 7: Swipe Monitor
             uint32_t ar, al, ad, au;
             keyball_swipe_get_accum(&ar, &al, &ad, &au);
-
-            snprintf(line, sizeof(line), "A:%u Tg:%u Fd:%u",
+            snprintf(line, sizeof(line), "Ac:%u Md:%u Fired?:%u",
                      keyball_swipe_is_active() ? 1u : 0u,
                      (unsigned)keyball_swipe_mode_tag(),
                      keyball_swipe_fired_since_begin() ? 1u : 0u);
             oled_write_ln(line, false);
-
-            snprintf(line, sizeof(line), "Dir:%s",
-                     kb_dir_str(keyball_swipe_direction()));
+            snprintf(line, sizeof(line), "Dir:%s", kb_dir_str(keyball_swipe_direction()));
             oled_write_ln(line, false);
-
             snprintf(line, sizeof(line), "R%4u L%4u", clip0_9999(ar), clip0_9999(al));
             oled_write_ln(line, false);
-
             snprintf(line, sizeof(line), "D%4u U%4u Pg:%u/%u",
                      clip0_9999(ad), clip0_9999(au),
-                     (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_ln(line, false);
-        } break;
-
-        case 4: {
-            int16_t sx, sy, h, v;
-            keyball_scroll_get_dbg(&sx, &sy, &h, &v);
-
-            snprintf(line, sizeof(line), "Sx:%4d Sy:%4d", sx, sy);
-            oled_write_ln(line, false);
-
-            snprintf(line, sizeof(line), "H:%4d V:%4d Pg:%u/%u",
-                     h, v,
                      (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_ln(line, false);
         } break;

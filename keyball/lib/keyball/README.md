@@ -11,11 +11,13 @@ be increased with single press of `MVGL`/`MVTH1` and decreased while holding
 `MVGL` や `MVTH1` を単押しで増加、`Shift` 併用で減少させます。
 
 ### Scroll adjustment / スクロール調整
-Deadzone and reverse-direction hysteresis suppress wobble at the end of a
-scroll. Use `SCRL_DZ` and `SCRL_HY` to tweak sensitivity on the fly.
+Adjust scroll speed by changing ST (scroll step) and switch presets per OS.
+Use `SCRL_STI` / `SCRL_STD` to change ST, and `SCRL_PST` to toggle
+presets: on macOS it sets {120,120}, on others it toggles {120,1} <-> {1,1}.
 
-スクロール終端での逆方向ビビりを抑えるため、デッドゾーンとヒステリシスを導入
-しています。`SCRL_DZ` と `SCRL_HY` で感度を即時に調整できます。
+スクロール速度は ST(スクロールステップ) で調整できます。`SCRL_STI` / `SCRL_STD`
+で段階的に変更し、`SCRL_PST` でOSごとのプリセットを切り替えます（macOS は {120,120} 固定、
+それ以外は {120,1} と {1,1} をトグル）。
 
 ### Swipe adjustment / スワイプ調整
 Swipe gestures accumulate trackball motion and fire once thresholds are
@@ -162,7 +164,7 @@ please make pull requests to share it us.
 先の読み捨てにより、垂直方向のスクロールがワンテンポ遅れ、体験を大幅に損なうことが明らかになった。
 この解決のためモード: 初期は垂直のみ、後に自由スクロールする、を導入した。
 
-### Scroll Divider / スクロール除数
+### Scroll Step (ST) / スクロールステップ
 
 Keyballのセンサーは感度がとても高い。
 そのため生の値をスクロール量としてしまうとスクロール操作がとても難しくなった。
@@ -179,7 +181,7 @@ Keyballのセンサーは感度がとても高い。
 $$ 2 ^ {(n - 1)} $$
 
 $n$ の初期値は 4 で 1/8 になることを意味する。
-この値は config.h で `KEYBALL_SCROLL_DIV_DEFAULT` マクロを定義することで変更できる。
+この値は config.h で `KEYBALL_SCROLL_STEP_DEFAULT` マクロを定義することで変更できる。
 これを0にすることは考慮していないので設定しないこと。
 
 ### Scroll Inhivitor

@@ -47,10 +47,10 @@ bool           keyball_swipe_consume_fired(void)     { bool f = g_sw.fired_any; 
 
 kb_swipe_params_t keyball_swipe_get_params(void){
     kb_swipe_params_t p = {
-        .step     = kbpf.step,
-        .deadzone = kbpf.deadzone,
-        .reset_ms = kbpf.sw_rst_ms,
-        .freeze   = (kbpf.freeze & 1) != 0
+        .step     = kbpf.swipe_step,
+        .deadzone = kbpf.swipe_deadzone,
+        .reset_ms = kbpf.swipe_reset_ms,
+        .freeze   = (kbpf.swipe_freeze & 1) != 0
     };
     return p;
 }
@@ -58,44 +58,44 @@ kb_swipe_params_t keyball_swipe_get_params(void){
 void keyball_swipe_set_step(uint16_t v){
   if (v < 10) v = 10;
   if (v > 2000) v = 2000;
-  kbpf.step = v;
-  uprintf("SW step=%u\r\n", kbpf.step);
+  kbpf.swipe_step = v;
+  uprintf("SW step=%u\r\n", kbpf.swipe_step);
 }
 
 void keyball_swipe_set_deadzone(uint8_t v){
   if (v > 32) v = 32;
-  kbpf.deadzone = v;
-  uprintf("SW deadzone=%u\r\n", kbpf.deadzone);
+  kbpf.swipe_deadzone = v;
+  uprintf("SW deadzone=%u\r\n", kbpf.swipe_deadzone);
 }
 
 void keyball_swipe_set_reset_ms(uint8_t v){
   if (v > 250) v = 250;
-  kbpf.sw_rst_ms = v;
-  uprintf("SW reset_ms=%u\r\n", kbpf.sw_rst_ms);
+  kbpf.swipe_reset_ms = v;
+  uprintf("SW reset_ms=%u\r\n", kbpf.swipe_reset_ms);
 }
 
 void keyball_swipe_set_freeze(bool on){
-  kbpf.freeze = on ? 1 : 0;
-  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
+  kbpf.swipe_freeze = on ? 1 : 0;
+  uprintf("SW freeze=%u\r\n", kbpf.swipe_freeze ? 1 : 0);
 }
 
 void keyball_swipe_toggle_freeze(void){
-  kbpf.freeze ^= 1;
-  uprintf("SW freeze=%u\r\n", kbpf.freeze ? 1 : 0);
+  kbpf.swipe_freeze ^= 1;
+  uprintf("SW freeze=%u\r\n", kbpf.swipe_freeze ? 1 : 0);
 }
 
 static void kb_sw_try_fire(kb_swipe_dir_t dir,
     int32_t *acc_target,
     int32_t *a1, int32_t *a2, int32_t *a3) {
 
-  while (*acc_target >= kbpf.step) {
+  while (*acc_target >= kbpf.swipe_step) {
     if (keyball_on_swipe_fire) {
       keyball_on_swipe_fire(g_sw.tag, dir);
     }
     g_sw.fired_any = true;
     g_sw.last_dir  = dir;
 
-    *acc_target -= kbpf.step;
+    *acc_target -= kbpf.swipe_step;
     if (*acc_target < 0) *acc_target = 0;
     *a1 = *a2 = *a3 = 0;
   }
@@ -106,11 +106,11 @@ void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is
   int16_t sy = (int16_t)report->y;
   uint32_t now = timer_read32();
 
-  if (kb_abs16(sx) < kbpf.deadzone) sx = 0;
-  if (kb_abs16(sy) < kbpf.deadzone) sy = 0;
+  if (kb_abs16(sx) < kbpf.swipe_deadzone) sx = 0;
+  if (kb_abs16(sy) < kbpf.swipe_deadzone) sy = 0;
 
   if (sx == 0 && sy == 0) {
-    if (timer_elapsed32(g_sw_idle_timer) > kbpf.sw_rst_ms) {
+    if (timer_elapsed32(g_sw_idle_timer) > kbpf.swipe_reset_ms) {
       g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
     }
     return;

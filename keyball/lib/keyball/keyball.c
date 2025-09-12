@@ -103,7 +103,7 @@ static inline uint16_t clamp_cpi(uint16_t c) {
 static void motion_to_mouse(report_mouse_t *report, report_mouse_t *output, bool is_left, bool as_scroll) {
   if (keyball_swipe_is_active()) {
     keyball_swipe_apply(report, output, is_left);
-    if (!kbpf.freeze) {
+    if (!kbpf.swipe_freeze) {
       keyball_on_apply_motion_to_mouse_move(report, output, is_left);
     }
   } else if (as_scroll) {
@@ -231,8 +231,8 @@ void keyboard_post_init_kb(void) {
 
   keyball_set_cpi(keyball_get_cpi());
   keyball_set_scroll_div(keyball_get_scroll_div());
-  g_move_gain_lo_fp = kbpf.mv_gain_lo_fp[osi()];
-  g_move_th1        = kbpf.mv_th1[osi()];
+  g_move_gain_lo_fp = kbpf.move_gain_lo_fp[osi()];
+  g_move_th1        = kbpf.move_th1[osi()];
   keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
   keyboard_post_init_user();
 }

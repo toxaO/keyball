@@ -25,8 +25,8 @@
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `SCRL_TO`  | `Kb 6`          | `0x7e06` | Toggle scroll mode                                                |
 | `SCRL_MO`  | `Kb 7`          | `0x7e07` | Enable scroll mode while pressed                                  |
-| `SCRL_DVI` | `Kb 8`          | `0x7e08` | Increase ST (scroll step), higher is faster (1..7, default 4)     |
-| `SCRL_DVD` | `Kb 9`          | `0x7e09` | Decrease ST (scroll step), lower is slower (1..7, default 4)      |
+| `SCRL_STI` | `Kb 8`          | `0x7e08` | Increase ST (scroll step), higher is faster (1..7, default 4)     |
+| `SCRL_STD` | `Kb 9`          | `0x7e09` | Decrease ST (scroll step), lower is slower (1..7, default 4)      |
 | `SCRL_INV` | `Kb 16`         | `0x7e10` | Invert scroll direction                                           |
 | `SCRL_PST` | `Kb 5`          | `0x7e05` | Switch scroll preset: mac={120,120}, others={120,1}<->{1,1}       |
 
@@ -59,7 +59,7 @@
 | `DBG_NP`   | `Kb 27`         | `0x7e1b` | OLED debug page next                                              |
 | `DBG_PP`   | `Kb 28`         | `0x7e1c` | OLED debug page previous                                          |
 
-[^1]: CPI, scroll divider, automatic mouse layer's enable/disable, and automatic mouse layer's timeout.
+[^1]: CPI, scroll step (ST), automatic mouse layer's enable/disable, and automatic mouse layer's timeout.
 
 <a id="japanese"></a>
 ## 特殊キーコード
@@ -83,8 +83,8 @@
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `SCRL_TO`  | `Kb 6`          | `0x7e06` | タップごとにスクロールモードのON/OFFを切り替えます                |
 | `SCRL_MO`  | `Kb 7`          | `0x7e07` | キーを押している間、スクロールモードになります                    |
-| `SCRL_DVI` | `Kb 8`          | `0x7e08` | ST(スクロールステップ)を1つ上げます。値が大きいほど速い(1..7/既定4) |
-| `SCRL_DVD` | `Kb 9`          | `0x7e09` | ST(スクロールステップ)を1つ下げます。値が小さいほど遅い(1..7/既定4) |
+| `SCRL_STI` | `Kb 8`          | `0x7e08` | ST(スクロールステップ)を1つ上げます。値が大きいほど速い(1..7/既定4) |
+| `SCRL_STD` | `Kb 9`          | `0x7e09` | ST(スクロールステップ)を1つ下げます。値が小さいほど遅い(1..7/既定4) |
 | `SCRL_INV` | `Kb 16`         | `0x7e10` | スクロール方向を反転します                                       |
 | `SCRL_PST` | `Kb 5`          | `0x7e05` | プリセット切替: mac={120,120}, それ以外={120,1}<->{1,1}           |
 
