@@ -224,7 +224,9 @@ void keyboard_post_init_kb(void) {
   }
 #endif
 
-  keyball.this_have_ball = pmw33xx_init_ok;
+  // QMK 0.30.x 以降の公式 PMW33xx ドライバでは pmw33xx_init_ok は提供されない。
+  // 代わりに pointing_device の初期化ステータスでボール有無を判定する。
+  keyball.this_have_ball = (pointing_device_get_status() == POINTING_DEVICE_STATUS_SUCCESS);
   kbpf_defaults();        // まず既定値
   kbpf_read();            // EEPROMから上書き
                           // kbpf_after_load_fixup(); // 旧版からの移行処理

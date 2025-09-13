@@ -158,10 +158,10 @@ HSV_YELLOW
 #define NumP_A MT(MOD_LALT, KC_NO)
 #define BSPC_G MT(MOD_LGUI, KC_BSPC)
 
-// mousekey
-#define L_CLICK KC_BTN1
-#define R_CLICK KC_BTN2
-#define M_CLICK KC_BTN3
+// mousekey (QMK 0.30+ では MS_BTNx を使用)
+#define L_CLICK MS_BTN1
+#define R_CLICK MS_BTN2
+#define M_CLICK MS_BTN3
 
 
 // home end
