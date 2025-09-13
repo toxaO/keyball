@@ -28,6 +28,11 @@ HSV_YELLOW
 ------------------------------
 */
 
+// 選択中のRGBアニメーションモード（設定レイヤで更新し、_Def に適用）
+static uint8_t g_setting_rgb_mode = 0;
+static bool    g_setting_mode_inited = false;
+static uint8_t g_prev_highest_layer = 0xFFu;
+
 // layer state setting ------------------------------
 layer_state_t layer_state_set_user(layer_state_t state) {
 
@@ -39,11 +44,25 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
     // （元に戻す）ここではスワイプレイヤ固定を行わない
 
+    // 設定レイヤから離れたタイミングで、その時点のRGBモードを保持
+    {
+        uint8_t highest = get_highest_layer(state);
+        if (!g_setting_mode_inited) {
+            g_setting_rgb_mode   = rgblight_get_mode();
+            g_setting_mode_inited = true;
+        }
+        if (g_prev_highest_layer == _Set && highest != _Set) {
+            g_setting_rgb_mode = rgblight_get_mode();
+        }
+        g_prev_highest_layer = highest;
+    }
+
     //LED------------------------------
     uint8_t layer = biton32(state);
     switch (layer) {
         case _Def:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 0);
+            // 既定レイヤは設定レイヤで選択したモードを適用
+            rgblight_mode_noeeprom(g_setting_rgb_mode);
             break;
         case _Sym:
             rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
