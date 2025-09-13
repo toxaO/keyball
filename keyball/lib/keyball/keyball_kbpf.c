@@ -24,28 +24,15 @@ extern const uint8_t  SCROLL_DIV_MAX;
 #define KBPF_EE_SIZE (sizeof(keyball_profiles_t))
 
 #ifndef KBPF_EE_ADDR
-#  ifdef VIA_ENABLE
-#    include "via.h"
-// Use VIA's custom EEPROM range
-#    define KBPF_EE_ADDR (VIA_EEPROM_CUSTOM_CONFIG_ADDR)
-_Static_assert(VIA_EEPROM_CUSTOM_CONFIG_SIZE >= KBPF_EE_SIZE,
-               "VIA custom area is too small for keyball profiles");
-#  else
-// Compatible with various generations of QMK's eeconfig layout
-#    if defined(EECONFIG_END)
-#      define KBPF_EE_ADDR (EECONFIG_END)
-#    elif defined(EECONFIG_SIZE)
-#      define KBPF_EE_ADDR (EECONFIG_SIZE)
-#    elif defined(EECONFIG_USER)
-#      define KBPF_EE_ADDR (EECONFIG_USER + sizeof(uint32_t))
-#    elif defined(EECONFIG_KB)
-#      define KBPF_EE_ADDR (EECONFIG_KB + sizeof(uint32_t))
-#    else
-// Fallback for very old or special environments
-#      define KBPF_EE_ADDR (512)
-#    endif
-#  endif
+// 優先: QMK の EECONFIG_KB 領域に保存して Vial/VIA のカスタム領域と分離する
+#  include "quantum/nvm/eeprom/nvm_eeprom_eeconfig_internal.h"
+#  define KBPF_EE_ADDR ((uintptr_t)EECONFIG_KB_DATABLOCK)
+   // キーボード用データ領域に十分なサイズが確保されていることを検査
+_Static_assert(EECONFIG_KB_DATA_SIZE >= sizeof(keyball_profiles_t),
+               "EECONFIG_KB_DATA_SIZE is too small for keyball profiles");
 #endif
+
+// （古い QMK 互換用途のフォールバックは不要。KBPF_EE_ADDR は上で確定）
 
 // Global instance that holds all per-OS profile values.
 // Other modules access it through the extern declaration in keyball.h.
@@ -94,11 +81,11 @@ void kbpf_defaults(void) {
     if (kbpf.move_th1[i] >= kbpf.move_th2[i]) kbpf.move_th1[i] = kbpf.move_th2[i] - 1;
 
     // 新スクロールパラメータの初期値
-    // 既定: interval=120, value=1（Windows/Linux 通常風）。
+    // 既定: "fine"（微細）= {interval=1, value=1}
     // macOS はプリセット切替キーで {120,120} に設定可能。
-    kbpf.scroll_interval[i] = 120; // 1..200 程度を想定
-    kbpf.scroll_value[i]     = 1;   // 1..200 程度を想定（macは調整で120へ）
-    kbpf.scroll_preset[i]    = 0;   // 0:{120,1} / 1:{1,1} / 2:{120,120}
+    kbpf.scroll_interval[i] = 1;   // "fine" 既定
+    kbpf.scroll_value[i]     = 1;   // "fine" 既定
+    kbpf.scroll_preset[i]    = 1;   // 0:{120,1} / 1:{1,1}(fine) / 2:{120,120}
   }
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;

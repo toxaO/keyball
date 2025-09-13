@@ -23,12 +23,9 @@ Keymaps live under `keyball/<board>/keymaps/<name>/` with `keymap.c` (optionally
 ## Notes & Tips
 - Artifacts land in `qmk_firmware/.build/` and sometimes repo root `.build/` (see CI). Set `QMK_FLOAT=1` with the script to temporarily advance QMK for testing.
 
-- リモートコンテナでの環境作成のためには　scripts/setup_and_build.sh を使用すること
-- ローカルでテストビルドを行うためにはテストスクリプトを使用せず、以下のコマンドを行うこと。
-　qmk compile -kb keyball/keyball44 -km mymap
+- vialへの対応を進めること
 
-- コードの編集後にテストビルドすること。
-
+- keyball_rp2040_vialはあくまで参考であり、keyball/lib_user/keymap/44/mymapをvialで正常に動作させることを目標とすること
 
 - 返信に関してはutf-8日本語で行うこと
 - コメントの付記に関しても同様

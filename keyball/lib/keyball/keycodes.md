@@ -17,47 +17,47 @@
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
 | `CPI_I100` | `Kb 2`          | `0x7e02` | Increase 100 CPI (max 12000)                                      |
 | `CPI_D100` | `Kb 3`          | `0x7e03` | Decrease 100 CPI (min 100)                                        |
-| `MVGL`     | `Kb 17`         | `0x7e11` | Adjust low-speed pointer gain (Shift: decrease)                   |
-| `MVTH1`    | `Kb 19`         | `0x7e13` | Adjust pointer threshold1 (Shift: decrease)                       |
+| `MVGL`     | `Kb 4`          | `0x7e04` | Adjust low-speed pointer gain (Shift: decrease)                   |
+| `MVTH1`    | `Kb 5`          | `0x7e05` | Adjust pointer threshold1 (Shift: decrease)                       |
 
 ### Scroll control
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `SCRL_TO`  | `Kb 6`          | `0x7e06` | Toggle scroll mode                                                |
-| `SCRL_MO`  | `Kb 7`          | `0x7e07` | Enable scroll mode while pressed                                  |
-| `SCRL_STI` | `Kb 8`          | `0x7e08` | Increase ST (scroll step), higher is faster (1..7, default 4)     |
-| `SCRL_STD` | `Kb 9`          | `0x7e09` | Decrease ST (scroll step), lower is slower (1..7, default 4)      |
-| `SCRL_INV` | `Kb 16`         | `0x7e10` | Invert scroll direction                                           |
-| `SCRL_PST` | `Kb 5`          | `0x7e05` | Switch scroll preset: mac={120,120}, others={120,1}<->{1,1}       |
+| `SCRL_PST` | `Kb 6`          | `0x7e06` | Switch scroll preset: mac={120,120}, others={120,1}<->{1,1}       |
+| `SCRL_TO`  | `Kb 7`          | `0x7e07` | Toggle scroll mode                                                |
+| `SCRL_MO`  | `Kb 8`          | `0x7e08` | Enable scroll mode while pressed                                  |
+| `SCRL_STI` | `Kb 9`          | `0x7e09` | Increase ST (scroll step), higher is faster (1..7, default 4)     |
+| `SCRL_STD` | `Kb 10`         | `0x7e0a` | Decrease ST (scroll step), lower is slower (1..7, default 4)      |
+| `SCRL_INV` | `Kb 11`         | `0x7e0b` | Invert scroll direction                                           |
 
 ### Scroll snap
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `SSNP_VRT` | `Kb 13`         | `0x7e0d` | Set scroll snap mode to vertical                                  |
-| `SSNP_HOR` | `Kb 14`         | `0x7e0e` | Set scroll snap mode to horizontal                                |
-| `SSNP_FRE` | `Kb 15`         | `0x7e0f` | Disable scroll snap mode (free scroll)                            |
+| `SSNP_VRT` | `Kb 12`         | `0x7e0c` | Set scroll snap mode to vertical                                  |
+| `SSNP_HOR` | `Kb 13`         | `0x7e0d` | Set scroll snap mode to horizontal                                |
+| `SSNP_FRE` | `Kb 14`         | `0x7e0e` | Disable scroll snap mode (free scroll)                            |
 
 ### Automatic mouse layer
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `AML_TO`   | `Kb 10`         | `0x7e0a` | Toggle automatic mouse layer                                      |
-| `AML_I50`  | `Kb 11`         | `0x7e0b` | Increase 50ms automatic mouse layer timeout (max 3000ms)         |
-| `AML_D50`  | `Kb 12`         | `0x7e0c` | Decrease 50ms automatic mouse layer timeout (min 300ms)          |
+| `AML_TO`   | `Kb 15`         | `0x7e0f` | Toggle automatic mouse layer                                      |
+| `AML_I50`  | `Kb 16`         | `0x7e10` | Increase 50ms automatic mouse layer timeout (max 3000ms)         |
+| `AML_D50`  | `Kb 17`         | `0x7e11` | Decrease 50ms automatic mouse layer timeout (min 300ms)          |
 
 ### Swipe control
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `SW_RT`    | `Kb 4`          | `0x7e04` | Adjust swipe reset delay (Shift: decrease)                        |
-| `SW_ST`    | `Kb 21`         | `0x7e15` | Adjust swipe trigger threshold (Shift: decrease)                  |
-| `SW_DZ`    | `Kb 23`         | `0x7e17` | Adjust swipe deadzone (Shift: decrease)                           |
-| `SW_FRZ`   | `Kb 25`         | `0x7e19` | Toggle swipe pointer freeze                                       |
+| `SW_RT`    | `Kb 18`         | `0x7e12` | Adjust swipe reset delay (Shift: decrease)                        |
+| `SW_ST`    | `Kb 19`         | `0x7e13` | Adjust swipe trigger threshold (Shift: decrease)                  |
+| `SW_DZ`    | `Kb 20`         | `0x7e14` | Adjust swipe deadzone (Shift: decrease)                           |
+| `SW_FRZ`   | `Kb 21`         | `0x7e15` | Toggle swipe pointer freeze                                       |
 
 ### Debug
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `DBG_TOG`  | `Kb 26`         | `0x7e1a` | Toggle OLED debug mode                                            |
-| `DBG_NP`   | `Kb 27`         | `0x7e1b` | OLED debug page next                                              |
-| `DBG_PP`   | `Kb 28`         | `0x7e1c` | OLED debug page previous                                          |
+| `DBG_TOG`  | `Kb 22`         | `0x7e16` | Toggle OLED debug mode                                            |
+| `DBG_NP`   | `Kb 23`         | `0x7e17` | OLED debug page next                                              |
+| `DBG_PP`   | `Kb 24`         | `0x7e18` | OLED debug page previous                                          |
 
 [^1]: CPI, scroll step (ST), automatic mouse layer's enable/disable, and automatic mouse layer's timeout.
 

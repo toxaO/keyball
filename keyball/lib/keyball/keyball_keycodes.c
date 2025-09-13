@@ -5,6 +5,9 @@
 #include "keyball_scroll.h"
 #include "os_detection.h"
 #include "keyball_swipe.h"
+#if defined(DYNAMIC_KEYMAP_ENABLE)
+#    include "dynamic_keymap.h"
+#endif
 
 #define _CONSTRAIN(amt, low, high)                                             \
   ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
@@ -221,6 +224,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case DBG_PP:
       keyball_oled_prev_page();
       return false;
+
     default:
       return true;
     }

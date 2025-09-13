@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Configurations
 
 #ifndef KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 2200
+#define KEYBALL_CPI_DEFAULT 2800
 #endif
 
 #ifndef KEYBALL_SCROLL_STEP_DEFAULT
@@ -77,7 +77,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // 低速域ゲイン（0.25 ≒ 64/256）、高速域ゲイン（1.00 ≒ 256/256）
 #ifndef KEYBALL_MOVE_GAIN_LO_FP
-#define KEYBALL_MOVE_GAIN_LO_FP 64 // 0.25
+#define KEYBALL_MOVE_GAIN_LO_FP 144 // 144/256 ≒ 0.5625
 #endif
 #ifndef KEYBALL_MOVE_GAIN_HI_FP
 #define KEYBALL_MOVE_GAIN_HI_FP 256 // 1.00
@@ -149,46 +149,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Types
 
 enum keyball_keycodes {
-  // Configuration
+  // Configuration (Kb 0..)
   KBC_RST = QK_KB_0,  // Keyball configuration: reset to default
   KBC_SAVE = QK_KB_1, // Keyball configuration: save to EEPROM
 
-  // Pointer settings
+  // Pointer settings (Kb 2..)
   CPI_I100 = QK_KB_2, // CPI +100 CPI
   CPI_D100 = QK_KB_3, // CPI -100 CPI
-  MVGL = QK_KB_17,    // 低速ゲイン調整(Shiftで減少)
-  MVTH1 = QK_KB_19,   // しきい値1調整(Shiftで減少)
+  MVGL     = QK_KB_4, // 低速ゲイン調整(Shiftで減少)
+  MVTH1    = QK_KB_5, // しきい値1調整(Shiftで減少)
 
-  // Scroll control
-  SCRL_TO = QK_KB_6,   // Toggle scroll mode
-  SCRL_MO = QK_KB_7,   // Momentary scroll mode
-  SCRL_STI = QK_KB_8,  // Increase scroll step (ST)
-  SCRL_STD = QK_KB_9,  // Decrease scroll step (ST)
-  SCRL_INV = QK_KB_16, // scroll direction inverse
-  // プリセット（OS別）切替: macOS は {120,120} 固定 / それ以外は {120,1} と {1,1} をトグル
-  SCRL_PST = QK_KB_5,
-  // SCRL_DZ / SCRL_HY は廃止
+  // Scroll control (Kb 6..)
+  SCRL_PST = QK_KB_6,  // プリセット（OS別）切替
+  SCRL_TO  = QK_KB_7,  // Toggle scroll mode
+  SCRL_MO  = QK_KB_8,  // Momentary scroll mode
+  SCRL_STI = QK_KB_9,  // Increase scroll step (ST)
+  SCRL_STD = QK_KB_10, // Decrease scroll step (ST)
+  SCRL_INV = QK_KB_11, // scroll direction inverse
 
-  // Scroll snap
-  SSNP_VRT = QK_KB_13, // Set scroll snap mode as vertical
-  SSNP_HOR = QK_KB_14, // Set scroll snap mode as horizontal
-  SSNP_FRE = QK_KB_15, // Set scroll snap mode as disable (free scroll)
+  // Scroll snap (Kb 12..)
+  SSNP_VRT = QK_KB_12, // Set scroll snap mode as vertical
+  SSNP_HOR = QK_KB_13, // Set scroll snap mode as horizontal
+  SSNP_FRE = QK_KB_14, // Set scroll snap mode as disable (free scroll)
 
-  // Automatic mouse layer
-  AML_TO = QK_KB_10,  // Toggle automatic mouse layer
-  AML_I50 = QK_KB_11, // Increment automatic mouse layer timeout
-  AML_D50 = QK_KB_12, // Decrement automatic mouse layer timeout
+  // Automatic mouse layer (Kb 15..)
+  AML_TO  = QK_KB_15, // Toggle automatic mouse layer
+  AML_I50 = QK_KB_16, // Increment automatic mouse layer timeout
+  AML_D50 = QK_KB_17, // Decrement automatic mouse layer timeout
 
-  // Swipe control
-  SW_RT = QK_KB_4,   // スワイプリセット遅延調整(Shiftで減少)
-  SW_ST = QK_KB_21,  // スワイプ閾値調整(Shiftで減少)
-  SW_DZ = QK_KB_23,  // スワイプゆらぎ抑制調整(Shiftで減少)
-  SW_FRZ = QK_KB_25, // スワイプのポインタフリーズ
+  // Swipe control (Kb 18..)
+  SW_RT  = QK_KB_18, // スワイプリセット遅延調整(Shiftで減少)
+  SW_ST  = QK_KB_19, // スワイプ閾値調整(Shiftで減少)
+  SW_DZ  = QK_KB_20, // スワイプゆらぎ抑制調整(Shiftで減少)
+  SW_FRZ = QK_KB_21, // スワイプのポインタフリーズ
 
-  // Debug
-  DBG_TOG = QK_KB_26, // Toggle debug output
-  DBG_NP = QK_KB_27,  // Debug page next
-  DBG_PP = QK_KB_28,  // Debug page previous
+  // Debug (Kb 22..)
+  DBG_TOG = QK_KB_22, // Toggle debug output
+  DBG_NP  = QK_KB_23, // Debug page next
+  DBG_PP  = QK_KB_24, // Debug page previous
 
   // User customizable keycodes start here.
   KEYBALL_SAFE_RANGE = QK_USER_0,

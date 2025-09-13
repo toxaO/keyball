@@ -29,3 +29,18 @@ SRC += lib_user/features/oled_user.c
 SRC += lib_user/features/swipe_user.c
 SRC += lib_user/features/util_user.c
 SRC += lib_user/features/combo_user.c
+
+# キーコード表示名テーブル（ユーザー定義キーを名前表示）
+KEYCODE_STRING_ENABLE = yes
+SRC += lib_user/keycode_string_user.c
+# Vial互換のために動的キーマップ/RAWを明示有効化
+DYNAMIC_KEYMAP_ENABLE = yes
+RAW_ENABLE = yes
+
+# vial-qmk は -DNO_DEBUG を有効にするため、コンソール出力を行うために明示的に解除
+OPT_DEFS += -UNO_DEBUG
+
+# Vialビルドでは quantum/via.c を強制的に取り込む（raw_hid_receive 実装のため）
+ifeq ($(strip $(VIAL_ENABLE)), yes)
+SRC += quantum/via.c
+endif

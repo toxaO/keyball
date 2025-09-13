@@ -28,6 +28,14 @@
 #include "os_detection.h"
 #include "timer.h"
 
+#ifdef DYNAMIC_KEYMAP_ENABLE
+#    include "dynamic_keymap.h"
+#endif
+
+#if defined(VIAL_ENABLE) || defined(VIA_ENABLE)
+#    include "via.h"
+#endif
+
 
 // Anything above this value makes the cursor fly across the screen.
 const uint16_t CPI_MAX        = 4000;
@@ -163,7 +171,7 @@ static void rpc_get_info_invoke(void) {
 
   // split keyboard negotiation completed.
 
-#    ifdef VIA_ENABLE
+#    if defined(VIA_ENABLE) || defined(VIAL_ENABLE)
   // adjust VIA layout options according to current combination.
   uint8_t  layouts = (keyball.this_have_ball ? (is_keyboard_left() ? 0x02 : 0x01) : 0x00) | (keyball.that_have_ball ? (is_keyboard_left() ? 0x01 : 0x02) : 0x00);
   uint32_t curr    = via_get_layout_options();
@@ -226,7 +234,12 @@ void keyboard_post_init_kb(void) {
 
   // QMK 0.30.x 以降の公式 PMW33xx ドライバでは pmw33xx_init_ok は提供されない。
   // 代わりに pointing_device の初期化ステータスでボール有無を判定する。
+  // QMKの世代差異に対応: vial-qmk 等の古い世代には status API が無い
+#if defined(POINTING_DEVICE_STATUS_SUCCESS)
   keyball.this_have_ball = (pointing_device_get_status() == POINTING_DEVICE_STATUS_SUCCESS);
+#else
+  keyball.this_have_ball = true;
+#endif
   kbpf_defaults();        // まず既定値
   kbpf_read();            // EEPROMから上書き
                           // kbpf_after_load_fixup(); // 旧版からの移行処理
@@ -303,6 +316,27 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   keyball.last_pos = record->event.key;
 
   pressing_keys_update(keycode, record);
+
+  // ---- Debug: log key events (row/col/layer/keycode) ----
+  {
+    uint8_t row = record->event.key.row;
+    uint8_t col = record->event.key.col;
+    uint8_t hl  = get_highest_layer(layer_state);
+#    ifdef DYNAMIC_KEYMAP_ENABLE
+    uint16_t assigned = dynamic_keymap_get_keycode(hl, row, col);
+#    else
+    uint16_t assigned = pgm_read_word(&keymaps[hl][row][col]);
+#    endif
+    uprintf("EV kc=%04X assigned=%04X pressed=%u row=%u col=%u layer=%u mods=%02X os=%u\n",
+            (unsigned)keycode,
+            (unsigned)assigned,
+            (unsigned)(record->event.pressed ? 1u : 0u),
+            (unsigned)row,
+            (unsigned)col,
+            (unsigned)hl,
+            (unsigned)get_mods(),
+            (unsigned)detected_host_os());
+  }
 
   bool was_swipe_active = keyball_swipe_is_active();
   bool user_result = process_record_user(keycode, record);
