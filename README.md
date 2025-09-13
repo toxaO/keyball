@@ -18,45 +18,38 @@ See each directories for each keyboards in a table above.
 
 ## How to build
 
-1. Check out this repository.
+This repo includes `qmk_firmware/` as a submodule. We build against the official QMK tag, defaulting to 0.30.3.
 
-    ```console
-    $ git clone https://github.com/Yowkees/keyball.git keyball
-    ```
+Option A: Use the script (recommended)
 
-2. Check out [qmk/qmk_firmware](https://github.com/qmk/qmk_firmware/) repository in another place.
+1) Clone and enter the repo
 
-    ```console
-    $ git clone https://github.com/qmk/qmk_firmware.git --depth 1 --recurse-submodules --shallow-submodules -b 0.22.14 qmk
-    ```
+```console
+git clone https://github.com/Yowkees/keyball.git
+cd keyball
+```
 
-    Currently Keyball firmwares are verified to compile with QMK 0.22.14
+2) Run the setup script (creates venv, sets QMK home, links keyboards, builds examples)
 
-3. Create a symbolic link to this `keyball/` directory from [qmk/qmk_firmware]'s `keyboards/` directory.
+```console
+bash scripts/setup_and_build.sh          # uses QMK 0.30.3 by default
+QMK_TAG=0.30.4 bash scripts/setup_and_build.sh   # override QMK tag if needed
+```
 
-    ```console
-    $ ls
-    keyball/ qmk/
+Artifacts are placed under `qmk_firmware/.build/`.
 
-    $ cd qmk/keyboards
-    $ ln -s ../../keyball/qmk_firmware/keyboards/keyball keyball
-    $ ls keyball/
-    drivers/  keyball39/  keyball44/  keyball46/  keyball61/  lib/  one47/  readme.md
-    $ cd ..
-    ```
+Option B: Manual build with QMK CLI
 
-4. `make` your Keyball firmware.
+```console
+# one-time
+python3 -m pip install --user qmk
+qmk setup -H "$PWD/qmk_firmware" -y
+rm -rf qmk_firmware/keyboards/keyball && mkdir -p qmk_firmware/keyboards && ln -s ../../keyball qmk_firmware/keyboards/keyball
 
-    ```console
-    # Build Keyball39 firmware with "default" keymap
-    $ make SKIP_GIT=yes keyball/keyball39:default
-
-    # Build Keyball44 firmware with "default" keymap
-    $ make SKIP_GIT=yes keyball/keyball44:default
-
-    # Build Keyball61 firmware with "default" keymap
-    $ make SKIP_GIT=yes keyball/keyball61:default
-    ```
+# build
+qmk compile -kb keyball/keyball44 -km mymap
+qmk compile -kb keyball/keyball39 -km mymap
+```
 
 There are three keymaps provided at least:
 
@@ -83,7 +76,8 @@ There are three keymaps provided at least:
 9. 右側の "Run workflow" を押してフォームを開く
 10. 対象ブランチを選択（例: mymap-work）
 11. Keyboard を選ぶ（例: keyball/keyball44）
-12. keymap を入力（例: mymap）
+12. Keymap を入力（例: mymap）
+13. （任意）QMK tag を指定（既定: 0.30.3）
 13. Run workflow を押す
 14. ビルド完了まで待つ（数分）
 15. 最新のワークフロー実行を開く（詳細へ）
@@ -125,7 +119,7 @@ There are three keymaps provided at least:
 
 以下はCUIに慣れた方向けの導入とビルドの概要です。
 
-- 重要: 本リポジトリでビルドに使用できる QMK は「同梱の `qmk_firmware` ディレクトリ（keyball ブランチ）」のみです。上流の任意バージョンや別ブランチではビルドできない／挙動が一致しない可能性があります。
+- 重要: 本リポジトリでは、同梱の `qmk_firmware` サブモジュールを公式 QMK のタグへチェックアウトして使用します（既定 0.30.3）。
 
 - 前提
   - git / Python 3.10+ が導入済みであること
@@ -138,10 +132,12 @@ There are three keymaps provided at least:
   - QMK CLI を導入（いずれか）
     - pipx を使う場合: `pipx install qmk`
     - pip を使う場合: `python3 -m pip install --user qmk`
-  - QMK のホームを本リポジトリ同梱の `qmk_firmware`（keyball ブランチ）に指定
+  - QMK のホームを本リポジトリ同梱の `qmk_firmware` に指定
     - `qmk setup -H "$PWD/qmk_firmware"`
       - 初回は依存取得等で時間がかかる場合があります
   - サブモジュールの取得（必要時）
+    - `git -C qmk_firmware fetch --tags`
+    - `git -C qmk_firmware checkout v0.30.3`（必要に応じて任意タグへ）
     - `git -C qmk_firmware submodule sync --recursive`
     - `git -C qmk_firmware submodule update --init --recursive --depth 1`
   - キーボードディレクトリのリンク（必要時）
@@ -153,11 +149,10 @@ There are three keymaps provided at least:
 - 手順（スクリプト利用）
   - ルート直下で実行: `bash scripts/setup_and_build.sh`
     - していること（要約）
-      - `qmk_firmware` のサブモジュール同期・初期化
-      - venv 構築＋QMK CLI 導入＋ `qmk setup -H` の実行
-      - `qmk_firmware/keyboards/keyball -> ../../keyball` のシンボリックリンク作成
-      - `keyball39:mymap` と `keyball44:mymap` を連続ビルド
-    - 最新の `qmk_firmware` ブランチ（keyball）を使いたい場合: `QMK_FLOAT=1 bash scripts/setup_and_build.sh`
+    - QMK を公式タグへチェックアウト（既定: 0.30.3、`QMK_TAG` で上書き可）
+    - venv 構築＋QMK CLI 導入＋ `qmk setup -H` の実行
+    - `qmk_firmware/keyboards/keyball -> ../../keyball` のシンボリックリンク作成
+    - `keyball39:mymap` と `keyball44:mymap` を連続ビルド
 
 - 備考
   - 現在、ビルド確認済みなのは `keyball39` と `keyball44` の `mymap` のみです。

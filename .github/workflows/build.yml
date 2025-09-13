@@ -11,6 +11,10 @@ on:
         description: "Keymap"
         required: true
         default: "mymap"
+      qmk_tag:
+        description: "QMK firmware tag (例: 0.30.3 / v0.30.3)"
+        required: false
+        default: "0.30.3"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.kb }}-${{ inputs.km }}
@@ -25,6 +29,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Checkout QMK to tag
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.qmk_tag }}"
+          cd qmk_firmware
+          git fetch --tags origin || true
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            if ! git remote get-url upstream >/dev/null 2>&1; then
+              git remote add upstream https://github.com/qmk/qmk_firmware.git
+            fi
+            git fetch --tags upstream || true
+          fi
+          ALT_TAG="v$TAG"
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null && git rev-parse -q --verify "refs/tags/$ALT_TAG" >/dev/null; then
+            TAG="$ALT_TAG"
+          fi
+          echo "Use QMK tag: $TAG"
+          git checkout -f "$TAG"
+          git submodule sync --recursive || true
+          git submodule update --init --recursive --depth 1 || true
 
       - name: Install toolchain
         run: |
@@ -98,4 +123,3 @@ jobs:
             qmk_firmware/*.bin
           if-no-files-found: error
           retention-days: 14
-

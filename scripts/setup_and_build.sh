@@ -2,16 +2,17 @@
 # macOS / Ubuntu 用
 # 目的: venv + qmk セットアップ → keyboards/keyball の丸ごとリンク → 複数ターゲットを連続ビルド
 # 実行場所: ルート（keyball/ と qmk_firmware/ が並んでいる）
-# 注意: 本プロジェクトで使用できる QMK は「同梱の qmk_firmware（keyball ブランチ）」のみです。
-#       上流の任意バージョンや別ブランチではビルドできない／挙動が一致しない可能性があります。
+# 注意: 公式 QMK のタグをチェックアウトしてビルドします（既定は 0.30.3）。
 # 使い方:
 #   bash scripts/setup_and_build.sh
-#   QMK_FLOAT=1 bash scripts/setup_and_build.sh   # ← qmk_firmware を keyball ブランチの最新へ進めてからビルド
+#   QMK_TAG=0.30.4 bash scripts/setup_and_build.sh   # ← 使いたい QMK タグを上書き
 set -euo pipefail
 
 QMK_DIR="qmk_firmware"
 KEYBALL_DIR="keyball"
 VENV_DIR=".venv"
+QMK_TAG_DEFAULT="0.30.3"   # 既定で使用する公式 QMK タグ
+QMK_TAG="${QMK_TAG:-$QMK_TAG_DEFAULT}"
 
 # 連続ビルドするターゲット
 BUILDS=(
@@ -27,17 +28,37 @@ err(){ printf "\033[1;31m[ERR ]\033[0m %s\n" "$*"; }
 [ -d "$KEYBALL_DIR" ]|| { err "$KEYBALL_DIR が見つかりません"; exit 1; }
 
 # QMK submodule 初期化（固定コミットで取得）
-say "Submodules init/sync (pinned)…"
-git -C "$QMK_DIR" submodule sync --recursive || true
-git -C "$QMK_DIR" submodule update --init --recursive --depth 1 || true
+say "Prepare qmk_firmware (checkout tag: $QMK_TAG)"
 
-# 任意: QMK を keyball ブランチ最新へ“浮かせる”（再現性は下がる）
-if [ "${QMK_FLOAT:-0}" = "1" ]; then
-  say "Float qmk_firmware to branch 'keyball' (latest)"
-  git -C "$QMK_DIR" fetch origin keyball
-  git -C "$QMK_DIR" checkout keyball || git -C "$QMK_DIR" checkout -b keyball origin/keyball
-  git -C "$QMK_DIR" pull --ff-only origin keyball || true
+# qmk_firmware が git 管理でない場合はエラー
+if [ ! -d "$QMK_DIR/.git" ]; then
+  err "$QMK_DIR は Git リポジトリではありません（サブモジュール / クローンが必要）"
+  exit 1
 fi
+
+# タグ取得（origin に無ければ upstream=official を追加して取得）
+( \
+  cd "$QMK_DIR" && \
+  git fetch --tags origin || true && \
+  if ! git rev-parse -q --verify "refs/tags/$QMK_TAG" >/dev/null; then
+    if ! git remote get-url upstream >/dev/null 2>&1; then
+      say "Add official remote as 'upstream'"
+      git remote add upstream https://github.com/qmk/qmk_firmware.git
+    fi
+    git fetch --tags upstream || true
+  fi && \
+  # v接頭辞も試す
+  TAG_TO_USE="$QMK_TAG" && \
+  if ! git rev-parse -q --verify "refs/tags/$TAG_TO_USE" >/dev/null; then
+    if git rev-parse -q --verify "refs/tags/v$QMK_TAG" >/dev/null; then
+      TAG_TO_USE="v$QMK_TAG"
+    fi
+  fi && \
+  say "Checkout QMK tag: ${TAG_TO_USE}" && \
+  git checkout -f "${TAG_TO_USE}" && \
+  git submodule sync --recursive || true && \
+  git submodule update --init --recursive --depth 1 || true \
+)
 
 # ARM ツールチェイン確認
 if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
@@ -66,7 +87,9 @@ qmk setup -H "$QMK_HOME_ABS" -y || true
 # keyboards/keyball → ../../keyball へ「丸ごとリンク」（lib_user も見せる）
 LINK_FROM="$QMK_DIR/keyboards/keyball"
 LINK_TO="../../$KEYBALL_DIR"
-[ -e "$LINK_FROM" ] || [ -L "$LINK_FROM" ] && rm -rf "$LINK_FROM"
+if [ -e "$LINK_FROM" ] || [ -L "$LINK_FROM" ]; then
+  rm -rf "$LINK_FROM"
+fi
 mkdir -p "$QMK_DIR/keyboards"
 ln -s "$LINK_TO" "$LINK_FROM"
 say "symlink: $LINK_FROM -> $LINK_TO"
