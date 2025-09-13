@@ -30,6 +30,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     mod_state = get_mods();
 
     switch (keycode) {
+        case ESC_LNG2:
+            if (record->event.pressed) {
+                tap_code(KC_ESC);
+                tap_code(KC_LNG2);
+            }
+            return false;
+
         case _Cur_ENT:
             if (!record->tap.count && record->event.pressed) {
               switch (host_os) {

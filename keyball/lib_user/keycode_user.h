@@ -216,4 +216,5 @@ enum custom_keycodes {
     MULTI_B,
     EISU_S_N,
     KANA_C_N,
+    ESC_LNG2, // Esc の後に KC_LNG2 を送る
 };
