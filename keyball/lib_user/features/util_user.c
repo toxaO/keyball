@@ -29,6 +29,23 @@ void keyboard_post_init_user(void) {
 #endif
 }
 
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+// スワイプ始動キーをマウスキーとして扱うことで、
+// AMLの「マウスキー押下中はレイヤ保持」ロジックに乗せる
+bool is_mouse_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+    case APP_SW:
+    case VOL_SW:
+    case BRO_SW:
+    case TAB_SW:
+    case WIN_SW:
+      return true; // マウスキーとして扱う
+    default:
+      return false;
+  }
+}
+#endif
+
 // // 自前の絶対数を返す関数。 Functions that return absolute numbers.
 // int16_t my_abs(int16_t num) {
 //   if (num < 0) {

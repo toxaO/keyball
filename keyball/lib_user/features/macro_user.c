@@ -246,13 +246,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         // 以下スワイプジェスチャー
         case APP_SW:
             if (record->event.pressed) {
-                layer_on(_SW_Block);
                 keyball_swipe_begin(KBS_TAG_APP);
                 swipe_timer = timer_read();
                 canceller = false;  // ← APP の起動/キャンセル用のあなたの状態
             } else {
                 keyball_swipe_end();
-                layer_off(_SW_Block);
                 if (timer_elapsed(swipe_timer) < TAPPING_TERM
                     && !keyball_swipe_fired_since_begin()) {
                     tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
@@ -262,12 +260,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case VOL_SW:
             if (record->event.pressed) {
-                layer_on(_SW_Block);
                 keyball_swipe_begin(KBS_TAG_VOL);
                 swipe_timer = timer_read();
             } else {
                 keyball_swipe_end();
-                layer_off(_SW_Block);
                 if (timer_elapsed(swipe_timer) < TAPPING_TERM
                     && !keyball_swipe_fired_since_begin()) {
                     tap_code(KC_MPLY);
@@ -277,12 +273,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case BRO_SW:
             if (record->event.pressed) {
-                layer_on(_SW_Block);
                 keyball_swipe_begin(KBS_TAG_BRO);
                 swipe_timer = timer_read();
             } else {
                 keyball_swipe_end();
-                layer_off(_SW_Block);
                 if (timer_elapsed(swipe_timer) < TAPPING_TERM
                     && !keyball_swipe_fired_since_begin()) {
                     tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
@@ -292,12 +286,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case TAB_SW:
             if (record->event.pressed) {
-                layer_on(_SW_Block);
                 keyball_swipe_begin(KBS_TAG_TAB);
                 swipe_timer = timer_read();
             } else {
                 keyball_swipe_end();
-                layer_off(_SW_Block);
                 if (timer_elapsed(swipe_timer) < TAPPING_TERM
                     && !keyball_swipe_fired_since_begin()) {
                     tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
@@ -307,26 +299,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case WIN_SW:
             if (record->event.pressed) {
-                layer_on(_SW_Block);
-                // スワイプ中のみマウスレイヤを強制ON（OSに応じたターゲット）
-                switch (host_os) {
-                  case OS_MACOS:
-                  case OS_IOS:
-                    layer_on(_mMou);
-                    break;
-                  case OS_WINDOWS:
-                  default:
-                    layer_on(_wMou);
-                    break;
-                }
+                // // スワイプ中のみマウスレイヤを強制ON（OSに応じたターゲット）
+                // switch (host_os) {
+                //   case OS_MACOS:
+                //   case OS_IOS:
+                //     layer_on(_mMou);
+                //     break;
+                //   case OS_WINDOWS:
+                //   default:
+                //     layer_on(_wMou);
+                //     break;
+                // }
                 keyball_swipe_begin(KBS_TAG_WIN);
                 swipe_timer = timer_read();
             } else {
                 keyball_swipe_end();
-                layer_off(_SW_Block);
-                // スワイプ終了でマウスレイヤをOFF（両方OFFしておく）
-                layer_off(_mMou);
-                layer_off(_wMou);
+                // // スワイプ終了でマウスレイヤをOFF（両方OFFしておく）
+                // layer_off(_mMou);
+                // layer_off(_wMou);
                 if (host_os == OS_WINDOWS) {
                     unregister_code(KC_LGUI);
                 }

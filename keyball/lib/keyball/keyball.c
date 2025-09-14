@@ -42,9 +42,9 @@ const uint16_t CPI_MAX        = 4000;
 const uint8_t SCROLL_DIV_MAX = 7; // ST は 1..7 の 7 段階（4 が中心）
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-const uint16_t AML_TIMEOUT_MIN = 300;
-const uint16_t AML_TIMEOUT_MAX = 3000;
-const uint16_t AML_TIMEOUT_QU  = 50;   // Quantization Unit
+const uint16_t AML_TIMEOUT_MIN = 300;   // ms
+const uint16_t AML_TIMEOUT_MAX = 5000;  // ms (was 3000)
+const uint16_t AML_TIMEOUT_QU  = 100;   // Quantization Unit (was 50)
 #endif
 
 static const char BL = '\xB0'; // Blank indicator character
