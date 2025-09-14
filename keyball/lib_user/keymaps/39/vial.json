@@ -61,17 +61,6 @@
     { "name": "SW_FRZ",     "title": "Toggle swipe pointer freeze",                                 "shortName": "SW\nFRZ" },
     { "name": "DBG_TOG",    "title": "Toggle debug output",                                        "shortName": "DBG\nTOG" },
     { "name": "DBG_NP",     "title": "Debug page next",                                            "shortName": "DBG\nNP" },
-    { "name": "DBG_PP",     "title": "Debug page previous",                                        "shortName": "DBG\nPP" },
-
-    { "name": "APP_SW",    "title": "App switcher (user)",                                         "shortName": "APP\nSW" },
-    { "name": "VOL_SW",    "title": "Volume switcher (user)",                                      "shortName": "VOL\nSW" },
-    { "name": "BRO_SW",    "title": "Browser switcher (user)",                                     "shortName": "BRO\nSW" },
-    { "name": "TAB_SW",    "title": "Tab switcher (user)",                                         "shortName": "TAB\nSW" },
-    { "name": "WIN_SW",    "title": "Window switcher (user)",                                      "shortName": "WIN\nSW" },
-    { "name": "MULTI_A",   "title": "Multi action A (user)",                                       "shortName": "MULTI\nA" },
-    { "name": "MULTI_B",   "title": "Multi action B (user)",                                       "shortName": "MULTI\nB" },
-    { "name": "EISU_S_N",  "title": "EISU w/ something (user)",                                    "shortName": "EISU\nS_N" },
-    { "name": "KANA_C_N",  "title": "KANA w/ something (user)",                                    "shortName": "KANA\nC_N" },
-    { "name": "ESC_LNG2",  "title": "Esc then LANG2 (user)",                                       "shortName": "ESC\nLNG2" }
+    { "name": "DBG_PP",     "title": "Debug page previous",                                        "shortName": "DBG\nPP" }
   ]
 }

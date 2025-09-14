@@ -25,3 +25,7 @@
 // Vial 用: アンロックコンボ（任意の2キー。左上2キーを選択）
 #define VIAL_UNLOCK_COMBO_ROWS { 0, 0 }
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
+
+// VIA/Vial: レイアウトオプションの初期値を Right に設定
+#undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001

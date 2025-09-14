@@ -192,6 +192,9 @@ enum keyball_keycodes {
   KEYBALL_SAFE_RANGE = QK_USER_0,
 };
 
+// Vial ではユーザーレベル（QK_USER_*）のキーは customKeycodes へ掲載しません。
+// 掲載するのはキーボードレベル（QK_KB_*）のみとします。
+
 // 互換用のエイリアスは削除しました
 
 typedef union {

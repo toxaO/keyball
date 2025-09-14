@@ -416,180 +416,30 @@
     ]
   },
   "customKeycodes": [
-    {
-      "name": "KBC_RST",
-      "title": "Reset Keyball configuration",
-      "shortName": "KBC\nRST"
-    },
-    {
-      "name": "KBC_SAVE",
-      "title": "Persist Keyball configuration to EEPROM",
-      "shortName": "KBC\nSAVE"
-    },
-    {
-      "name": "CPI_I100",
-      "title": "Increase 100 CPI (max 4000)",
-      "shortName": "CPI\nI100"
-    },
-    {
-      "name": "CPI_D100",
-      "title": "Decrease 100 CPI (min 100)",
-      "shortName": "CPI\nD100"
-    },
-    {
-      "name": "MVGL",
-      "title": "Pointer low-speed gain +/- (Shift=decrease)",
-      "shortName": "MV\nGAIN"
-    },
-    {
-      "name": "MVTH1",
-      "title": "Pointer threshold1 +/- (Shift=decrease)",
-      "shortName": "MV\nTH1"
-    },
-    {
-      "name": "SCRL_PST",
-      "title": "Toggle OS-specific scroll preset",
-      "shortName": "SCRL\nPST"
-    },
-    {
-      "name": "SCRL_TO",
-      "title": "Toggle scroll mode",
-      "shortName": "SCRL\nTO"
-    },
-    {
-      "name": "SCRL_MO",
-      "title": "Enable scroll mode when pressing",
-      "shortName": "SCRL\nMO"
-    },
-    {
-      "name": "SCRL_STI",
-      "title": "Increase scroll step (ST)",
-      "shortName": "SCRL\nSTI"
-    },
-    {
-      "name": "SCRL_STD",
-      "title": "Decrease scroll step (ST)",
-      "shortName": "SCRL\nSTD"
-    },
-    {
-      "name": "SCRL_INV",
-      "title": "Invert scroll direction (per OS)",
-      "shortName": "SCRL\nINV"
-    },
-    {
-      "name": "SSNP_VRT",
-      "title": "Set scroll snap mode as vertical",
-      "shortName": "SSNP\nVRT"
-    },
-    {
-      "name": "SSNP_HOR",
-      "title": "Set scroll snap mode as horizontal",
-      "shortName": "SSNP\nHOR"
-    },
-    {
-      "name": "SSNP_FRE",
-      "title": "Set scroll snap mode as disable (free)",
-      "shortName": "SSNP\nFRE"
-    },
-    {
-      "name": "AML_TO",
-      "title": "Toggle automatic mouse layer",
-      "shortName": "AML\nTO"
-    },
-    {
-      "name": "AML_I50",
-      "title": "Increase 50ms automatic mouse layer timeout",
-      "shortName": "AML\nI50"
-    },
-    {
-      "name": "AML_D50",
-      "title": "Decrease 50ms automatic mouse layer timeout",
-      "shortName": "AML\nD50"
-    },
-    {
-      "name": "SW_RT",
-      "title": "Swipe reset-ms +/- (Shift=decrease)",
-      "shortName": "SW\nRT"
-    },
-    {
-      "name": "SW_ST",
-      "title": "Swipe step +/- (Shift=decrease)",
-      "shortName": "SW\nST"
-    },
-    {
-      "name": "SW_DZ",
-      "title": "Swipe deadzone +/- (Shift=decrease)",
-      "shortName": "SW\nDZ"
-    },
-    {
-      "name": "SW_FRZ",
-      "title": "Toggle swipe pointer freeze",
-      "shortName": "SW\nFRZ"
-    },
-    {
-      "name": "DBG_TOG",
-      "title": "Toggle debug output",
-      "shortName": "DBG\nTOG"
-    },
-    {
-      "name": "DBG_NP",
-      "title": "Debug page next",
-      "shortName": "DBG\nNP"
-    },
-    {
-      "name": "DBG_PP",
-      "title": "Debug page previous",
-      "shortName": "DBG\nPP"
-    },
-    {
-      "name": "APP_SW",
-      "title": "App switcher (user)",
-      "shortName": "APP\nSW"
-    },
-    {
-      "name": "VOL_SW",
-      "title": "Volume switcher (user)",
-      "shortName": "VOL\nSW"
-    },
-    {
-      "name": "BRO_SW",
-      "title": "Browser switcher (user)",
-      "shortName": "BRO\nSW"
-    },
-    {
-      "name": "TAB_SW",
-      "title": "Tab switcher (user)",
-      "shortName": "TAB\nSW"
-    },
-    {
-      "name": "WIN_SW",
-      "title": "Window switcher (user)",
-      "shortName": "WIN\nSW"
-    },
-    {
-      "name": "MULTI_A",
-      "title": "Multi action A (user)",
-      "shortName": "MULTI\nA"
-    },
-    {
-      "name": "MULTI_B",
-      "title": "Multi action B (user)",
-      "shortName": "MULTI\nB"
-    },
-    {
-      "name": "EISU_S_N",
-      "title": "EISU w/ something (user)",
-      "shortName": "EISU\nS_N"
-    },
-    {
-      "name": "KANA_C_N",
-      "title": "KANA w/ something (user)",
-      "shortName": "KANA\nC_N"
-    },
-    {
-      "name": "ESC_LNG2",
-      "title": "Esc then LANG2 (user)",
-      "shortName": "ESC\nLNG2"
-    }
+    { "name": "KBC_RST",   "title": "Reset Keyball configuration",                   "shortName": "KBC\nRST" },
+    { "name": "KBC_SAVE",  "title": "Persist Keyball configuration to EEPROM",     "shortName": "KBC\nSAVE" },
+    { "name": "CPI_I100",  "title": "Increase 100 CPI (max 4000)",                 "shortName": "CPI\nI100" },
+    { "name": "CPI_D100",  "title": "Decrease 100 CPI (min 100)",                  "shortName": "CPI\nD100" },
+    { "name": "MVGL",      "title": "Pointer low-speed gain +/- (Shift=decrease)", "shortName": "MV\nGAIN" },
+    { "name": "MVTH1",     "title": "Pointer threshold1 +/- (Shift=decrease)",     "shortName": "MV\nTH1" },
+    { "name": "SCRL_PST",  "title": "Toggle OS-specific scroll preset",            "shortName": "SCRL\nPST" },
+    { "name": "SCRL_TO",   "title": "Toggle scroll mode",                          "shortName": "SCRL\nTO" },
+    { "name": "SCRL_MO",   "title": "Enable scroll mode when pressing",            "shortName": "SCRL\nMO" },
+    { "name": "SCRL_STI",  "title": "Increase scroll step (ST)",                    "shortName": "SCRL\nSTI" },
+    { "name": "SCRL_STD",  "title": "Decrease scroll step (ST)",                    "shortName": "SCRL\nSTD" },
+    { "name": "SCRL_INV",  "title": "Invert scroll direction (per OS)",            "shortName": "SCRL\nINV" },
+    { "name": "SSNP_VRT",  "title": "Set scroll snap mode as vertical",            "shortName": "SSNP\nVRT" },
+    { "name": "SSNP_HOR",  "title": "Set scroll snap mode as horizontal",          "shortName": "SSNP\nHOR" },
+    { "name": "SSNP_FRE",  "title": "Set scroll snap mode as disable (free)",      "shortName": "SSNP\nFRE" },
+    { "name": "AML_TO",    "title": "Toggle automatic mouse layer",                 "shortName": "AML\nTO" },
+    { "name": "AML_I50",   "title": "Increase 50ms automatic mouse layer timeout", "shortName": "AML\nI50" },
+    { "name": "AML_D50",   "title": "Decrease 50ms automatic mouse layer timeout", "shortName": "AML\nD50" },
+    { "name": "SW_RT",     "title": "Swipe reset-ms +/- (Shift=decrease)",         "shortName": "SW\nRT" },
+    { "name": "SW_ST",     "title": "Swipe step +/- (Shift=decrease)",            "shortName": "SW\nST" },
+    { "name": "SW_DZ",     "title": "Swipe deadzone +/- (Shift=decrease)",        "shortName": "SW\nDZ" },
+    { "name": "SW_FRZ",    "title": "Toggle swipe pointer freeze",                 "shortName": "SW\nFRZ" },
+    { "name": "DBG_TOG",   "title": "Toggle debug output",                          "shortName": "DBG\nTOG" },
+    { "name": "DBG_NP",    "title": "Debug page next",                              "shortName": "DBG\nNP" },
+    { "name": "DBG_PP",    "title": "Debug page previous",                          "shortName": "DBG\nPP" }
   ]
 }

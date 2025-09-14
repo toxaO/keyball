@@ -196,12 +196,13 @@ enum layer_names {
     _mCur,
     _wCur,
     _NumP,
-    _SW_Block,
     _mMou,
     _wMou,
     _Scr,
     _Pad,
+    _Pad2,
     _Set,
+    _SW_Block,
 };
 
 // custom keycode --------------------

@@ -39,3 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 2
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
+
+// VIA/Vial: レイアウトオプションの初期値を Right に設定
+#undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001

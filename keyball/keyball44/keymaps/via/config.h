@@ -39,3 +39,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 1
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
+
+// KeyballプロファイルをEECONFIG_KBに保存するための領域確保
+#undef  EECONFIG_KB_DATA_SIZE
+#define EECONFIG_KB_DATA_SIZE 128
+
+// スクロール反転の初期設定（OS別設定の既定）
+#ifndef KEYBALL_SCROLL_INVERT
+#define KEYBALL_SCROLL_INVERT 1
+#endif
+
+// VIA/Vial: レイアウトオプションの初期値を Right に設定
+#undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001

@@ -22,8 +22,9 @@ void keyboard_post_init_user(void) {
           set_auto_mouse_layer(_wMou);
           break;
       }
-      // 初回はONで開始（以後はKBC_SAVEで永続化され、以降ここは通らない想定）
-      set_auto_mouse_enable(true);
+      // ここではレイヤのみ既定値を設定し、有効化はしない。
+      // 有効/無効は永続化済み設定（kbpf.aml_enable）に従い、
+      // 利用者が `AML_TO` などで明示的に切り替える前提とする。
     }
 #endif
 }

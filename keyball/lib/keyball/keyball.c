@@ -171,12 +171,12 @@ static void rpc_get_info_invoke(void) {
 
   // split keyboard negotiation completed.
 
-#    if defined(VIA_ENABLE) || defined(VIAL_ENABLE)
-  // adjust VIA layout options according to current combination.
-  uint8_t  layouts = (keyball.this_have_ball ? (is_keyboard_left() ? 0x02 : 0x01) : 0x00) | (keyball.that_have_ball ? (is_keyboard_left() ? 0x01 : 0x02) : 0x00);
-  uint32_t curr    = via_get_layout_options();
-  uint32_t next    = (curr & ~0x3) | layouts;
-  if (next != curr) {
+#    if (defined(VIA_ENABLE) || defined(VIAL_ENABLE))
+  // レイアウト下位2bitが 0(None) のときだけ、既定を Right(=1) に設定。
+  // これにより初期表示が None/Dual にならないようにする。
+  uint32_t curr = via_get_layout_options();
+  if ( (curr & 0x3u) == 0u ) {
+    uint32_t next = (curr & ~0x3u) | 0x01u; // Right
     via_set_layout_options(next);
   }
 #    endif

@@ -5,6 +5,7 @@
 - `qmk_firmware/` — Pinned QMK tree used for builds (includes `.build/` outputs).
 - `scripts/` — Helper scripts (e.g., `scripts/setup_and_build.sh`).
 - `.github/workflows/` — CI that compiles firmware via the QMK CLI.
+- `vial-qmk` - to build vial uf2 file.
 
 Keymaps live under `keyball/<board>/keymaps/<name>/` with `keymap.c` (optionally `rules.mk`, `config.h`). User-level shared code is under `keyball/lib_user/`.
 
@@ -23,9 +24,37 @@ Keymaps live under `keyball/<board>/keymaps/<name>/` with `keymap.c` (optionally
 ## Notes & Tips
 - Artifacts land in `qmk_firmware/.build/` and sometimes repo root `.build/` (see CI). Set `QMK_FLOAT=1` with the script to temporarily advance QMK for testing.
 
-- vialへの対応を進めること
-
-- keyball_rp2040_vialはあくまで参考であり、keyball/lib_user/keymap/44/mymapをvialで正常に動作させることを目標とすること
-
 - 返信に関してはutf-8日本語で行うこと
 - コメントの付記に関しても同様
+
+# 現在の状況に関して
+- mymapは自分用のキーマップを指す。
+
+- vialは頒布用のキーマップを指す。
+
+- keyball44と39に関してはqmkとvialでビルド可能で動作確認済。61はこれから。
+- ビルドに関してはコマンド make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:mymapで行ってください。
+
+- keyball61はduplex matrixを採用しているため、対応が必要。
+
+## 現在の不具合
+- 現在確認されている不具合の一つに、vialのアプリ上ではユーザーレベルのカスタムキーコードはデフォルトのマップ表示では16進数で表示されてしまうこと。また、vialで選択できるキーの中にはユーザーレベルのカスタムキーコードが表示されているが、それをレイアウトに配置しても正しいキーコードの送出をされていない。vial上で認識させているカスタムキーコードがキーボードレベルのカスタムキーコードからの連番で認識されているのが原因の可能性が高い。例としてユーザーレベルで定義しているカスタムキーコードKANA_C_N（kc=7e48）がデフォルトキーマップ上でrow7, col4に配置しているが、vial上で表示されるuserカスタムキーコードを入力するとkc=7e20が送出されてしまう。
+- 現在確認されている不具合の一つに、defaultレイヤのーrow0, col1が初期状態でkc=0003になってしまう。vial上で書き換えれば問題ない。KC_Qのキーコードがkc=0014であるため、11少ないKCが送出されているのかと考え、kc_8(kc_0025)を配置してみたところKC_0(kc=0023)が登録されていた。原因不明。
+ーvilaで選択できるキーボードレイアウトの順番が、None, right, left, dualとなっている。また初期で選択されているレイアウトがdualになっている。初期選択レイアウトはrightにしたい。このレイアウトの選択によって前述のkc_0003の問題が発生している可能性がある。
+
+## 頒布のための対応事項
+- 頒布用のキーマップではデフォルト表示のマップにはユーザーレベルのカスタムキーコードは含めないようにする。
+- 頒布用のキーマップを新たに作成する必要がある。現在使用しているmymapをベースにコピーしてvialというマップを作成して、defaultのキーマップを元にしたキー配列のマップを作成する必要がある。また、vial用にはmymapで使用しているのとは別のlib_userを使用する。mymapのlib_userは自分の使用環境に合わせたものになっているため、vial用にはより汎用的なものを作成する必要がある。
+- 現在のライブラリの参照やディレクトリ構造ではlib_userがlibと並列階層にあるため、user別にlib_user実装を分けることができない。現在のlib_userディレクトリの下にuser毎のディレクトリを作成して、その中にmymap用とvial用のlib_userを分けて配置する必要がある。
+- 頒布用のキーマップではOSによってデフォルトレイヤーを0か1にする必要がある。macOSでは0、Windowsでは1をデフォルトレイヤーにする。
+- AMLの遷移レイヤーをoled上で設定できるようにする。
+- ドキュメントの整備。最上位のREADMEはkeyball公式のものに本ファームの仕様の一部やセットアップ方法を追記してあるが、ソースコード編集用手順の充実と、カスタムキーの一覧を追記、編集する必要がある。また、使用上の注意点も個々に記載。
+- keyball/libやkeyball/lib_userにはAPIや実装例などをREADMEを追記する。
+- vialのkey override機能が対応されていないので、対応する。
+
+## 将来的な対応事項
+- カスタムキーによるパラメータの変更はキーの位置を把握するのとShiftキーとの同時押しが必要であるため、操作が煩雑である。より簡単にパラメータを変更できるようにするため、OLED上にパラメータ変更用のUIを表示して、方向キーで選択して変更できるようにする。
+- oled上の表示の向きを手前から見たときに数値を読みやすい状態にするため、右手側を時計回りに90度回転させたい。
+- デバッグ用の入力コードをuprintで出力している処理がコンソールの出力を汚してしまうため、デバッグ用の出力コードを分類して、モードに応じた出力をできるようにする必要がある。デバッグレベルに応じて出力するようにして、カスタムキーコードの実装の際のデバッグにも利用できるようにする
+- AML有効状態でAMLでの遷移マウスレイヤにスワイプ用キーをおいて押下した際、キー直下の有効下位レイヤにmod_tapキーを割り当てると、スワイプ動作の途中に下位レイヤへ遷移したうえでtapping_termの時間後にmodキーの登録がされてしまうため、スワイプ動作時に想定していないmodキーが登録されてしまう不具合が確認されている。回避方法として、スワイプ動作時に最上位レイヤ(_SW_Block)を有効にし、そのレイヤの対象スワイプキー配置場所にmodtap以外のキーを配置しておくことでmodtapの動作を阻害して正常動作するようにしている。しかし、余計なレイヤーの配置が発生してしまうことと、対応方法として煩雑なことから、AML機能を独自実装へと変更してスワイプ機能と統合するなどで対応する必要がある。
+- qmk0.26まではpointing device driverをkeyball付属のkeyball/drivers/pmw3360にあるものを使用していたが、qmk0.27以降対応では使用するdriverをqmk_firmware公式に存在するdriverに変更した。これによる影響で、以前はsplit keyboardのどちら側でもusbケーブルを指してもポインターを動かせたが、現在ではボール側に接続しないと動かなくなっている。また、独自RPCで動かすことも試してみたが、以前より動きが固く、また動く方向も回転してしまっていた。できるならばkeyball/drivers/pmw3360を再度poiinting device driverとして使用できるようにしたいが、qmk0.27以降でのpointing device driverの仕様変更が大きく、対応が必要。
