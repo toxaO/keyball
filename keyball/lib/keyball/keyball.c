@@ -34,6 +34,7 @@
 
 #if defined(VIAL_ENABLE) || defined(VIA_ENABLE)
 #    include "via.h"
+#    include "keyball_kbpf.h" // kbpf_write() を使用して初期レイアウト矯正の一度きり適用を永続化
 #endif
 
 
@@ -172,12 +173,14 @@ static void rpc_get_info_invoke(void) {
   // split keyboard negotiation completed.
 
 #    if (defined(VIA_ENABLE) || defined(VIAL_ENABLE))
-  // レイアウト下位2bitが 0(None) のときだけ、既定を Right(=1) に設定。
-  // これにより初期表示が None/Dual にならないようにする。
+  // ワンショット矯正: 初回起動時のみ下位2bitを Right(=1) に矯正し、フラグを立てる。
+  // kbpf.reserved bit0 を使用して一度きりの適用とする。
   uint32_t curr = via_get_layout_options();
-  if ( (curr & 0x3u) == 0u ) {
+  if ( ((curr & 0x3u) != 0x01u) && ((kbpf.reserved & 0x0001u) == 0u) ) {
     uint32_t next = (curr & ~0x3u) | 0x01u; // Right
     via_set_layout_options(next);
+    kbpf.reserved |= 0x0001u; // applied
+    kbpf_write();
   }
 #    endif
 

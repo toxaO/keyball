@@ -46,6 +46,20 @@
 - 下位レイヤに Mod-Tap → `_SW_Block` レイヤで押下中だけ遮断する。
 - スワイプ中にレイヤ/AMLが切り替わる → 物理位置での終了補足＋終了フックで必ず終わるようにする。
 
+## 追加: AML ターゲットレイヤー(TG)の操作と保存
+
+- OLED のデバッグモードに表示される AML TG を、以下のキーボードレベルのカスタムキーで調整できます。
+  - `AML_TGU`(Kb 25): TG を +1（0..31）
+  - `AML_TGD`(Kb 26): TG を -1（0..31）
+- 調整後に `KBC_SAVE` を押すと、`kbpf.aml_layer` に保存され、再起動後も保持されます。
+
+## 追加: Vial の初期レイアウト（Right）の既定化と挙動
+
+- 既定値は `VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT` で Right を指定しています（`keyball/lib_user/toxaO/keymaps/*/config.h`）。
+- さらに初回起動時のみ、VIA のNVMが既存でも Right に矯正するワンショット処理を入れています（`keyball/lib/keyball/keyball.c`）。
+  - 一度適用されると `kbpf.reserved` のフラグが立ち、以後はユーザー設定を上書きしません。
+- 将来、初期を Left に切り替えたい場合は、上記コメントの手順に従って既定値やワンショットのターゲットを変更してください。
+
 ## 最小サンプル（概念）
 
 ```

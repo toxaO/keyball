@@ -183,6 +183,24 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       kbpf.aml_timeout = get_auto_mouse_timeout();
       dprintf("AML: timeout=%u\n", (unsigned)get_auto_mouse_timeout());
     } break;
+    case AML_TGU: {
+      // Auto mouse target layer +1 (0..31にクランプ)
+      uint8_t l = get_auto_mouse_layer();
+      if (l < 31) l += 1;
+      set_auto_mouse_layer(l);
+      kbpf.aml_layer = get_auto_mouse_layer();
+      dprintf("AML: target layer ++ -> %u\n", (unsigned)kbpf.aml_layer);
+      return false;
+    }
+    case AML_TGD: {
+      // Auto mouse target layer -1 (0..31にクランプ)
+      uint8_t l = get_auto_mouse_layer();
+      if (l > 0) l -= 1;
+      set_auto_mouse_layer(l);
+      kbpf.aml_layer = get_auto_mouse_layer();
+      dprintf("AML: target layer -- -> %u\n", (unsigned)kbpf.aml_layer);
+      return false;
+    }
 #endif
 
     // Swipe control

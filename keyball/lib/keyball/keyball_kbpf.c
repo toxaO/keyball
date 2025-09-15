@@ -2,6 +2,7 @@
 #include "quantum.h"      // for eeprom_* wrappers
 #include "eeprom.h"
 #include "eeconfig.h"
+#include "os_detection.h" // for OS_MACOS index
 
 #include "keyball.h"
 #include "keyball_kbpf.h"
@@ -81,11 +82,20 @@ void kbpf_defaults(void) {
     if (kbpf.move_th1[i] >= kbpf.move_th2[i]) kbpf.move_th1[i] = kbpf.move_th2[i] - 1;
 
     // 新スクロールパラメータの初期値
-    // 既定: "fine"（微細）= {interval=1, value=1}
-    // macOS はプリセット切替キーで {120,120} に設定可能。
-    kbpf.scroll_interval[i] = 1;   // "fine" 既定
-    kbpf.scroll_value[i]     = 1;   // "fine" 既定
+    // 既定: 各OSスロットは "fine"（微細）= {interval=1, value=1}
+    // macOS スロットのみ後段で {120,120} に上書きする。
+    kbpf.scroll_interval[i] = 1;   // fine 既定
+    kbpf.scroll_value[i]     = 1;   // fine 既定
     kbpf.scroll_preset[i]    = 1;   // 0:{120,1} / 1:{1,1}(fine) / 2:{120,120}
+  }
+  // macOS スロット(OS_MACOS=3)の既定は "MAC" とする
+  {
+    uint8_t m = (uint8_t)OS_MACOS; // 念のため範囲ガード
+    if (m < 8) {
+      kbpf.scroll_interval[m] = 120;
+      kbpf.scroll_value[m]    = 120;
+      kbpf.scroll_preset[m]   = 2; // MAC 固定
+    }
   }
   kbpf.magic    = KBPF_MAGIC;
   kbpf.version  = KBPF_VER_CUR;

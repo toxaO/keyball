@@ -59,3 +59,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_MATRIX_SPLIT    { 24, 24 }
 #endif
+
+// Auto Mouse Layer を有効化
+#ifndef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#endif

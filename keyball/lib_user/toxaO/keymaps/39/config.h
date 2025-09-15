@@ -31,5 +31,25 @@
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 
 // VIA/Vial: レイアウトオプションの初期値を Right に設定
+// 注意:
+// - Vialのレイアウト選択肢は vial.json の labels の順序に依存します。
+//   現在は [None=0, Right=1, Left=2, Dual=3] です。
+// - 初期化タイミングは「Vial 側のNVM（via.cのマジック）が無効な時」に限り
+//   via.c の eeconfig_init_via() で本定数が適用されます。
+// - さらに、起動直後に一度だけ Right を強制するワンショット矯正を
+//   keyball/lib/keyball/keyball.c に実装しています（VIA/Vial有効時のみ）。
+//   これは kbpf.reserved の bit0 をフラグとして使用し、適用済みデバイスでは
+//   二度と上書きしません（ユーザー設定を尊重）。
+//
+// 将来「初期値を Left に変えたい」場合の手順例:
+//   1) この定数を Left=0x00000002 に変更。
+//   2) 併せてワンショット矯正のターゲット（keyball.c 内）を Left に変更するか、
+//      ワンショット矯正を無効化します。
+//   3) 既存デバイスで一度だけ矯正を掛け直したい場合は、
+//      - KBC_RST を押して kbpf.reserved をクリア → 再起動で新ターゲットが適用
+//       （または KBPF_VER_CUR を更新して kbpf デフォルトを再生成）
+//      - あるいは Vial 側の NVM をアプリから初期化（デバイスによって手順が異なる）
+//
+// 以上を踏まえ、配布版では Right を既定とする。
 #undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
 #define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001

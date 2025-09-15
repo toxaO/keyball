@@ -188,6 +188,10 @@ enum keyball_keycodes {
   DBG_NP  = QK_KB_23, // Debug page next
   DBG_PP  = QK_KB_24, // Debug page previous
 
+  // AML target layer adjustment (place after existing debug codes to not break indices)
+  AML_TGU = QK_KB_25, // Auto mouse target layer +1
+  AML_TGD = QK_KB_26, // Auto mouse target layer -1
+
   // User customizable keycodes start here.
   KEYBALL_SAFE_RANGE = QK_USER_0,
 };
