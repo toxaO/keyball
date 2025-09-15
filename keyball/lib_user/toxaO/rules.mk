@@ -22,17 +22,13 @@ MUSIC_MODE = no
 KEYBOARD_SHARED_EP = no
 
 # Include my library
-SRC += lib_user/features/layer_user.c
-SRC += lib_user/features/macro_user.c
-SRC += lib_user/features/oled_user.c
-# SRC += lib_user/features/swipe_user.c
-SRC += lib_user/features/swipe_user.c
-SRC += lib_user/features/util_user.c
-SRC += lib_user/features/combo_user.c
+SRC += lib_user/toxaO/features/layer_user.c
+SRC += lib_user/toxaO/features/macro_user.c
+SRC += lib_user/toxaO/features/oled_user.c
+SRC += lib_user/toxaO/features/swipe_user.c
+SRC += lib_user/toxaO/features/util_user.c
+SRC += lib_user/toxaO/features/combo_user.c
 
-# キーコード表示名テーブル（ユーザー定義キーを名前表示）
-KEYCODE_STRING_ENABLE = yes
-SRC += lib_user/keycode_string_user.c
 # Vial互換のために動的キーマップ/RAWを明示有効化
 DYNAMIC_KEYMAP_ENABLE = yes
 RAW_ENABLE = yes

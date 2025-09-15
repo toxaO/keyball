@@ -2,3 +2,6 @@
 	path = qmk_firmware
 	url = https://github.com/toxaO/qmk_firmware.git
 	branch = keyball
+[submodule "vial-qmk"]
+	path = vial-qmk
+	url = https://github.com/toxaO/vial-qmk.git

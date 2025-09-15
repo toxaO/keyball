@@ -5,7 +5,6 @@
 #include "os_detection.h"
 
 #include "swipe_user.h"
-#include "util.h"
 #include "lib/keyball/keyball.h"
 
 

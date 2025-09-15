@@ -15,6 +15,10 @@
 #undef VIA_EEPROM_CUSTOM_CONFIG_SIZE
 #define VIA_EEPROM_CUSTOM_CONFIG_SIZE 128
 
+// キーボード用 EEPROM 領域（EECONFIG_KB）の確保（kbpf保存用）
+#undef EECONFIG_KB_DATA_SIZE
+#define EECONFIG_KB_DATA_SIZE 128
+
 // Vial機能: Combo は Vial 側で扱う
 #define VIAL_COMBO_ENABLE
 // Vialビルド時は TAPPING_TERM_PER_KEY を無効化して互換確保

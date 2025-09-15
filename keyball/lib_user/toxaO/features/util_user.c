@@ -1,5 +1,5 @@
 #include "quantum.h"
-#include "util.h"
+#include "util_user.h"
 #include "os_detection.h"
 #include "lib/keyball/keyball.h"
 #include "../keycode_user.h"

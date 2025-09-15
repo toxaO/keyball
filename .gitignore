@@ -1,6 +1,7 @@
 tmp/
 .venv/
 AGENTS.md
+prompt.md
 
 # Junk files
 *.bak
