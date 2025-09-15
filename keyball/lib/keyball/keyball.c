@@ -341,6 +341,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             (unsigned)detected_host_os());
   }
 
+  // OLEDデバッグUI用の矢印キー処理（消費したらホストへ送らない）
+  if (keyball_oled_handle_ui_key(keycode, record)) {
+    return false;
+  }
+
   bool was_swipe_active = keyball_swipe_is_active();
   bool user_result = process_record_user(keycode, record);
 

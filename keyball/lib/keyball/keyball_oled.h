@@ -25,3 +25,6 @@ void keyball_oled_render_ballinfo(void);
 void keyball_oled_render_keyinfo(void);
 void keyball_oled_render_layerinfo(void);
 void keyball_oled_render_ballsubinfo(void);
+
+// UI navigation for debug pages
+bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record);
