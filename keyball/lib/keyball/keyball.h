@@ -153,48 +153,31 @@ enum keyball_keycodes {
   KBC_RST = QK_KB_0,  // Keyball configuration: reset to default
   KBC_SAVE = QK_KB_1, // Keyball configuration: save to EEPROM
 
-  // Pointer settings (Kb 2..)
-  CPI_I100 = QK_KB_2, // CPI +100 CPI
-  CPI_D100 = QK_KB_3, // CPI -100 CPI
-  MVGL     = QK_KB_4, // 低速ゲイン調整(Shiftで減少)
-  MVTH1    = QK_KB_5, // しきい値1調整(Shiftで減少)
+  // (removed) Pointer parameter adjustment keycodes were deprecated in favor of OLED setting UI
 
   // Scroll control (Kb 6..)
-  SCRL_PST = QK_KB_6,  // プリセット（OS別）切替
+  // SCRL_PST/SCRL_STI/SCRL_STD/SCRL_INV were deprecated. Keep only mode toggles.
   SCRL_TO  = QK_KB_7,  // Toggle scroll mode
   SCRL_MO  = QK_KB_8,  // Momentary scroll mode
-  SCRL_STI = QK_KB_9,  // Increase scroll step (ST)
-  SCRL_STD = QK_KB_10, // Decrease scroll step (ST)
-  SCRL_INV = QK_KB_11, // scroll direction inverse
 
-  // Scroll snap (Kb 12..)
-  SSNP_VRT = QK_KB_12, // Set scroll snap mode as vertical
-  SSNP_HOR = QK_KB_13, // Set scroll snap mode as horizontal
-  SSNP_FRE = QK_KB_14, // Set scroll snap mode as disable (free scroll)
+  // (removed) Scroll snap keycodes are deprecated in favor of OLED setting UI
 
-  // Automatic mouse layer (Kb 15..)
-  AML_TO  = QK_KB_15, // Toggle automatic mouse layer
-  AML_I50 = QK_KB_16, // Increment automatic mouse layer timeout
-  AML_D50 = QK_KB_17, // Decrement automatic mouse layer timeout
+  // (removed) Automatic mouse layer adjustment keycodes are deprecated
 
-  // Swipe control (Kb 18..)
-  SW_RT  = QK_KB_18, // スワイプリセット遅延調整(Shiftで減少)
-  SW_ST  = QK_KB_19, // スワイプ閾値調整(Shiftで減少)
-  SW_DZ  = QK_KB_20, // スワイプゆらぎ抑制調整(Shiftで減少)
-  SW_FRZ = QK_KB_21, // スワイプのポインタフリーズ
+  // (removed) Swipe parameter keycodes are deprecated
 
-  // Debug (Kb 22..)
-  DBG_TOG = QK_KB_22, // Toggle debug output
-  DBG_NP  = QK_KB_23, // Debug page next
-  DBG_PP  = QK_KB_24, // Debug page previous
+  // Setting view (Kb 22..)
+  STG_TOG = QK_KB_22, // Toggle setting view
+  STG_NP  = QK_KB_23, // Setting page next
+  STG_PP  = QK_KB_24, // Setting page previous
 
-  // AML target layer adjustment (place after existing debug codes to not break indices)
-  AML_TGU = QK_KB_25, // Auto mouse target layer +1
-  AML_TGD = QK_KB_26, // Auto mouse target layer -1
+  // (removed) AML target layer adjustment
 
   // User customizable keycodes start here.
   KEYBALL_SAFE_RANGE = QK_USER_0,
 };
+
+// Debug aliases removed
 
 // Vial ではユーザーレベル（QK_USER_*）のキーは customKeycodes へ掲載しません。
 // 掲載するのはキーボードレベル（QK_KB_*）のみとします。

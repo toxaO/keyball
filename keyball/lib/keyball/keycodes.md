@@ -54,12 +54,12 @@
 | `SW_DZ`    | `Kb 20`         | `0x7e14` | Adjust swipe deadzone (Shift: decrease)                           |
 | `SW_FRZ`   | `Kb 21`         | `0x7e15` | Toggle swipe pointer freeze                                       |
 
-### Debug
+### Setting (formerly Debug)
 | Keycode    | Value on Remap  | Hex      | Description                                                       |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `DBG_TOG`  | `Kb 22`         | `0x7e16` | Toggle OLED debug mode                                            |
-| `DBG_NP`   | `Kb 23`         | `0x7e17` | OLED debug page next                                              |
-| `DBG_PP`   | `Kb 24`         | `0x7e18` | OLED debug page previous                                          |
+| `DBG_TOG`  | `Kb 22`         | `0x7e16` | Toggle OLED setting mode (alias: `STG_TOG`)                       |
+| `DBG_NP`   | `Kb 23`         | `0x7e17` | OLED setting page next (alias: `STG_NP`)                          |
+| `DBG_PP`   | `Kb 24`         | `0x7e18` | OLED setting page previous (alias: `STG_PP`)                      |
 
 [^1]: CPI, scroll step (ST), automatic mouse layer's enable/disable, and automatic mouse layer's timeout.
 
@@ -124,8 +124,8 @@
 ### デバッグ
 | キーコード | Remap上での表記 | 値       | 説明                                                              |
 |:-----------|:----------------|:---------|:------------------------------------------------------------------|
-| `DBG_TOG`  | `Kb 26`         | `0x7e1a` | OLEDデバッグモードを切り替えます                                  |
-| `DBG_NP`   | `Kb 27`         | `0x7e1b` | OLEDデバッグページを次に送ります                                  |
-| `DBG_PP`   | `Kb 28`         | `0x7e1c` | OLEDデバッグページを前に戻します                                  |
+| `DBG_TOG`  | `Kb 26`         | `0x7e1a` | OLED設定モード（旧デバッグ）を切り替えます（別名: `STG_TOG`）     |
+| `DBG_NP`   | `Kb 27`         | `0x7e1b` | OLED設定ページ（旧デバッグ）を次に送ります（別名: `STG_NP`）      |
+| `DBG_PP`   | `Kb 28`         | `0x7e1c` | OLED設定ページ（旧デバッグ）を前に戻します（別名: `STG_PP`）      |
 
 [^2]: CPI、スクロール除数、自動マウスレイヤーのON/OFF状態、及び自動マウスレイヤのタイムアウト

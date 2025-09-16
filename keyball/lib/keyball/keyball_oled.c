@@ -7,6 +7,9 @@
 #include "keyball_oled.h"
 #include "keyball.h"
 #include <stdio.h>
+#ifdef RGBLIGHT_ENABLE
+#    include "rgblight.h"
+#endif
 
 // 外部定数（定義は keyball.c）
 extern const uint16_t CPI_MAX;
@@ -22,7 +25,7 @@ static uint8_t        g_oled_page = 0;
 static bool           g_oled_vertical = false; // 右手マスター用の縦向き表示フラグ
 
 // デバッグUI: ページごとの選択インデックス
-#define KB_UI_PAGES 7
+#define KB_UI_PAGES 8
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
@@ -34,11 +37,17 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
         case 4: return 0; // Monitor
         case 5: return 4; // Swipe: St, Dz, Rt, Frz
         case 6: return 0; // Monitor
+        case 7:
+#ifdef RGBLIGHT_ENABLE
+            return 5; // RGB: on/off, H, S, V, Mode
+#else
+            return 0;
+#endif
     }
     return 0;
 }
 
-#define KB_OLED_PAGE_COUNT      7
+#define KB_OLED_PAGE_COUNT      8
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -54,13 +63,12 @@ static inline bool ui_op_ready(void) {
 void keyball_oled_set_mode(kb_oled_mode_t m) {
     g_oled_mode = m;
     g_dbg_en    = (m == KB_OLED_MODE_DEBUG);
-    g_oled_page = 0;
     oled_clear();
 }
 
 void keyball_oled_mode_toggle(void) {
     if (!ui_op_ready()) return;
-    keyball_oled_set_mode((g_oled_mode == KB_OLED_MODE_DEBUG) ? KB_OLED_MODE_NORMAL : KB_OLED_MODE_DEBUG);
+    keyball_oled_set_mode((g_oled_mode == KB_OLED_MODE_SETTING) ? KB_OLED_MODE_NORMAL : KB_OLED_MODE_SETTING);
 }
 
 kb_oled_mode_t keyball_oled_get_mode(void) { return g_oled_mode; }
@@ -87,9 +95,10 @@ void keyball_oled_prev_page(void) {
 uint8_t keyball_oled_get_page(void) { return g_oled_page; }
 uint8_t keyball_oled_get_page_count(void) { return KB_OLED_PAGE_COUNT; }
 
-void keyball_oled_dbg_toggle(void) { g_dbg_en = !g_dbg_en; }
-void keyball_oled_dbg_show(bool on) { g_dbg_en = on; }
-bool keyball_oled_dbg_enabled(void) { return g_dbg_en; }
+// Setting helpers (ex-dbg)
+void keyball_oled_setting_toggle(void) { g_dbg_en = !g_dbg_en; }
+void keyball_oled_setting_show(bool on) { g_dbg_en = on; }
+bool keyball_oled_setting_enabled(void) { return g_dbg_en; }
 
 // 値行のプレフィックス（選択表示）
 static inline void oled_write_val_ln(bool selected, const char* text) {
@@ -104,7 +113,7 @@ static inline void oled_write_val_P(bool selected, const char* text) {
 
 // UI操作（矢印キーをOLEDデバッグUIに割当て）
 bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
-    if (keyball_oled_get_mode() != KB_OLED_MODE_DEBUG) return false; // 通常表示では介入しない
+    if (keyball_oled_get_mode() != KB_OLED_MODE_SETTING) return false; // 通常表示では介入しない
     if (!record->event.pressed) return false; // 押下のみ処理
 
     uint8_t page = keyball_oled_get_page();
@@ -238,6 +247,36 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                 }
             } break;
 
+#ifdef RGBLIGHT_ENABLE
+            case 7: { // RGB conf
+                if (sel == 0) {
+                    if (dir > 0) {
+                        rgblight_enable_noeeprom();
+                    } else {
+                        rgblight_disable_noeeprom();
+                    }
+                } else if (sel == 1 || sel == 2 || sel == 3) {
+                    uint8_t h = rgblight_get_hue();
+                    uint8_t s = rgblight_get_sat();
+                    uint8_t v = rgblight_get_val();
+                    int32_t nh = h, ns = s, nv = v;
+                    const int step = 15; // H/S/V は±5刻み
+                    if (sel == 1) nh = h + dir * step;
+                    if (sel == 2) ns = s + dir * step;
+                    if (sel == 3) nv = v + dir * step;
+                    if (nh < 0) nh = 0;
+                    if (nh > 255) nh = 255;
+                    if (ns < 0) ns = 0;
+                    if (ns > 255) ns = 255;
+                    if (nv < 0) nv = 0;
+                    if (nv > 255) nv = 255;
+                    rgblight_sethsv_noeeprom((uint8_t)nh, (uint8_t)ns, (uint8_t)nv);
+                } else if (sel == 4) {
+                    if (dir > 0) rgblight_step(); else rgblight_step_reverse();
+                }
+            } break;
+#endif
+
             default:
                 break;
         }
@@ -351,9 +390,9 @@ static inline const char *kb_dir_str(kb_swipe_dir_t d) {
            (d == KB_SWIPE_RIGHT)? "RT " : "NON";
 }
 
-void keyball_oled_render_debug(void) {
-    if (keyball_oled_get_mode() != KB_OLED_MODE_DEBUG) return;
-    if (!keyball_oled_dbg_enabled()) return;
+void keyball_oled_render_setting(void) {
+    if (keyball_oled_get_mode() != KB_OLED_MODE_SETTING) return;
+    if (!keyball_oled_setting_enabled()) return;
     if (g_dbg_in_render) return;
     g_dbg_in_render = true;
 
@@ -556,7 +595,61 @@ void keyball_oled_render_debug(void) {
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
+
+        case 7: { // 8: RGB Light
+#ifdef RGBLIGHT_ENABLE
+            uint8_t sel = g_ui_sel_idx[page];
+            oled_write_ln("RGB", false);  // "RGB__" 相当
+            oled_write_ln(" conf", false);
+
+            // on/off
+            oled_write_P("light", false);
+            const char *onoff = rgblight_is_enabled() ? "  on" : " off";
+            oled_write_val_P(sel == 0, onoff);
+
+            // HUE
+            oled_write_ln("HUE", false);
+            {
+                char v[8];
+                snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_hue());
+                oled_write_val_P(sel == 1, v);
+            }
+            // SAT
+            oled_write_ln("SAT", false);
+            {
+                char v[8];
+                snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_sat());
+                oled_write_val_P(sel == 2, v);
+            }
+            // VAL
+            oled_write_ln("VAL", false);
+            {
+                char v[8];
+                snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_val());
+                oled_write_val_P(sel == 3, v);
+            }
+            // Mode
+            oled_write_ln("Mode", false);
+            {
+                char v[8];
+                snprintf(v, sizeof(v), "  %02u", (unsigned)rgblight_get_mode());
+                oled_write_val_P(sel == 4, v);
+            }
+#else
+            oled_write_ln("RGB", false);
+            oled_write_ln(" conf", false);
+            oled_write_ln("", false);
+            oled_write_ln("  (RGB disabled)", false);
+#endif
+            oled_write_ln("", false);
+            oled_write_ln("page", false);
+            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_P(line, false);
+        } break;
     }
 
     g_dbg_in_render = false;
 }
+
+// Backward-compatible alias
+void keyball_oled_render_debug(void) { keyball_oled_render_setting(); }

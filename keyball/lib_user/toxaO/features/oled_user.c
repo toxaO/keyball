@@ -42,9 +42,9 @@ void oled_render_layer_state(void) {
 
 // OLEDの実装
 void oledkit_render_info_user(void) {
-  if (keyball_oled_get_mode() == KB_OLED_MODE_DEBUG) {
-    // デバッグモード：デバッグページだけ描く
-    keyball_oled_render_debug();
+  if (keyball_oled_get_mode() == KB_OLED_MODE_SETTING) {
+    // 設定モード（旧デバッグ）：設定ページを描く
+    keyball_oled_render_setting();
   } else {
     // 通常モード：レイヤー中心（最小限）
     oled_render_layer_state();  // ← 既存のあなたの関数

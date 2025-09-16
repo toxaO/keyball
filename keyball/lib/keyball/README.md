@@ -52,12 +52,12 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 }
 ```
 
-### OLED debug mode / OLEDデバッグモード
-`DBG_TOG` toggles a multi-page OLED view that shows current settings and swipe
-status. `DBG_NP` and `DBG_PP` cycle through pages.
+### OLED setting mode / OLED設定モード（旧デバッグ）
+`STG_TOG` (alias: `DBG_TOG`) toggles a multi-page OLED view that shows current
+settings and monitors. `STG_NP`/`STG_PP` (alias: `DBG_NP`/`DBG_PP`) cycle pages.
 
-`DBG_TOG` で各種設定やスワイプ状態を表示するデバッグページを切り替え、
-`DBG_NP` / `DBG_PP` でページ送り・戻しができます。
+`STG_TOG`（互換: `DBG_TOG`）で各種設定・モニタのページを切り替え、
+`STG_NP` / `STG_PP`（互換: `DBG_NP` / `DBG_PP`）でページ送り・戻しができます。
 
 ## API Reference / APIリファレンス
 
@@ -138,8 +138,8 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 }
 ```
 
-### 5) デバッグ・チューニング
-- OLEDデバッグ（`DBG_TOG`）のページで直感的に監視できます。
+### 5) 設定・チューニング（旧デバッグ）
+- OLED設定（`STG_TOG` または `DBG_TOG`）のページで直感的に監視できます。
   - Mouse / AML / Scroll Param / Scroll Snap / Scroll Raw / Swipe Config / Swipe Monitor
 - コンソール（`qmk console`）の利用：
   - `SWIPE FIRE tag=.. dir=..` で発火状況
@@ -190,7 +190,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 
 ### OLED API / OLED API
 - `keyball_oled_mode_toggle`, `keyball_oled_next_page`, `keyball_oled_prev_page`
-- `keyball_oled_render_debug`, `keyball_oled_render_ballinfo` など
+- `keyball_oled_render_setting`（互換: `keyball_oled_render_debug`）, `keyball_oled_render_ballinfo` など
 
 ## Scroll snap mode
 

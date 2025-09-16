@@ -3,21 +3,33 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef enum { KB_OLED_MODE_NORMAL = 0, KB_OLED_MODE_DEBUG = 1 } kb_oled_mode_t;
+// 名称を Debug から Setting へ移行（互換のため DEBUG も同値で残す）
+typedef enum {
+    KB_OLED_MODE_NORMAL  = 0,
+    KB_OLED_MODE_SETTING = 1,
+    KB_OLED_MODE_DEBUG   = 1, // backward-compatible alias
+} kb_oled_mode_t;
 
 void        keyball_oled_mode_toggle(void);
 void        keyball_oled_set_mode(kb_oled_mode_t m);
 kb_oled_mode_t keyball_oled_get_mode(void);
 
-void        keyball_oled_dbg_toggle(void);
-void        keyball_oled_dbg_show(bool on);
-bool        keyball_oled_dbg_enabled(void);
+// Setting mode helpers (旧 dbg_* をエイリアスとして残す)
+void        keyball_oled_setting_toggle(void);
+void        keyball_oled_setting_show(bool on);
+bool        keyball_oled_setting_enabled(void);
+// Backward-compatible aliases
+#define     keyball_oled_dbg_toggle   keyball_oled_setting_toggle
+#define     keyball_oled_dbg_show     keyball_oled_setting_show
+#define     keyball_oled_dbg_enabled  keyball_oled_setting_enabled
 
 void        keyball_oled_next_page(void);
 void        keyball_oled_prev_page(void);
 uint8_t     keyball_oled_get_page(void);
 uint8_t     keyball_oled_get_page_count(void);
 
+void        keyball_oled_render_setting(void);
+// Backward-compatible alias
 void        keyball_oled_render_debug(void);
 
 // Simple info renderers

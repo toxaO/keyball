@@ -42,7 +42,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     {
         uint8_t hl = get_highest_layer(state);
         if (hl == _Set) {
-            keyball_oled_set_mode(KB_OLED_MODE_DEBUG);
+            keyball_oled_set_mode(KB_OLED_MODE_SETTING);
         } else {
             keyball_oled_set_mode(KB_OLED_MODE_NORMAL);
         }
