@@ -106,3 +106,26 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
         }
     }
 }
+
+// タップ（発火なしで離した）時のフォールバックをユーザー側で上書き
+void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
+    switch (tag) {
+    case KBS_TAG_APP:
+        tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
+        break;
+    case KBS_TAG_VOL:
+        tap_code(KC_MPLY);
+        break;
+    case KBS_TAG_BRO:
+        tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+        break;
+    case KBS_TAG_TAB:
+        tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+        break;
+    case KBS_TAG_WIN:
+        tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+        break;
+    default:
+        break;
+    }
+}

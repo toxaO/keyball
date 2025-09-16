@@ -80,6 +80,13 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_oled_prev_page();
       return false;
 
+    // Swipe action keys: begin on press
+    case APP_SW: keyball_swipe_begin(1); return false; // KBS_TAG_APP (=1)
+    case VOL_SW: keyball_swipe_begin(2); return false; // KBS_TAG_VOL (=2)
+    case BRO_SW: keyball_swipe_begin(3); return false; // KBS_TAG_BRO (=3)
+    case TAB_SW: keyball_swipe_begin(4); return false; // KBS_TAG_TAB (=4)
+    case WIN_SW: keyball_swipe_begin(5); return false; // KBS_TAG_WIN (=5)
+
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
     // Scroll snap (explicit keycodes)
     case SSNP_HOR:
@@ -103,6 +110,40 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       return true;
     }
     return false;
+  } else {
+    // release: end swipe and fallback tap if nothing fired
+    switch (keycode) {
+      case APP_SW:
+      case VOL_SW:
+      case BRO_SW:
+      case TAB_SW:
+      case WIN_SW: {
+        bool fired = keyball_swipe_fired_since_begin();
+        keyball_swipe_end();
+        if (!fired) {
+          // User-level override first
+          kb_swipe_tag_t tag = 0;
+          if (keycode == APP_SW) tag = KBS_TAG_APP;
+          else if (keycode == VOL_SW) tag = KBS_TAG_VOL;
+          else if (keycode == BRO_SW) tag = KBS_TAG_BRO;
+          else if (keycode == TAB_SW) tag = KBS_TAG_TAB;
+          else if (keycode == WIN_SW) tag = KBS_TAG_WIN;
+          if (keyball_on_swipe_tap && tag != 0) {
+            keyball_on_swipe_tap(tag);
+          } else {
+            // Generic fallback
+            uint16_t kc = KC_NO;
+            if (keycode == APP_SW) kc = KC_F1;
+            else if (keycode == VOL_SW) kc = KC_F2;
+            else if (keycode == BRO_SW) kc = KC_F3;
+            else if (keycode == TAB_SW) kc = KC_F4;
+            else if (keycode == WIN_SW) kc = KC_F5;
+            if (kc != KC_NO) tap_code16(kc);
+          }
+        }
+        return false;
+      }
+    }
   }
 
   return true;

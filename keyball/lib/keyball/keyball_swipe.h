@@ -13,8 +13,16 @@ typedef enum {
     KB_SWIPE_LEFT,
 } kb_swipe_dir_t;
 
-// ユーザー定義のモードタグ（KBは中身を解釈しない）
+// スワイプモードタグ（ユーザが独自に使っても良い）
 typedef uint8_t kb_swipe_tag_t;
+// 代表タグ（APP/VOL/BRO/TAB/WIN）: キーボードレベルのSWキーで使用
+enum {
+    KBS_TAG_APP = 1,
+    KBS_TAG_VOL,
+    KBS_TAG_BRO,
+    KBS_TAG_TAB,
+    KBS_TAG_WIN,
+};
 
 // user → KB：スワイプセッション開始/終了
 void            keyball_swipe_begin(kb_swipe_tag_t mode_tag);
@@ -31,6 +39,8 @@ bool            keyball_swipe_consume_fired(void);      // ↑を取得して fa
 __attribute__((weak)) void keyball_on_swipe_fire(kb_swipe_tag_t mode_tag, kb_swipe_dir_t dir);
 // セッション終了時のクリーンアップ用フック（任意実装）
 __attribute__((weak)) void keyball_on_swipe_end(kb_swipe_tag_t mode_tag);
+// タップ（発火なしで離した）時のフォールバック操作（任意実装）
+__attribute__((weak)) void keyball_on_swipe_tap(kb_swipe_tag_t mode_tag);
 
 // ==== Swipe runtime params ====
 typedef struct {

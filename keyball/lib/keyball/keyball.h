@@ -167,11 +167,12 @@ enum keyball_keycodes {
   SSNP_FRE = QK_KB_9,  // Disable scroll snap mode (free)
 #endif
 
-  // (removed) Scroll snap keycodes are deprecated in favor of OLED setting UI
-
-  // (removed) Automatic mouse layer adjustment keycodes are deprecated
-
-  // (removed) Swipe parameter keycodes are deprecated
+  // Swipe action keys (Kb 10..14)
+  APP_SW  = QK_KB_10,
+  VOL_SW  = QK_KB_11,
+  BRO_SW  = QK_KB_12,
+  TAB_SW  = QK_KB_13,
+  WIN_SW  = QK_KB_14,
 
   // Setting view (Kb 2..4)
   STG_TOG = QK_KB_2, // Toggle setting view

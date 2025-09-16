@@ -208,11 +208,7 @@ enum layer_names {
 // custom keycode --------------------
 enum custom_keycodes {
     /* APP_SW = KEYBALL_SAFE_RANGE, */
-    APP_SW = QK_USER,
-    VOL_SW,
-    BRO_SW,
-    TAB_SW,
-    WIN_SW,
+    /* moved to keyboard-level: APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW */
     MULTI_A,
     MULTI_B,
     EISU_S_N,
