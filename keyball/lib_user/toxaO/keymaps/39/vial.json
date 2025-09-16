@@ -1,0 +1,81 @@
+{
+  "name": "Keyball39",
+  "vendorId": "0x5957",
+  "productId": "0x0200",
+  "matrix": {
+    "rows": 8,
+    "cols": 6
+  },
+  "lighting": "qmk_rgblight",
+  "layouts": {
+    "labels": [
+      [
+        "Ball availability",
+        "None",
+        "Right",
+        "Left",
+        "Dual"
+      ]
+    ],
+    "keymap": [
+      [ { "x": 3 },  "0,3",  { "x": 8.5 }, "4,3" ],
+      [ { "y": -0.875, "x": 4 }, "0,4", { "x": 6.5 }, "4,4" ],
+      [ { "y": -0.875, "x": 2 }, "0,2", { "x": 2 }, "0,5", { "x": 4.5 }, "4,5", { "x": 2 }, "4,2" ],
+      [ { "y": -0.65, "c": "#aaaaaa" }, "0,0", { "c": "#cccccc" }, "0,1", { "x": 12.5 }, "4,1", { "c": "#aaaaaa" }, "4,0" ],
+
+      [ { "y": -0.6, "x": 3, "c": "#cccccc" }, "1,3", { "x": 8.5 }, "5,3" ],
+      [ { "y": -0.875, "x": 4 }, "1,4", { "x": 6.5 }, "5,4" ],
+      [ { "y": -0.875, "x": 2 }, "1,2", { "x": 2.0 }, "1,5", { "x": 4.5 }, "5,5", { "x": 2 }, "5,2" ],
+      [ { "y": -0.65, "c": "#aaaaaa" }, "1,0", { "c": "#cccccc" }, "1,1", { "x": 12.5 }, "5,1", { "c": "#aaaaaa" }, "5,0" ],
+
+      [ { "y": -0.6, "x": 3, "c": "#cccccc" }, "2,3", { "x": 8.5 }, "6,3" ],
+      [ { "y": -0.875, "x": 4 }, "2,4", { "x": 6.5 }, "6,4" ],
+      [ { "y": -0.875, "x": 2 }, "2,2", { "x": 2 }, "2,5", { "x": 4.5 }, "6,5", { "x": 2 }, "6,2" ],
+      [ { "y": -0.65, "c": "#aaaaaa" }, "2,0", { "c": "#cccccc" }, "2,1", { "x": 12.5 }, "6,1", { "c": "#aaaaaa" }, "6,0" ],
+
+      [ { "y": -0.6, "x": 3 }, "3,2\n\n\n0,0", { "x": 8.5 }, "7,2\n\n\n0,0" ],
+      [ { "y": -1.0, "x": 3 }, "3,2\n\n\n0,1", { "x": 8.5 }, "\n\n\n0,1" ],
+      [ { "y": -1.0, "x": 3 }, "\n\n\n0,2", { "x": 8.5 }, "7,2\n\n\n0,2" ],
+      [ { "y": -1.0, "x": 3 }, "\n\n\n0,3", { "x": 8.5 }, "\n\n\n0,3" ],
+
+      [ { "y": -0.75, "x": 2 }, "3,1\n\n\n0,0", { "x": 10.5 }, "7,1\n\n\n0,0" ],
+      [ { "y": -1.0, "x": 2 }, "3,1\n\n\n0,1", { "x": 10.5 }, "\n\n\n0,1" ],
+      [ { "y": -1.0, "x": 2 }, "\n\n\n0,2", { "x": 10.5 }, "7,1\n\n\n0,2" ],
+      [ { "y": -1.0, "x": 2 }, "\n\n\n0,3", { "x": 10.5 }, "\n\n\n0,3" ],
+
+      [ { "y": -0.75, "x": 4.3 }, "3,3\n\n\n0,0", { "x": 5.9 }, "7,3\n\n\n0,0" ],
+      [ { "y": -1.0, "x": 4.3 }, "3,3\n\n\n0,1", { "x": 5.9 }, "\n\n\n0,1" ],
+      [ { "y": -1.0, "x": 4.3 }, "\n\n\n0,2", { "x": 5.9 }, "7,3\n\n\n0,2" ],
+      [ { "y": -1.0, "x": 4.3 }, "\n\n\n0,3", { "x": 5.9 }, "\n\n\n0,3" ],
+
+      [ { "y": -0.9, "x": 1.0 }, "\n\n\n0,0", { "x": 12.5 }, "\n\n\n0,0" ],
+      [ { "y": -1.0, "x": 1.0 }, "\n\n\n0,1", { "x": 12.5 }, "7,1\n\n\n0,1" ],
+      [ { "y": -1.0, "x": 1.0 }, "3,1\n\n\n0,2", { "x": 12.5 }, "\n\n\n0,2" ],
+      [ { "y": -1.0, "x": 1.0 }, "3,1\n\n\n0,3", { "x": 12.5 }, "7,1\n\n\n0,3" ],
+
+      [ { "r": 10, "rx": 5.35, "ry": 4.5, "y": -1.0 }, "3,4" ],
+      [ { "r": -10, "rx": 13.65, "ry": 4.5, "y": -1.0 }, "7,4" ],
+
+      [ { "y": -1.6, "x": 1.0, "c": "#aaaaaa" }, "3,0\n\n\n0,0", { "x": 12.5 }, "7,0\n\n\n0,0" ]
+    ]
+  },
+
+  "customKeycodes": [
+    { "name": "KBC_RST",  "title": "Reset Keyball configuration",                 "shortName": "KBC\nRST" },
+    { "name": "KBC_SAVE", "title": "Persist Keyball configuration to EEPROM",     "shortName": "KBC\nSAVE" },
+    { "name": "STG_TOG",  "title": "Toggle OLED setting view",                    "shortName": "STG\nTOG" },
+    { "name": "STG_NP",   "title": "OLED setting page next",                      "shortName": "STG\nNP" },
+    { "name": "STG_PP",   "title": "OLED setting page previous",                  "shortName": "STG\nPP" },
+    { "name": "SCRL_TO",  "title": "Toggle scroll mode",                          "shortName": "SCRL\nTO" },
+    { "name": "SCRL_MO",  "title": "Enable scroll mode while pressed",            "shortName": "SCRL\nMO" },
+    { "name": "SSNP_VRT", "title": "Set scroll snap mode: vertical",              "shortName": "SSNP\nVRT" },
+    { "name": "SSNP_HOR", "title": "Set scroll snap mode: horizontal",            "shortName": "SSNP\nHOR" },
+    { "name": "SSNP_FRE", "title": "Set scroll snap mode: free (disable)",        "shortName": "SSNP\nFRE" },
+    { "name": "APP_SW",   "title": "App switch swipe (press=begin, release=end)", "shortName": "APP\nSW" },
+    { "name": "VOL_SW",   "title": "Volume/media swipe",                           "shortName": "VOL\nSW" },
+    { "name": "BRO_SW",   "title": "Browser/history swipe",                        "shortName": "BRO\nSW" },
+    { "name": "TAB_SW",   "title": "Tab switch swipe",                             "shortName": "TAB\nSW" },
+    { "name": "WIN_SW",   "title": "Window/desktop swipe",                         "shortName": "WIN\nSW" }
+  ]
+}
+
