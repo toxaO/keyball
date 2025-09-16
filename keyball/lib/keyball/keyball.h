@@ -155,10 +155,17 @@ enum keyball_keycodes {
 
   // (removed) Pointer parameter adjustment keycodes were deprecated in favor of OLED setting UI
 
-  // Scroll control (Kb 6..)
-  // SCRL_PST/SCRL_STI/SCRL_STD/SCRL_INV were deprecated. Keep only mode toggles.
-  SCRL_TO  = QK_KB_7,  // Toggle scroll mode
-  SCRL_MO  = QK_KB_8,  // Momentary scroll mode
+  // Scroll control (Kb 5..6)
+  // Only mode toggles are provided. Others are handled via OLED setting UI.
+  SCRL_TO  = QK_KB_5,  // Toggle scroll mode
+  SCRL_MO  = QK_KB_6,  // Momentary scroll mode
+
+  // Scroll snap (Kb 7..9)
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+  SSNP_VRT = QK_KB_7,  // Set scroll snap mode to vertical
+  SSNP_HOR = QK_KB_8,  // Set scroll snap mode to horizontal
+  SSNP_FRE = QK_KB_9,  // Disable scroll snap mode (free)
+#endif
 
   // (removed) Scroll snap keycodes are deprecated in favor of OLED setting UI
 
@@ -166,10 +173,10 @@ enum keyball_keycodes {
 
   // (removed) Swipe parameter keycodes are deprecated
 
-  // Setting view (Kb 22..)
-  STG_TOG = QK_KB_22, // Toggle setting view
-  STG_NP  = QK_KB_23, // Setting page next
-  STG_PP  = QK_KB_24, // Setting page previous
+  // Setting view (Kb 2..4)
+  STG_TOG = QK_KB_2, // Toggle setting view
+  STG_NP  = QK_KB_3, // Setting page next
+  STG_PP  = QK_KB_4, // Setting page previous
 
   // (removed) AML target layer adjustment
 

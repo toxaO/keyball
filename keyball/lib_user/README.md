@@ -71,6 +71,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 ### 2.5 Vial UI の表示に関する制約（既知の仕様）
 - Vial 上で配置したキーの「割当表示」が `KC_00xx` や `0x7eXX` といった16進表記になることがあります。これは Vial 側の表示仕様・制約によるものです。
 - 本ファームでは `keyball/lib_user/keycode_string_user.c` によってデバイス側の表示（OLEDやログ）で分かりやすい名前を出すようにしています。Vial UI 側の表示は完全には制御できません。
+
+## Key Override（Vial対応）
+- Vial の Key Overrides タブから、修飾条件に応じた置換（例: Shift+数字→記号 など）を定義できます。
+- 本リポジトリの Vial ビルドでは `KEY_OVERRIDE_ENABLE = yes` を有効化済（`vial-qmk/.../keymaps/mymap/rules.mk`）。
+- 既存のキーマップ側に静的な `key_overrides[]` を用意する必要はありません（Vial がEEPROMへ保存・適用します）。
 - 配布用のキーマップでは、初期レイアウトにユーザーキー（QK_USER_*）を含めない方針を推奨します（Vial初期表示で混乱を避けるため）。
 
 ## 3. 追加チェックリスト（Vial対応を行う場合）

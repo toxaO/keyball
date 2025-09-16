@@ -80,6 +80,25 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_oled_prev_page();
       return false;
 
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+    // Scroll snap (explicit keycodes)
+    case SSNP_HOR:
+      keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_HORIZONTAL);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_HORIZONTAL;
+      dprintf("SSNP: mode=HOR\n");
+      return false;
+    case SSNP_VRT:
+      keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_VERTICAL);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL;
+      dprintf("SSNP: mode=VRT\n");
+      return false;
+    case SSNP_FRE:
+      keyball_set_scrollsnap_mode(KEYBALL_SCROLLSNAP_MODE_FREE);
+      kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_FREE;
+      dprintf("SSNP: mode=FRE\n");
+      return false;
+#endif
+
     default:
       return true;
     }

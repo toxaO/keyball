@@ -3,30 +3,26 @@
 ## Feature Overview / 機能概要
 
 ### Pointer movement adjustment / ポインタ移動量調整
-Adjust low-speed gain and threshold to fine-tune cursor control. The values can
-be increased with single press of `MVGL`/`MVTH1` and decreased while holding
-`Shift`.
+Use the OLED setting view to adjust low-speed gain (Glo) and threshold (Th1)
+for precise pointer control.
 
-低速ゲインとしきい値を調整してポインタの移動量を微調整できます。
-`MVGL` や `MVTH1` を単押しで増加、`Shift` 併用で減少させます。
+ポインタ移動の低速ゲイン（Glo）やしきい値（Th1）は、OLED の設定ページで調整できます。
 
 ### Scroll adjustment / スクロール調整
-Adjust scroll speed by changing ST (scroll step) and switch presets per OS.
-Use `SCRL_STI` / `SCRL_STD` to change ST, and `SCRL_PST` to toggle
-presets: on macOS it sets {120,120}, on others it toggles {120,1} <-> {1,1}.
+Adjust scroll sensitivity, inversion, and presets in the OLED setting view.
+Quick toggles are available:
+- `SCRL_TO`: Toggle scroll mode
+- `SCRL_MO`: Enable scroll mode while pressed
 
-スクロール速度は ST(スクロールステップ) で調整できます。`SCRL_STI` / `SCRL_STD`
-で段階的に変更し、`SCRL_PST` でOSごとのプリセットを切り替えます（macOS は {120,120} 固定、
-それ以外は {120,1} と {1,1} をトグル）。
+スクロールの感度・反転・プリセットは OLED 設定で行います。クイック操作として次を用意しています。
+- `SCRL_TO`: スクロールモードのトグル
+- `SCRL_MO`: 押下中のみスクロールモード有効
 
 ### Swipe adjustment / スワイプ調整
-Swipe gestures accumulate trackball motion and fire once thresholds are
-reached. `SW_ST`, `SW_DZ`, and `SW_RT` adjust the trigger threshold, deadzone,
-and reset delay. `SW_FRZ` toggles pointer freeze during swipe.
+Swipe thresholds, deadzone, reset, and freeze are adjusted in the OLED setting
+view.
 
-トラックボールの蓄積量がしきい値を超えるとスワイプが発火します。`SW_ST`,
-`SW_DZ`, `SW_RT` で閾値・デッドゾーン・リセット遅延を調整し、`SW_FRZ` でスワイ
-プ中のポインタ凍結を切り替えます。
+スワイプの閾値・デッドゾーン・リセット・フリーズは OLED 設定で調整できます。
 
 **Example / 例:**
 
@@ -53,11 +49,8 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 ```
 
 ### OLED setting mode / OLED設定モード（旧デバッグ）
-`STG_TOG` (alias: `DBG_TOG`) toggles a multi-page OLED view that shows current
-settings and monitors. `STG_NP`/`STG_PP` (alias: `DBG_NP`/`DBG_PP`) cycle pages.
-
-`STG_TOG`（互換: `DBG_TOG`）で各種設定・モニタのページを切り替え、
-`STG_NP` / `STG_PP`（互換: `DBG_NP` / `DBG_PP`）でページ送り・戻しができます。
+`STG_TOG` で設定ビューを表示し、`STG_NP` / `STG_PP` でページ送り・戻しを行います。
+Shift+←/→ でもページを移動できます（設定モード中）。
 
 ## API Reference / APIリファレンス
 
@@ -139,7 +132,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 ```
 
 ### 5) 設定・チューニング（旧デバッグ）
-- OLED設定（`STG_TOG` または `DBG_TOG`）のページで直感的に監視できます。
+- OLED設定（`STG_TOG`）のページで直感的に監視・調整できます。
   - Mouse / AML / Scroll Param / Scroll Snap / Scroll Raw / Swipe Config / Swipe Monitor
 - コンソール（`qmk console`）の利用：
   - `SWIPE FIRE tag=.. dir=..` で発火状況
@@ -190,15 +183,14 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 
 ### OLED API / OLED API
 - `keyball_oled_mode_toggle`, `keyball_oled_next_page`, `keyball_oled_prev_page`
-- `keyball_oled_render_setting`（互換: `keyball_oled_render_debug`）, `keyball_oled_render_ballinfo` など
+- `keyball_oled_render_setting`, `keyball_oled_render_ballinfo` など
 
 ## Scroll snap mode
 
 When scrolling with the trackball, the scroll direction is restricted.
 This restriction is called "scroll snap".
 
-The direction of restriction can be changed using special key codes.
-You can also release this restriction.
+The direction of restriction is configured in the OLED setting pages.
 It is called as "scroll snap mode"
 The current mode is displayed on the OLED.
 

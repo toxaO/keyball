@@ -133,8 +133,17 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
         return true; // ホストへは送らない
     }
 
-    // 値調整
+    // 値調整 / ページ送り（Shift+←/→）
     if (keycode == KC_LEFT || keycode == KC_RIGHT) {
+        // Shift 併用ならページ移動（内部でデバウンスするためここでは呼ばない）
+        if (get_mods() & MOD_MASK_SHIFT) {
+            if (keycode == KC_LEFT) {
+                keyball_oled_prev_page();
+            } else {
+                keyball_oled_next_page();
+            }
+            return true; // ホストへは送らない
+        }
         if (!ui_op_ready()) return true; // 入力は消費
         int dir = (keycode == KC_RIGHT) ? +1 : -1;
 
@@ -427,7 +436,7 @@ void keyball_oled_render_setting(void) {
 #endif
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -456,7 +465,7 @@ void keyball_oled_render_setting(void) {
 #endif
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -479,7 +488,7 @@ void keyball_oled_render_setting(void) {
             oled_write_ln("", false);
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -510,7 +519,7 @@ void keyball_oled_render_setting(void) {
 #endif
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -535,7 +544,7 @@ void keyball_oled_render_setting(void) {
             oled_write_ln("", false);
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -559,7 +568,7 @@ void keyball_oled_render_setting(void) {
             oled_write_val_P(sel == 3, line);
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -591,7 +600,7 @@ void keyball_oled_render_setting(void) {
             oled_write_P(line, false);
             oled_write_ln("", false);
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -642,7 +651,7 @@ void keyball_oled_render_setting(void) {
             oled_write_ln("  (RGB disabled)", false);
 #endif
             oled_write_ln("", false);
-            oled_write_ln("page", false);
+            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
