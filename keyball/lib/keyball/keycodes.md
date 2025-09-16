@@ -22,6 +22,19 @@ Only a minimal set of keyboard-level keycodes remain. All detailed parameter adj
 | `SSNP_HOR` | `Kb 8`          | `0x7e08` | Set scroll snap mode to horizontal        |
 | `SSNP_FRE` | `Kb 9`          | `0x7e09` | Disable scroll snap mode (free)           |
 
+### Swipe Actions
+The following keys start a swipe session on press and end it on release. Actual
+actions per direction are implemented in user code via hooks
+(`keyball_on_swipe_fire/end/tap`).
+
+| Keycode | Value on Remap | Hex     | Description                  |
+|:--------|:----------------|:--------|:-----------------------------|
+| `APP_SW` | `Kb 10`        | `0x7e0a` | App switch swipe             |
+| `VOL_SW` | `Kb 11`        | `0x7e0b` | Volume/media swipe           |
+| `BRO_SW` | `Kb 12`        | `0x7e0c` | Browser/history swipe        |
+| `TAB_SW` | `Kb 13`        | `0x7e0d` | Tab switch swipe             |
+| `WIN_SW` | `Kb 14`        | `0x7e0e` | Window/desktop swipe         |
+
 <a id="japanese"></a>
 ## 特殊キーコード
 
@@ -40,3 +53,15 @@ Only a minimal set of keyboard-level keycodes remain. All detailed parameter adj
 | `SSNP_VRT` | `Kb 7`          | `0x7e07` | スクロールスナップを垂直に設定            |
 | `SSNP_HOR` | `Kb 8`          | `0x7e08` | スクロールスナップを水平に設定            |
 | `SSNP_FRE` | `Kb 9`          | `0x7e09` | スクロールスナップを解除（自由）          |
+
+### スワイプ実行
+以下のキーは押下でスワイプ開始、解放で終了します。実際の方向別アクションは
+ユーザー側のフック（`keyball_on_swipe_fire/end/tap`）で実装します。
+
+| キーコード | Remap上での表記 | 値       | 説明                       |
+|:-----------|:----------------|:---------|:---------------------------|
+| `APP_SW`  | `Kb 10`         | `0x7e0a` | アプリ切替スワイプ         |
+| `VOL_SW`  | `Kb 11`         | `0x7e0b` | 音量/メディア操作スワイプ  |
+| `BRO_SW`  | `Kb 12`         | `0x7e0c` | ブラウザ/履歴スワイプ      |
+| `TAB_SW`  | `Kb 13`         | `0x7e0d` | タブ切替スワイプ           |
+| `WIN_SW`  | `Kb 14`         | `0x7e0e` | ウィンドウ/デスクトップ系  |

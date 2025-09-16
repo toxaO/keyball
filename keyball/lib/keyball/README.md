@@ -20,9 +20,9 @@ Quick toggles are available:
 
 ### Swipe adjustment / スワイプ調整
 Swipe thresholds, deadzone, reset, and freeze are adjusted in the OLED setting
-view.
+view and persisted via `KBC_SAVE`.
 
-スワイプの閾値・デッドゾーン・リセット・フリーズは OLED 設定で調整できます。
+スワイプの閾値・デッドゾーン・リセット・フリーズは OLED 設定で調整でき、`KBC_SAVE` で保存します。
 
 **Example / 例:**
 
@@ -60,25 +60,27 @@ Shift+←/→ でもページを移動できます（設定モード中）。
 - `keyball_swipe_set_step`, `keyball_swipe_set_deadzone`,
   `keyball_swipe_set_reset_ms`, `keyball_swipe_toggle_freeze`
 
-## Swipe Integration Guide / スワイプ導入手順（詳細）
+## Swipe Integration Guide / スワイプ導入手順（最新）
 
-ここではユーザーレベル（`keyball/lib_user` 配下）におけるスワイプ導入の実例と注意点を、`BRO_SW`（旧 `BROWSE_SWIPE`）を例に詳しく説明します。
+ここではユーザーレベル（`keyball/lib_user` 配下）におけるスワイプ導入の実例と注意点を、最新構成（スワイプ“実行”キーはキーボードレベル）に合わせて説明します。
 
 ### 前提
 - スワイプは「押下で開始（`keyball_swipe_begin(tag)`）し、解放で終了（`keyball_swipe_end()`）」のペアで運用します。
 - 方向判定・しきい値はKBレベルで行い、発火時の実アクションは `keyball_on_swipe_fire(tag, dir)`（weak）で実装します。
 - 分割環境では発火（アクション送出）はマスター側で行われます（実装済）。
 
-### 1) キーコードの用意
-- 任意のユーザーキーコード（例: `BRO_SW`）を `keyball/lib_user/keycode_user.h` の enum に定義します。
-  - 本リポジトリでは既に `BRO_SW` が定義済みです。
+### 1) キー配置（キーボードレベル）
+- スワイプ実行キーはすべてキーボードレベル（QK_KB_*）です。
+  - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW`
+- キーマップへ上記のいずれかを割り当てます（押下で開始、解放で終了）。
 
-### 2) キーマップにスワイプキーを配置
-- 例：マウスレイヤ `_mMou/_wMou` に `BRO_SW` を割り当てます。
-  - 下位レイヤの Mod-Tap 影響を避けるため、押下中だけ「全キーXXX」の `_SW_Block` レイヤをONにする方法を推奨します（解放でOFF）。
+### 2) 下位レイヤ干渉の抑制（任意）
+- Mod-Tap などとの干渉が気になる場合、`process_record_user()` で `APP_SW` 等の押下をフックし、押下時に `_SW_Block` を ON、解放は `keyball_on_swipe_end()` で OFF にします。
+  - フックしてもキーボードレベルの処理は通す必要があるため、`true` を返して後段の処理（KBレベル）に委ねます。
 
-### 3) 押下/解放で begin/end を呼ぶ（単押し動作も）
-- `keyball/lib_user/features/macro_key.c`（process_record_user）に以下のような分岐を追加します。
+### 3) 押下/解放の処理（KBレベルに委任）
+- 押下で `keyball_swipe_begin()`、解放で `keyball_swipe_end()` の呼び出しはキーボードレベルで自動処理されます。user 側で明示呼び出しは不要です。
+- 単押し（発火なし）のフォールバックは KB 側が `keyball_on_swipe_tap()` を呼ぶので、必要に応じて user 側で実装してください。
 
 ```c
 case BRO_SW:
@@ -102,8 +104,7 @@ case BRO_SW:
 ```
 
 ポイント:
-- 「単押し対応」は「押下〜解放の時間が短くて、かつスワイプ発火がなかった場合」に代替のタップを送る方式です。
-- `_SW_Block` レイヤを併用することで、押下中に下位レイヤ（Mod-Tap等）の影響を遮断できます。
+- `_SW_Block` レイヤの併用は任意です。必要な場合は user 側で押下をフックして ON、終了フックで OFF にします。
 
 ### 4) 方向ごとのアクションを実装
 - `keyball/lib_user/features/swipe_user.c` に `keyball_on_swipe_fire(tag, dir)` を実装します。
