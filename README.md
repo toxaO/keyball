@@ -83,38 +83,31 @@ There are three keymaps provided at least:
 15. 最新のワークフロー実行を開く（詳細へ）
 16. Artifacts セクションから生成物（UF2等）をダウンロード
 # Keyball
-## 追加: lib/keyball の主な機能まとめ
+## 追加: lib/keyball の主な機能まとめ（最新）
 
-以下は `keyball/lib/keyball` に実装された共通機能の要点です（既存の本文は保持し、追記のみ）。
+以下は `keyball/lib/keyball` に実装された共通機能の要点です（最新実装に追随）。
 
-- ポインタ調整
-  - 低速域ゲイン/しきい値（move shaping）をOS別に保存。
-  - `MVGL`（低速ゲイン調整）、`MVTH1`（しきい値1調整）。
+- ポインタ/スクロール/AML/スワイプ/RGB の調整
+  - すべて OLED の設定ページで調整します（OS別に保存される項目あり）。
+  - 保存は `KBC_SAVE`、初期化は `KBC_RST`。
 
-- スクロール調整
-  - ST（スクロールステップ）で速度段階を変更。`SCRL_STI` / `SCRL_STD`
-  - スクロール方向の反転は `SCRL_INV`（OS別に保存）。
-  - プリセット切替 `SCRL_PST`：macOS={120,120} 固定、その他={120,1}↔{1,1} をトグル。
+- スクロール操作のクイックキー（キーボードレベル）
+  - `SCRL_TO`: スクロールモードのトグル
+  - `SCRL_MO`: 押下中のみスクロールモード有効
+  - スクロールスナップ切替: `SSNP_VRT` / `SSNP_HOR` / `SSNP_FRE`（有効時）
 
-- スワイプ機能
-  - `SW_ST`（発火しきい値）、`SW_DZ`（デッドゾーン）、`SW_RT`（リセット遅延）、`SW_FRZ`（凍結）
-  - フック `keyball_on_swipe_fire(tag, dir)` で任意のアクションを実行可能。
+- スワイプ実行（キーボードレベル）
+  - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW`
+  - 押下で開始・解放で終了。方向別アクションは user 側フック
+    `keyball_on_swipe_fire/end/tap` で実装します。
 
-- OLED 表示/デバッグ
-  - 通常モード: レイヤ情報などを簡潔に表示。
-  - デバッグモード: 複数ページで設定値・スワイプ・スクロールの内部状態を表示。
+- OLED 表示
+  - 設定ページで Mouse/AML/Scroll/ScrollSnap/Raw/SwipeCfg/SwipeMon/RGB を確認・調整。
 
 - EEPROM プロファイル（kbpf）
-  - OS別に CPI, ST, 反転, スクロールパラメータ(interval/value), プリセット種別を保存。
-  - スワイプ関連（しきい値、デッドゾーン、リセットms、フリーズ）も保存。
-  - 本更新では内部構造のフィールド名を分かりやすく整理。既存データの自動移行は行わず、必要に応じて手動で `KBC_RST`/EEPROM初期化を実施してください。
-
-- 設定保存
-  - `KBC_SAVE` で現OSスロットをEEPROMへ保存、`KBC_RST` で既定に戻す。
-
-備考:
-- 既存の `SCRL_DVI`/`SCRL_DVD` は後方互換のため残していますが、ドキュメントとキーマップでは `SCRL_STI`/`SCRL_STD` の使用を推奨します。
-- 既定のSTは `KEYBALL_SCROLL_STEP_DEFAULT`（従来 `KEYBALL_SCROLL_DIV_DEFAULT`）。
+  - OS別: CPI, スクロール（ST/反転/プリセット/interval/value）、ポインタ移動量（Glo/Th1）
+  - グローバル: スワイプ（閾値/デッドゾーン/リセットms/フリーズ）、AML（有効/TO/TG）
+  - `KBC_SAVE` で一括保存。
 ## ローカルビルド手順（CUI向け）
 
 以下はCUIに慣れた方向けの導入とビルドの概要です。

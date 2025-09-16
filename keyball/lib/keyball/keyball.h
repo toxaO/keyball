@@ -174,6 +174,15 @@ enum keyball_keycodes {
   TAB_SW  = QK_KB_13,
   WIN_SW  = QK_KB_14,
 
+  // Multi action keys (Kb 15..18): A,B,C,D correspond to LEFT,RIGHT,UP,DOWN
+  MULTI_A = QK_KB_15,
+  MULTI_B = QK_KB_16,
+  MULTI_C = QK_KB_17,
+  MULTI_D = QK_KB_18,
+
+  // Arrow proxy swipe key (Kb 19)
+  SW_ARR  = QK_KB_19,
+
   // Setting view (Kb 2..4)
   STG_TOG = QK_KB_2, // Toggle setting view
   STG_NP  = QK_KB_3, // Setting page next

@@ -22,6 +22,7 @@ enum {
     KBS_TAG_BRO,
     KBS_TAG_TAB,
     KBS_TAG_WIN,
+    KBS_TAG_ARR, // Arrow proxy (SW_ARR)
 };
 
 // user → KB：スワイプセッション開始/終了
@@ -68,3 +69,6 @@ void keyball_swipe_apply(report_mouse_t *report, report_mouse_t *output, bool is
 
 // Debug helpers
 void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u);
+
+// 外部から1ステップ分の発火を指示（スワイプ有効時のみ有効）
+void keyball_swipe_fire_once(kb_swipe_dir_t dir);

@@ -243,64 +243,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        // スワイプジェスチャー（APP_SW〜WIN_SW）はキーボードレベルで処理されます
-
-        case MULTI_A:
-            if (record->event.pressed) {
-                if (keyball_swipe_is_active()) {
-                    switch (keyball_swipe_mode_tag()) {
-                        case KBS_TAG_APP:
-                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(m_L_DESK);
-                            else                                           tap_code16(w_L_DESK);
-                            break;
-                        case KBS_TAG_TAB:
-                            tap_code16(S(C(KC_TAB)));
-                            break;
-                        case KBS_TAG_BRO:
-                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_LEFT));
-                            else                                           tap_code16(KC_WBAK);
-                            break;
-                        case KBS_TAG_VOL:
-                        case KBS_TAG_WIN:
-                        default:
-                            // スワイプ中だが他モードなら何もしない/通常処理にフォールバックでもOK
-                            break;
-                    }
-                } else {
-                    // 非スワイプ時の通常処理
-                    if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_Z));
-                    else                                           tap_code16(C(KC_Z));
-                }
-            }
-            break;
-
-        case MULTI_B:
-            if (record->event.pressed) {
-                if (keyball_swipe_is_active()) {
-                    switch (keyball_swipe_mode_tag()) {
-                        case KBS_TAG_APP:
-                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(m_R_DESK);
-                            else                                           tap_code16(w_R_DESK);
-                            break;
-                        case KBS_TAG_TAB:
-                            tap_code16(C(KC_TAB));
-                            break;
-                        case KBS_TAG_BRO:
-                            if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(G(KC_RIGHT));
-                            else                                           tap_code16(KC_WFWD);
-                            break;
-                        case KBS_TAG_VOL:
-                        case KBS_TAG_WIN:
-                        default:
-                            break;
-                    }
-                } else {
-                    // 非スワイプ時の通常処理
-                    if (host_os == OS_MACOS || host_os == OS_IOS) tap_code16(S(G(KC_Z)));
-                    else                                           tap_code16(S(C(KC_Z)));
-                }
-            }
-            break;
+        // スワイプジェスチャー（APP_SW〜WIN_SW）、MULTI_A〜D はキーボードレベルで処理されます
 
     }
     return true;

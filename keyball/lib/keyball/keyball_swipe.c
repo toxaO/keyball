@@ -155,3 +155,15 @@ void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u)
   if (d) *d = (g_sw.acc_d < 0) ? 0 : (uint32_t)g_sw.acc_d;
   if (u) *u = (g_sw.acc_u < 0) ? 0 : (uint32_t)g_sw.acc_u;
 }
+
+void keyball_swipe_fire_once(kb_swipe_dir_t dir) {
+  if (!g_sw.active) return;
+#ifdef SPLIT_KEYBOARD
+  if (!is_keyboard_master()) return;
+#endif
+  if (keyball_on_swipe_fire) {
+    keyball_on_swipe_fire(g_sw.tag, dir);
+  }
+  g_sw.fired_any = true;
+  g_sw.last_dir  = dir;
+}

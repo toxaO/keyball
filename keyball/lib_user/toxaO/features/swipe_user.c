@@ -91,6 +91,17 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
+    case KBS_TAG_ARR:
+        // Arrow proxy: swipe方向に応じて矢印キーを発火
+        switch (dir) {
+        case KB_SWIPE_UP:    tap_code(KC_UP);    break;
+        case KB_SWIPE_DOWN:  tap_code(KC_DOWN);  break;
+        case KB_SWIPE_LEFT:  tap_code(KC_LEFT);  break;
+        case KB_SWIPE_RIGHT: tap_code(KC_RIGHT); break;
+        default: break;
+        }
+        break;
+
     default:
         break;
     }
@@ -124,6 +135,9 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         break;
     case KBS_TAG_WIN:
         tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+        break;
+    case KBS_TAG_ARR:
+        // タップ時は何もしない
         break;
     default:
         break;

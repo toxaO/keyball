@@ -3,6 +3,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "lib/keyball/keyball.h"  // キーボードレベルのキーコード（MULTI_*, *_SW など）
 /*
 #HSV_COLOR_CODE
 ------------------------------
@@ -207,11 +208,9 @@ enum layer_names {
 
 // custom keycode --------------------
 enum custom_keycodes {
-    /* APP_SW = KEYBALL_SAFE_RANGE, */
-    /* moved to keyboard-level: APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW */
-    MULTI_A = QK_USER,
-    MULTI_B,
-    EISU_S_N,
+    /* moved to keyboard-level: APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW, MULTI_A/B/C/D */
+    /* reserve user range from QK_USER for other custom keys */
+    EISU_S_N = QK_USER,
     KANA_C_N,
     ESC_LNG2, // Esc の後に KC_LNG2 を送る
 };

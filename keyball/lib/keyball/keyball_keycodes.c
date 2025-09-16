@@ -5,6 +5,8 @@
 #include "keyball_scroll.h"
 #include "os_detection.h"
 #include "keyball_swipe.h"
+#include "keyball_multi.h"
+#include "timer.h"
 #if defined(DYNAMIC_KEYMAP_ENABLE)
 #    include "dynamic_keymap.h"
 #endif
@@ -13,6 +15,8 @@
   ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 
 // (removed) CPI adjustment helper no longer used
+
+static uint16_t g_swipe_keydown_ms = 0;
 
 bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
@@ -81,11 +85,49 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       return false;
 
     // Swipe action keys: begin on press
-    case APP_SW: keyball_swipe_begin(1); return false; // KBS_TAG_APP (=1)
-    case VOL_SW: keyball_swipe_begin(2); return false; // KBS_TAG_VOL (=2)
-    case BRO_SW: keyball_swipe_begin(3); return false; // KBS_TAG_BRO (=3)
-    case TAB_SW: keyball_swipe_begin(4); return false; // KBS_TAG_TAB (=4)
-    case WIN_SW: keyball_swipe_begin(5); return false; // KBS_TAG_WIN (=5)
+    case APP_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(1); return false; // KBS_TAG_APP (=1)
+    case VOL_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(2); return false; // KBS_TAG_VOL (=2)
+    case BRO_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(3); return false; // KBS_TAG_BRO (=3)
+    case TAB_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(4); return false; // KBS_TAG_TAB (=4)
+    case WIN_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(5); return false; // KBS_TAG_WIN (=5)
+    case SW_ARR: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR); return false; // Arrow proxy swipe
+
+    // Arrow keys as swipe-direction proxies while swipe mode held
+    case KC_LEFT:
+    case KC_RIGHT:
+    case KC_UP:
+    case KC_DOWN:
+      if (keyball_swipe_is_active()) {
+        kb_swipe_dir_t dir = (keycode == KC_LEFT) ? KB_SWIPE_LEFT
+                             : (keycode == KC_RIGHT) ? KB_SWIPE_RIGHT
+                             : (keycode == KC_UP) ? KB_SWIPE_UP
+                                                  : KB_SWIPE_DOWN;
+        keyball_swipe_fire_once(dir);
+        return false; // consume
+      }
+      return true;
+
+    // MULTI keys: A,B,C,D
+    case MULTI_A: {
+      kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
+      if (keyball_on_multi_a) keyball_on_multi_a(tag); else tap_code16(KC_F1);
+      return false;
+    }
+    case MULTI_B: {
+      kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
+      if (keyball_on_multi_b) keyball_on_multi_b(tag); else tap_code16(KC_F2);
+      return false;
+    }
+    case MULTI_C: {
+      kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
+      if (keyball_on_multi_c) keyball_on_multi_c(tag); else tap_code16(KC_F3);
+      return false;
+    }
+    case MULTI_D: {
+      kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
+      if (keyball_on_multi_d) keyball_on_multi_d(tag); else tap_code16(KC_F4);
+      return false;
+    }
 
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
     // Scroll snap (explicit keycodes)
@@ -117,10 +159,12 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       case VOL_SW:
       case BRO_SW:
       case TAB_SW:
-      case WIN_SW: {
+      case WIN_SW:
+      case SW_ARR: {
         bool fired = keyball_swipe_fired_since_begin();
+        uint16_t elapsed = timer_elapsed(g_swipe_keydown_ms);
         keyball_swipe_end();
-        if (!fired) {
+        if (!fired && elapsed < TAPPING_TERM) {
           // User-level override first
           kb_swipe_tag_t tag = 0;
           if (keycode == APP_SW) tag = KBS_TAG_APP;
@@ -128,6 +172,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           else if (keycode == BRO_SW) tag = KBS_TAG_BRO;
           else if (keycode == TAB_SW) tag = KBS_TAG_TAB;
           else if (keycode == WIN_SW) tag = KBS_TAG_WIN;
+          else if (keycode == SW_ARR) tag = KBS_TAG_ARR;
           if (keyball_on_swipe_tap && tag != 0) {
             keyball_on_swipe_tap(tag);
           } else {
@@ -138,6 +183,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
             else if (keycode == BRO_SW) kc = KC_F3;
             else if (keycode == TAB_SW) kc = KC_F4;
             else if (keycode == WIN_SW) kc = KC_F5;
+            else if (keycode == SW_ARR) kc = KC_NO; // 明示: 何も送らない
             if (kc != KC_NO) tap_code16(kc);
           }
         }
