@@ -125,9 +125,9 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_PAD_A:
         // _Pad レイヤの KC_A 長押し → スワイプ方向で分岐
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16(KC_B); break;
-        case KB_SWIPE_RIGHT: tap_code16(KC_C); break;
-        case KB_SWIPE_UP:    tap_code16(AT);   break; // JISの記号定義に合わせて AT を使用
+        case KB_SWIPE_LEFT:  tap_code16_delay(KC_B, 300); break;
+        case KB_SWIPE_RIGHT: tap_code16_delay(KC_C, 300); break;
+        case KB_SWIPE_UP:    tap_code16_delay(KC_LBRC, 300);   break; // JISの記号定義に合わせて AT を使用
         default: break;
         }
         break;
@@ -139,8 +139,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
 // セッション終了時のクリーンアップ（Windowsスワイプで押しっぱなしのWinキーを解放）
 void keyball_on_swipe_end(kb_swipe_tag_t tag) {
-    // Lockレイヤを確実に解除（押しっぱなし等で取りこぼしを防ぐ）
-    layer_off(_SW_Block);
     if (tag == KBS_TAG_WIN) {
         if (host_os == OS_WINDOWS) {
             unregister_code(KC_LGUI);
