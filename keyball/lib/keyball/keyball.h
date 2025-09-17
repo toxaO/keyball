@@ -155,6 +155,11 @@ enum keyball_keycodes {
 
   // (removed) Pointer parameter adjustment keycodes were deprecated in favor of OLED setting UI
 
+  // Setting view (Kb 2..4)
+  STG_TOG = QK_KB_2, // Toggle setting view
+  STG_NP  = QK_KB_3, // Setting page next
+  STG_PP  = QK_KB_4, // Setting page previous
+
   // Scroll control (Kb 5..6)
   // Only mode toggles are provided. Others are handled via OLED setting UI.
   SCRL_TO  = QK_KB_5,  // Toggle scroll mode
@@ -183,16 +188,18 @@ enum keyball_keycodes {
   // Arrow proxy swipe key (Kb 19)
   SW_ARR  = QK_KB_19,
 
-  // Setting view (Kb 2..4)
-  STG_TOG = QK_KB_2, // Toggle setting view
-  STG_NP  = QK_KB_3, // Setting page next
-  STG_PP  = QK_KB_4, // Setting page previous
+  KEYBALL_SAFE_RANGE,
 
   // (removed) AML target layer adjustment
 
   // User customizable keycodes start here.
-  KEYBALL_SAFE_RANGE = QK_USER_0,
 };
+
+// ユーザーレベルのカスタムキーコードを Vial で直接扱えるよう、
+// QK_KB_* の未使用領域をユーザー割当の開始点（セーフレンジ）とする。
+// ここから後続の値（QK_KB_20,21,22, ...）をユーザーキーに割り当てる。
+// 注意: キーボードレベルの機能を追加する場合は、この値より前で割当ること。
+#define KEYBALL_SAFE_RANGE KEYBALL_SAFE_RANGE
 
 // Debug aliases removed
 

@@ -209,8 +209,9 @@ enum layer_names {
 // custom keycode --------------------
 enum custom_keycodes {
     /* moved to keyboard-level: APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW, MULTI_A/B/C/D */
-    /* reserve user range from QK_USER for other custom keys */
-    EISU_S_N = QK_USER,
-    KANA_C_N,
-    ESC_LNG2, // Esc の後に KC_LNG2 を送る
+    /* Vialで直接選べるよう、KBレベルの未使用域から割当開始（KEYBALL_SAFE_RANGE） */
+    // EISU_S_N = KEYBALL_SAFE_RANGE, // == QK_KB_20
+    EISU_S_N = KEYBALL_SAFE_RANGE, // == QK_KB_20
+    KANA_C_N,                      // == QK_KB_21
+    ESC_LNG2,                      // == QK_KB_22（Escの後にLNG2を送る）
 };
