@@ -23,6 +23,8 @@ enum {
     KBS_TAG_TAB,
     KBS_TAG_WIN,
     KBS_TAG_ARR, // Arrow proxy (SW_ARR)
+    KBS_TAG_EX1, // Extension swipe key #1 (SW_EX1)
+    KBS_TAG_EX2, // Extension swipe key #2 (SW_EX2)
 };
 
 // user → KB：スワイプセッション開始/終了

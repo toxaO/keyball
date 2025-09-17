@@ -25,6 +25,8 @@ uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定�
 bool canceller = false;
 
 // マクロキーを設定
+static uint16_t pad_a_keydown_ms = 0;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     /* swipe_mode = keycode; */
     mod_state = get_mods();
@@ -175,6 +177,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         register_code(KC_LCTL);
                     }
                 }
+            }
+            return true;
+
+        case KC_A:
+            // _Pad レイヤ限定: KC_A をスワイプ始動キーとして扱う
+            if (get_highest_layer(layer_state) == _Pad) {
+                if (record->event.pressed) {
+                    pad_a_keydown_ms = timer_read();
+                    keyball_swipe_begin(KBS_TAG_PAD_A);
+                } else {
+                    bool fired = keyball_swipe_fired_since_begin();
+                    uint16_t elapsed = timer_elapsed(pad_a_keydown_ms);
+                    keyball_swipe_end();
+                    if (!fired && elapsed < TAPPING_TERM) {
+                        tap_code16(KC_A); // 単押しは 'A'
+                    }
+                }
+                return false; // ここで完結
             }
             return true;
 

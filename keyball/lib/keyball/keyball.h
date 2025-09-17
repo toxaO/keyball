@@ -24,6 +24,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball_scroll.h"
 #include "keyball_swipe.h"
 
+// カスタムキーコードの運用（KBレベル/ユーザーレベルと SAFE_RANGE）
+// ----------------------------------------------------------------------
+// 1) KBレベル（QK_KB_*）
+//    - Vial の customKeycodes は QK_KB_0, QK_KB_1, ... の順に並ぶ前提。
+//    - 列挙順は QK_KB_* の連番順になるように並べる（途中で前後させない）。
+//
+// 2) SAFE_RANGE（動的決定）
+//    - KBレベルの列挙の末尾に KEYBALL_SAFE_RANGE を置くことで、
+//      「最後に割り当てられた QK_KB_* の次の値」を SAFE_RANGE として動的に決定します。
+//    - ユーザーレベルのキー（配布でVial表示したいキー）は、この KEYBALL_SAFE_RANGE から
+//      連番で定義します（ユーザ側ヘッダで `= KEYBALL_SAFE_RANGE` を用いる）。
+//
+// 3) Vial 側の扱い
+//    - `keymaps/<name>/vial.json` の customKeycodes 配列は、上記の列挙順と一致させます。
+//    - KBレベルの追加で SAFE_RANGE が増減する場合は、vial.json の配列順も追随してください。
+//     （必要があればダミー項目で穴埋めしてインデックスを合わせても構いません。）
+
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
 
@@ -188,6 +205,10 @@ enum keyball_keycodes {
   // Arrow proxy swipe key (Kb 19)
   SW_ARR  = QK_KB_19,
 
+  // Extension swipe keys (Kb 20..21): for user-expansion examples
+  SW_EX1  = QK_KB_20,
+  SW_EX2  = QK_KB_21,
+
   KEYBALL_SAFE_RANGE,
 
   // (removed) AML target layer adjustment
@@ -195,11 +216,9 @@ enum keyball_keycodes {
   // User customizable keycodes start here.
 };
 
-// ユーザーレベルのカスタムキーコードを Vial で直接扱えるよう、
-// QK_KB_* の未使用領域をユーザー割当の開始点（セーフレンジ）とする。
-// ここから後続の値（QK_KB_20,21,22, ...）をユーザーキーに割り当てる。
-// 注意: キーボードレベルの機能を追加する場合は、この値より前で割当ること。
-#define KEYBALL_SAFE_RANGE KEYBALL_SAFE_RANGE
+// ユーザーレベルのカスタムキーは、ユーザー側ヘッダで
+//   enum custom_keycodes { USER_X = KEYBALL_SAFE_RANGE, USER_Y, ... };
+// のように KEYBALL_SAFE_RANGE から連番で定義します。
 
 // Debug aliases removed
 

@@ -8,7 +8,12 @@
 #include "lib/keyball/keyball_multi.h"
 
 void keyball_on_multi_a(kb_swipe_tag_t tag) {
-    if (tag == 0) { tap_code16(KC_F1); return; }
+    if (tag == 0) {
+        // 非スワイプ時のデフォルト: Undo
+        // Windows/Linux: Ctrl+Z, macOS/iOS: GUI+Z
+        tap_code16_os(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
+        return;
+    }
     switch (tag) {
     case KBS_TAG_APP: tap_code16_os(w_L_DESK, m_L_DESK, m_L_DESK, KC_NO, KC_NO); break;
     case KBS_TAG_TAB: tap_code16(S(C(KC_TAB))); break;
@@ -23,7 +28,12 @@ void keyball_on_multi_a(kb_swipe_tag_t tag) {
 }
 
 void keyball_on_multi_b(kb_swipe_tag_t tag) {
-    if (tag == 0) { tap_code16(KC_F2); return; }
+    if (tag == 0) {
+        // 非スワイプ時のデフォルト: Redo
+        // Windows/Linux: Ctrl+Y, macOS/iOS: GUI+Shift+Z
+        tap_code16_os(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(KC_Y), C(KC_Y));
+        return;
+    }
     switch (tag) {
     case KBS_TAG_APP: tap_code16_os(w_R_DESK, m_R_DESK, m_R_DESK, KC_NO, KC_NO); break;
     case KBS_TAG_TAB: tap_code16(C(KC_TAB)); break;

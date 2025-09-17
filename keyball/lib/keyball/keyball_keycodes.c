@@ -18,6 +18,135 @@
 
 static uint16_t g_swipe_keydown_ms = 0;
 
+// --- KB-level default helpers (used when user override is absent) ---
+static inline void tap_code16_os_kb(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure) {
+  switch (detected_host_os()) {
+    case OS_WINDOWS: tap_code16(win);   break;
+    case OS_MACOS:   tap_code16(mac);   break;
+    case OS_IOS:     tap_code16(ios);   break;
+    case OS_LINUX:   tap_code16(linux); break;
+    case OS_UNSURE:  tap_code16(unsure);break;
+  }
+}
+
+static void kb_default_multi_a(kb_swipe_tag_t tag) {
+  if (tag == 0) {
+    // Undo: Win/Linux=Ctrl+Z, mac/iOS=GUI+Z
+    tap_code16_os_kb(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
+    return;
+  }
+  switch (tag) {
+    case KBS_TAG_APP:
+      // Desktop move left (Win: Win+Ctrl+Left, Mac: Ctrl+Left)
+      tap_code16_os_kb(G(C(KC_LEFT)), LCTL(KC_LEFT), LCTL(KC_LEFT), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_TAB:
+      tap_code16(S(C(KC_TAB))); // prev tab
+      break;
+    case KBS_TAG_BRO:
+      // Browser back (Win), mac: GUI+Left
+      tap_code16_os_kb(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_VOL:
+      tap_code(KC_MNXT);
+      break;
+    case KBS_TAG_WIN:
+      if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_LEFT); }
+      else                                  { tap_code16(C(A(KC_LEFT))); }
+      break;
+    default:
+      tap_code16(KC_F1);
+      break;
+  }
+}
+
+static void kb_default_multi_b(kb_swipe_tag_t tag) {
+  if (tag == 0) {
+    // Redo: Win/Linux=Ctrl+Y, mac/iOS=GUI+Shift+Z
+    tap_code16_os_kb(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(KC_Y), C(KC_Y));
+    return;
+  }
+  switch (tag) {
+    case KBS_TAG_APP:
+      // Desktop move right (Win: Win+Ctrl+Right, Mac: Ctrl+Right)
+      tap_code16_os_kb(G(C(KC_RIGHT)), LCTL(KC_RIGHT), LCTL(KC_RIGHT), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_TAB:
+      tap_code16(C(KC_TAB)); // next tab
+      break;
+    case KBS_TAG_BRO:
+      // Browser forward (Win), mac: GUI+Right
+      tap_code16_os_kb(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_VOL:
+      tap_code(KC_MPRV);
+      break;
+    case KBS_TAG_WIN:
+      if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_RIGHT); }
+      else                                  { tap_code16(C(A(KC_RIGHT))); }
+      break;
+    default:
+      tap_code16(KC_F2);
+      break;
+  }
+}
+
+static void kb_default_multi_c(kb_swipe_tag_t tag) {
+  if (tag == 0) { tap_code16(KC_F3); return; }
+  switch (tag) {
+    case KBS_TAG_APP:
+      // Task view / Mission Control
+      tap_code16_os_kb(C(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_TAB:
+      // Last tab
+      tap_code16_os_kb(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_BRO:
+      // Reload
+      tap_code16_os_kb(C(KC_R), G(KC_R), G(KC_R), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_VOL:
+      tap_code(KC_VOLU);
+      break;
+    case KBS_TAG_WIN:
+      if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_UP); }
+      else                                  { tap_code16(C(A(KC_UP))); }
+      break;
+    default:
+      tap_code16(KC_F3);
+      break;
+  }
+}
+
+static void kb_default_multi_d(kb_swipe_tag_t tag) {
+  if (tag == 0) { tap_code16(KC_F4); return; }
+  switch (tag) {
+    case KBS_TAG_APP:
+      // Show desktop / App Expose
+      tap_code16_os_kb(G(KC_D), LCTL(KC_DOWN), LCTL(KC_DOWN), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_TAB:
+      // Close tab
+      tap_code16_os_kb(C(KC_W), G(KC_W), G(KC_W), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_BRO:
+      // New tab
+      tap_code16_os_kb(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+      break;
+    case KBS_TAG_VOL:
+      tap_code(KC_VOLD);
+      break;
+    case KBS_TAG_WIN:
+      if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_DOWN); }
+      else                                  { tap_code16(C(A(KC_DOWN))); }
+      break;
+    default:
+      tap_code16(KC_F4);
+      break;
+  }
+}
+
 bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case SCRL_MO:
@@ -91,6 +220,8 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case TAB_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(4); return false; // KBS_TAG_TAB (=4)
     case WIN_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(5); return false; // KBS_TAG_WIN (=5)
     case SW_ARR: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR); return false; // Arrow proxy swipe
+    case SW_EX1: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX1); return false; // Extension swipe 1
+    case SW_EX2: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX2); return false; // Extension swipe 2
 
     // Arrow keys as swipe-direction proxies while swipe mode held
     case KC_LEFT:
@@ -110,22 +241,22 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     // MULTI keys: A,B,C,D
     case MULTI_A: {
       kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
-      if (keyball_on_multi_a) keyball_on_multi_a(tag); else tap_code16(KC_F1);
+      if (keyball_on_multi_a) keyball_on_multi_a(tag); else kb_default_multi_a(tag);
       return false;
     }
     case MULTI_B: {
       kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
-      if (keyball_on_multi_b) keyball_on_multi_b(tag); else tap_code16(KC_F2);
+      if (keyball_on_multi_b) keyball_on_multi_b(tag); else kb_default_multi_b(tag);
       return false;
     }
     case MULTI_C: {
       kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
-      if (keyball_on_multi_c) keyball_on_multi_c(tag); else tap_code16(KC_F3);
+      if (keyball_on_multi_c) keyball_on_multi_c(tag); else kb_default_multi_c(tag);
       return false;
     }
     case MULTI_D: {
       kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
-      if (keyball_on_multi_d) keyball_on_multi_d(tag); else tap_code16(KC_F4);
+      if (keyball_on_multi_d) keyball_on_multi_d(tag); else kb_default_multi_d(tag);
       return false;
     }
 
@@ -173,6 +304,8 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           else if (keycode == TAB_SW) tag = KBS_TAG_TAB;
           else if (keycode == WIN_SW) tag = KBS_TAG_WIN;
           else if (keycode == SW_ARR) tag = KBS_TAG_ARR;
+          else if (keycode == SW_EX1) tag = KBS_TAG_EX1;
+          else if (keycode == SW_EX2) tag = KBS_TAG_EX2;
           if (keyball_on_swipe_tap && tag != 0) {
             keyball_on_swipe_tap(tag);
           } else {
@@ -184,6 +317,8 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
             else if (keycode == TAB_SW) kc = KC_F4;
             else if (keycode == WIN_SW) kc = KC_F5;
             else if (keycode == SW_ARR) kc = KC_NO; // 明示: 何も送らない
+            else if (keycode == SW_EX1) kc = KC_F10;
+            else if (keycode == SW_EX2) kc = KC_F15;
             if (kc != KC_NO) tap_code16(kc);
           }
         }

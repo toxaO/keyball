@@ -57,6 +57,8 @@
     { "name": "MULTI_C",  "title": "Multi action C (user-hooked; default F3)",    "shortName": "MULTI\nC" },
     { "name": "MULTI_D",  "title": "Multi action D (user-hooked; default F4)",    "shortName": "MULTI\nD" },
     { "name": "SW_ARR",   "title": "Arrow proxy swipe (press to begin)",          "shortName": "SW\nARR" },
+    { "name": "SW_EX1",   "title": "Extension swipe 1 (tap=F10; U/R/D/L=F11/12/13/14)", "shortName": "SW\nEX1" },
+    { "name": "SW_EX2",   "title": "Extension swipe 2 (tap=F15; U/R/D/L=F16/17/18/19)", "shortName": "SW\nEX2" },
     { "name": "EISU_S_N", "title": "Shift tap=LNG2; hold=Shift; quick double=NumPad", "shortName": "EISU\nN" },
     { "name": "KANA_C_N", "title": "Ctrl tap=LNG1; hold=Ctrl; quick double=LNG2+NumPad", "shortName": "KANA\nN" },
     { "name": "ESC_LNG2", "title": "Send ESC then LNG2",                              "shortName": "ESC\nLNG2" }

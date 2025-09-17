@@ -4,6 +4,15 @@
 
 #include "quantum.h"
 #include "lib/keyball/keyball.h"  // キーボードレベルのキーコード（MULTI_*, *_SW など）
+
+// カスタムキーコードの分担とSAFE_RANGEの使い方
+// ----------------------------------------------------------------------
+// - KBレベル（QK_KB_*）は keyball.h 側で定義。Vial の customKeycodes は QK_KB_0.. の順で送出。
+// - ユーザー側は「KEYBALL_SAFE_RANGE から連番」で定義する。
+//   例: enum custom_keycodes { USER_A = KEYBALL_SAFE_RANGE, USER_B, ... };
+// - SAFE_RANGE は keyball.h の列挙末尾に置かれ、KBキーの並び順次第で動的に決まる。
+//   KB側で並び替えた場合は、vial.json の customKeycodes の並び（インデックス）も
+//   同じ順序へ更新して整合を取ること（必要ならRESV_XX等で穴埋め可）。
 /*
 #HSV_COLOR_CODE
 ------------------------------
