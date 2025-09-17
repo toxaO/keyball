@@ -24,8 +24,9 @@ static uint16_t first_shift_tap_time = 0;
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 bool canceller = false;
 
-// マクロキーを設定
 static uint16_t pad_a_keydown_ms = 0;
+static uint16_t multi_c_keydown_ms = 0;
+static bool multi_c_active = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     /* swipe_mode = keycode; */
@@ -197,6 +198,47 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false; // ここで完結
             }
             return true;
+
+        case MULTI_A:
+            if (record->event.pressed) {
+                if (keyball_swipe_is_active() && keyball_swipe_mode_tag() == KBS_TAG_PAD_A) {
+                    // KC_A長押しモード中の左（=B）：MULTI_Aを方向プロキシとして扱う
+                    keyball_swipe_fire_once(KB_SWIPE_LEFT);
+                    return false;
+                }
+            }
+            return true; // それ以外は既存処理へ
+
+        case MULTI_B:
+            if (record->event.pressed) {
+                if (keyball_swipe_is_active() && keyball_swipe_mode_tag() == KBS_TAG_PAD_A) {
+                    // KC_A長押しモード中の右（=C）
+                    keyball_swipe_fire_once(KB_SWIPE_RIGHT);
+                    return false;
+                }
+            }
+            return true;
+
+        case MULTI_C:
+            if (keyball_swipe_is_active()) {
+                // スワイプタグあり（例: PAD_A など）の場合はKB/ユーザー既存処理に委譲
+                return true;
+            }
+            // タグなしデフォルト: LT(10, KC_ENTER) ≒ LT(_Set, KC_ENT)
+            if (record->event.pressed) {
+                multi_c_active = true;
+                multi_c_keydown_ms = timer_read();
+                layer_on(_Set);
+            } else {
+                if (multi_c_active) {
+                    if (timer_elapsed(multi_c_keydown_ms) < TAPPING_TERM) {
+                        tap_code16(KC_ENTER);
+                    }
+                    layer_off(_Set);
+                    multi_c_active = false;
+                }
+            }
+            return false;
 
         case KC_LCTL:
         case CTL_T(KC_ESC):
