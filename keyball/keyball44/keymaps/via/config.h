@@ -38,7 +38,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE
 #define AUTO_MOUSE_DEFAULT_LAYER 1
 
-#define DYNAMIC_KEYMAP_LAYER_COUNT 8
+// VIA/Vial の動的キーマップ領域を mymap（配布想定）と同一に揃える
+// 不一致だと NVM レイアウトの読み違いからキー位置のズレを誘発する可能性がある
+#undef  DYNAMIC_KEYMAP_LAYER_COUNT
+#define DYNAMIC_KEYMAP_LAYER_COUNT 12
 
 // KeyballプロファイルをEECONFIG_KBに保存するための領域確保
 #undef  EECONFIG_KB_DATA_SIZE
@@ -52,3 +55,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // VIA/Vial: レイアウトオプションの初期値を Right に設定
 #undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
 #define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001
+
+// VIA 互換維持用のファームバージョンを明示（NVMの再初期化フラグとして利用）
+#ifndef VIA_FIRMWARE_VERSION
+#define VIA_FIRMWARE_VERSION 0x00010003
+#endif
