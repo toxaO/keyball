@@ -45,6 +45,10 @@ __attribute__((weak)) void keyball_on_swipe_end(kb_swipe_tag_t mode_tag);
 // タップ（発火なしで離した）時のフォールバック操作（任意実装）
 __attribute__((weak)) void keyball_on_swipe_tap(kb_swipe_tag_t mode_tag);
 
+// 方向別クールタイム（ms）を返すフック（未実装なら 0=無制限）
+// - 例: VOL タグの左右のみ 500ms にする、PAD_A は全方向 300ms など。
+__attribute__((weak)) uint16_t keyball_swipe_get_cooldown_ms(kb_swipe_tag_t tag, kb_swipe_dir_t dir);
+
 // ==== Swipe runtime params ====
 typedef struct {
     uint16_t step;     // 発火しきい値（counts）

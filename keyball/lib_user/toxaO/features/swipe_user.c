@@ -125,9 +125,86 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_PAD_A:
         // _Pad レイヤの KC_A 長押し → スワイプ方向で分岐
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16_delay(KC_B, 300); break;
-        case KB_SWIPE_RIGHT: tap_code16_delay(KC_C, 300); break;
-        case KB_SWIPE_UP:    tap_code16_delay(KC_LBRC, 300);   break; // JISの記号定義に合わせて AT を使用
+        case KB_SWIPE_LEFT:  tap_code16(KC_B); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_C); break;
+        case KB_SWIPE_UP:    tap_code16(AT);   break; // JISの記号定義に合わせて AT を使用
+        default: break;
+        }
+        break;
+
+    // FLICK_* 系：ベースキーごとの方向マッピング
+    case KBS_TAG_FLICK_A:
+        // {tap=A, up=@, right=C, left=B, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_B); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_C); break;
+        case KB_SWIPE_UP:    tap_code16(AT);   break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_D:
+        // {tap=D, up=(, right=F, left=E, down=)}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_E);      break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_F);      break;
+        case KB_SWIPE_UP:    tap_code16(L_PAREN);   break;
+        case KB_SWIPE_DOWN:  tap_code16(R_PAREN);   break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_G:
+        // {tap=G, up=None, right=I, left=H, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_H); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_I); break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_J:
+        // {tap=J, up=None, right=L, left=K, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_K); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_L); break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_M:
+        // {tap=M, up=None, right=O, left=N, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_N); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_O); break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_P:
+        // {tap=P, up=None, right=R, left=Q, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_Q); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_R); break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_S:
+        // {tap=S, up=None, right=U, left=T, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_T); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_U); break;
+        default: break;
+        }
+        break;
+
+    case KBS_TAG_FLICK_V:
+        // {tap=V, up=Y, right=W, left=Z, down=None}
+        switch (dir) {
+        case KB_SWIPE_LEFT:  tap_code16(KC_Z); break;
+        case KB_SWIPE_RIGHT: tap_code16(KC_W); break;
+        case KB_SWIPE_UP:    tap_code16(KC_Y); break;
         default: break;
         }
         break;
@@ -182,5 +259,22 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
     */
     default:
         break;
+    }
+}
+
+// クールタイム指定（タグ・方向に応じてmsを返す。0=無制限）
+uint16_t keyball_swipe_get_cooldown_ms(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
+    switch (tag) {
+    // 例1: PAD_A は全方向 300ms
+    case KBS_TAG_PAD_A:
+        return 300;
+
+    // 例2: VOL は左右のみ 500ms、上下は 0ms（連続発火OK）
+    case KBS_TAG_VOL:
+        if (dir == KB_SWIPE_LEFT || dir == KB_SWIPE_RIGHT) return 500;
+        return 0;
+
+    default:
+        return 0; // デフォルト: クールタイムなし
     }
 }

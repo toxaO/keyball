@@ -6,8 +6,11 @@
 
 #include "lib/keyball/keyball.h"
 #include "lib/keyball/keyball_multi.h"
+#include "swipe_user.h" // KBS_TAG_PAD_A の定義
 
 void keyball_on_multi_a(kb_swipe_tag_t tag) {
+    // フリックキー押下中は、早期リターンで各方向のスワイプ実行処理に入る
+    if (kb_is_flick_tag(tag)) { keyball_swipe_fire_once(KB_SWIPE_LEFT); return; }
     if (tag == 0) {
         // 非スワイプ時のデフォルト: Undo
         // Windows/Linux: Ctrl+Z, macOS/iOS: GUI+Z
@@ -28,6 +31,7 @@ void keyball_on_multi_a(kb_swipe_tag_t tag) {
 }
 
 void keyball_on_multi_b(kb_swipe_tag_t tag) {
+    if (kb_is_flick_tag(tag)) { keyball_swipe_fire_once(KB_SWIPE_RIGHT); return; }
     if (tag == 0) {
         // 非スワイプ時のデフォルト: Redo
         // Windows/Linux: Ctrl+Y, macOS/iOS: GUI+Shift+Z
@@ -48,6 +52,9 @@ void keyball_on_multi_b(kb_swipe_tag_t tag) {
 }
 
 void keyball_on_multi_c(kb_swipe_tag_t tag) {
+    // FLICK 系は user-level(macro_user.c) 側で処理（遅延送出）。
+    // 向こうでtrueを返されるとこちらへくる。falseだとこっちへ来ない。
+    if (kb_is_flick_tag(tag)) { return; }
     if (tag == 0) { tap_code16(KC_F3); return; }
     switch (tag) {
     case KBS_TAG_APP: tap_code16_os(w_TASK, m_MIS_CON, m_MIS_CON, KC_NO, KC_NO); break;

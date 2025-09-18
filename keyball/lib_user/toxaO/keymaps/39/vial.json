@@ -62,5 +62,14 @@
     { "name": "EISU_S_N", "title": "Shift tap=LNG2; hold=Shift; quick double=NumPad", "shortName": "EISU\nN" },
     { "name": "KANA_C_N", "title": "Ctrl tap=LNG1; hold=Ctrl; quick double=LNG2+NumPad", "shortName": "KANA\nN" },
     { "name": "ESC_LNG2", "title": "Send ESC then LNG2",                              "shortName": "ESC\nLNG2" }
+    ,
+    { "name": "FLICK_A", "title": "Flick A (tap A; L=B, R=C, U=@)",                 "shortName": "FLICK\nA" },
+    { "name": "FLICK_D", "title": "Flick D (tap D; L=E, R=F, U=(, D=))",            "shortName": "FLICK\nD" },
+    { "name": "FLICK_G", "title": "Flick G (tap G; L=H, R=I)",                      "shortName": "FLICK\nG" },
+    { "name": "FLICK_J", "title": "Flick J (tap J; L=K, R=L)",                      "shortName": "FLICK\nJ" },
+    { "name": "FLICK_M", "title": "Flick M (tap M; L=N, R=O)",                      "shortName": "FLICK\nM" },
+    { "name": "FLICK_P", "title": "Flick P (tap P; L=Q, R=R)",                      "shortName": "FLICK\nP" },
+    { "name": "FLICK_S", "title": "Flick S (tap S; L=T, R=U)",                      "shortName": "FLICK\nS" },
+    { "name": "FLICK_V", "title": "Flick V (tap V; L=Z, R=W, U=Y)",                 "shortName": "FLICK\nV" }
   ]
 }

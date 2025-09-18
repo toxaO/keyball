@@ -20,6 +20,10 @@ typedef struct {
   bool            fired_any;
   kb_swipe_dir_t  last_dir;
   int32_t acc_r, acc_l, acc_d, acc_u;
+  uint32_t last_ms_up;
+  uint32_t last_ms_down;
+  uint32_t last_ms_left;
+  uint32_t last_ms_right;
 } kb_swipe_session_t;
 
 static kb_swipe_session_t g_sw = {0};
@@ -31,6 +35,7 @@ void keyball_swipe_begin(kb_swipe_tag_t mode_tag) {
   g_sw.fired_any= false;
   g_sw.last_dir = KB_SWIPE_NONE;
   g_sw.acc_r = g_sw.acc_l = g_sw.acc_d = g_sw.acc_u = 0;
+  g_sw.last_ms_up = g_sw.last_ms_down = g_sw.last_ms_left = g_sw.last_ms_right = 0;
 }
 void keyball_swipe_end(void) {
   kb_swipe_tag_t prev_tag = g_sw.tag;
@@ -89,11 +94,37 @@ void keyball_swipe_toggle_freeze(void){
   uprintf("SW freeze=%u\r\n", kbpf.swipe_freeze ? 1 : 0);
 }
 
+static inline uint32_t* kb_sw_dir_time_ptr(kb_swipe_dir_t dir) {
+  switch (dir) {
+    case KB_SWIPE_UP:    return &g_sw.last_ms_up;
+    case KB_SWIPE_DOWN:  return &g_sw.last_ms_down;
+    case KB_SWIPE_LEFT:  return &g_sw.last_ms_left;
+    case KB_SWIPE_RIGHT: return &g_sw.last_ms_right;
+    default: return &g_sw.last_ms_up; // fallback
+  }
+}
+
+// try to fire once per step; if cooldown中なら今回は発火せず蓄積を抑制
 static void kb_sw_try_fire(kb_swipe_dir_t dir,
     int32_t *acc_target,
     int32_t *a1, int32_t *a2, int32_t *a3) {
 
   while (*acc_target >= kbpf.swipe_step) {
+    // クールタイム判定
+    uint16_t cd = 0;
+    if (keyball_swipe_get_cooldown_ms) {
+      cd = keyball_swipe_get_cooldown_ms(g_sw.tag, dir);
+    }
+    uint32_t now = timer_read32();
+    uint32_t *plast = kb_sw_dir_time_ptr(dir);
+    if (cd > 0 && timer_elapsed32(*plast) < cd) {
+      // 今回は発火せず、連続ループを防ぐためにしきい値直前まで抑制
+      int32_t step_minus1 = (kbpf.swipe_step > 0) ? (int32_t)kbpf.swipe_step - 1 : 0;
+      if (*acc_target > step_minus1) *acc_target = step_minus1;
+      *a1 = *a2 = *a3 = 0;
+      break;
+    }
+
     if (keyball_on_swipe_fire) {
 #ifdef SPLIT_KEYBOARD
       if (is_keyboard_master()) {
@@ -105,6 +136,7 @@ static void kb_sw_try_fire(kb_swipe_dir_t dir,
     }
     g_sw.fired_any = true;
     g_sw.last_dir  = dir;
+    *plast = now;
 
     *acc_target -= kbpf.swipe_step;
     if (*acc_target < 0) *acc_target = 0;
@@ -161,9 +193,19 @@ void keyball_swipe_fire_once(kb_swipe_dir_t dir) {
 #ifdef SPLIT_KEYBOARD
   if (!is_keyboard_master()) return;
 #endif
+  // クールタイム判定（単発）
+  uint16_t cd = 0;
+  if (keyball_swipe_get_cooldown_ms) {
+    cd = keyball_swipe_get_cooldown_ms(g_sw.tag, dir);
+  }
+  uint32_t *plast = kb_sw_dir_time_ptr(dir);
+  if (cd > 0 && timer_elapsed32(*plast) < cd) {
+    return; // クールタイム中は破棄
+  }
   if (keyball_on_swipe_fire) {
     keyball_on_swipe_fire(g_sw.tag, dir);
   }
   g_sw.fired_any = true;
   g_sw.last_dir  = dir;
+  *plast = timer_read32();
 }

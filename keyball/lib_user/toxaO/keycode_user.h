@@ -217,10 +217,20 @@ enum layer_names {
 
 // custom keycode --------------------
 enum custom_keycodes {
-    /* moved to keyboard-level: APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW, MULTI_A/B/C/D */
     /* Vialで直接選べるよう、KBレベルの未使用域から割当開始（KEYBALL_SAFE_RANGE） */
-    // EISU_S_N = KEYBALL_SAFE_RANGE, // == QK_KB_20
-    EISU_S_N = KEYBALL_SAFE_RANGE, // == QK_KB_20
-    KANA_C_N,                      // == QK_KB_21
-    ESC_LNG2,                      // == QK_KB_22（Escの後にLNG2を送る）
+    // vialの使用上、vial.jsonに記載して表示可能なのはQK_KB_31までかも。
+    // vial.jsonに記載するときはキーコードの順序を一致させること
+    EISU_S_N = KEYBALL_SAFE_RANGE, // == 例:QK_KB_20であれば、以下はそこから順番のキーコードになる。
+    KANA_C_N,
+    ESC_LNG2,
+
+    // フリック用カスタムキーコード
+    FLICK_A,
+    FLICK_D,
+    FLICK_G,
+    FLICK_J,
+    FLICK_M,
+    FLICK_P,
+    FLICK_S,
+    FLICK_V,
 };
