@@ -172,6 +172,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
+
     case KBS_TAG_FLICK_M:
         // {tap=M, up=None, right=O, left=N, down=None}
         switch (dir) {

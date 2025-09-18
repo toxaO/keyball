@@ -111,6 +111,8 @@ void kbpf_defaults(void) {
   kbpf.scrollsnap_mode = 0;
 #endif
   kbpf_set_swipe_defaults(&kbpf);
+  // Default layer
+  kbpf.default_layer = 0; // 初期値 0
 }
 
 // Ensure loaded data is sane. 互換は持たず、異なる版はデフォルトに初期化。
@@ -144,6 +146,8 @@ static void kbpf_validate(void) {
   if (kbpf.aml_timeout > 5000u) kbpf.aml_timeout = 3000u;
   // Scroll snap
   if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = 0u;
+  // Default layer: clamp 0..31
+  if (kbpf.default_layer > 31u) kbpf.default_layer = 0u;
 }
 
 void kbpf_after_load_fixup(void) {

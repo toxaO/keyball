@@ -251,6 +251,8 @@ void keyboard_post_init_kb(void) {
   keyball_set_scroll_div(keyball_get_scroll_div());
   g_move_gain_lo_fp = kbpf.move_gain_lo_fp[osi()];
   g_move_th1        = kbpf.move_th1[osi()];
+  // 起動時にデフォルトレイヤーを適用
+  default_layer_set((uint32_t)1u << kbpf.default_layer);
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
   // Apply persisted AML settings if available
   set_auto_mouse_enable(kbpf.aml_enable ? true : false);

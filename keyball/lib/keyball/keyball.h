@@ -384,6 +384,8 @@ typedef struct __attribute__((packed)) {
   uint16_t aml_timeout;     // ms
   // Scroll snap (global)
   uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
+  // Default base layer configuration (global)
+  uint8_t  default_layer;   // 0..31 (QMK default layer index)
 } keyball_profiles_t;
 
 #define KBPF_MAGIC 0x4B425031u /* 'KBP1' */
@@ -412,4 +414,4 @@ extern keyball_profiles_t kbpf;
 #endif
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 8 // v8: AMLとスクロールスナップの永続化を追加（互換なし）
+#define KBPF_VER_CUR 9 // v9: default_layer を追加（互換なし）

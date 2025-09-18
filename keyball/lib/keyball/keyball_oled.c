@@ -25,7 +25,7 @@ static uint8_t        g_oled_page = 0;
 static bool           g_oled_vertical = false; // 右手マスター用の縦向き表示フラグ
 
 // デバッグUI: ページごとの選択インデックス
-#define KB_UI_PAGES 8
+#define KB_UI_PAGES 9
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
@@ -43,11 +43,12 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
 #else
             return 0;
 #endif
+        case 8: return 1; // Default layer: def
     }
     return 0;
 }
 
-#define KB_OLED_PAGE_COUNT      8
+#define KB_OLED_PAGE_COUNT      9
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -286,6 +287,16 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             } break;
 #endif
 
+            case 8: { // Default layer conf
+                if (sel == 0) {
+                    int32_t v = (int32_t)kbpf.default_layer + dir;
+                    if (v < 0) v = 0;
+                    if (v > 31) v = 31;
+                    kbpf.default_layer = (uint8_t)v;
+                    default_layer_set((uint32_t)1u << kbpf.default_layer);
+                }
+            } break;
+
             default:
                 break;
         }
@@ -409,7 +420,7 @@ void keyball_oled_render_setting(void) {
     oled_set_cursor(0, 0);
 
     uint8_t page = keyball_oled_get_page();
-    switch (page) {
+        switch (page) {
         case 0: { // 1: Mouse Config（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
             oled_write_P("mouse", false);
@@ -652,6 +663,23 @@ void keyball_oled_render_setting(void) {
 #endif
             oled_write_ln("", false);
             // oled_write_ln("page", false);
+            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_P(line, false);
+        } break;
+
+        case 8: { // 9: Default layer conf
+            uint8_t sel = g_ui_sel_idx[page];
+            oled_write_P("layer", false);
+            oled_write_ln(" conf", false);
+            oled_write_ln("def:", false);
+            {
+                char b[8];
+                snprintf(b, sizeof b, "   %u", (unsigned)kbpf.default_layer);
+                oled_write_val_P(sel == 0, b);
+            }
+            oled_write_ln("", false);
+            oled_write_ln("", false);
+            // page indicator
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
