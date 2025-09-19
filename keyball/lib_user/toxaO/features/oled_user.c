@@ -8,33 +8,47 @@ void oled_render_layer_state(void) {
   switch (get_highest_layer(layer_state | default_layer_state)) {
     case _Def:
       oled_write_P(PSTR("  Def"), false);
+      oled_write_ln("", false);
       break;
     case _NumP:
       oled_write_P(PSTR(" NumP"), false);
+      oled_write_ln("", false);
       break;
     case _Sym:
-      oled_write_P(PSTR("  Sym /Num"), false);
+      oled_write_P(PSTR("  Sym"), false);
+      oled_write_P(PSTR(" /Num"), false);
       break;
     case _mCur:
-      oled_write_P(PSTR("  Cur/  Fn"), false);
+      oled_write_P(PSTR("  Cur"), false);
+      oled_write_P(PSTR(" / Fn"), false);
       break;
     case _wCur:
-      oled_write_P(PSTR("  Cur/  Fn"), false);
+      oled_write_P(PSTR("  Cur"), false);
+      oled_write_P(PSTR(" / Fn"), false);
       break;
     case _mMou:
       oled_write_P(PSTR("Mouse"), false);
+      oled_write_ln("", false);
       break;
     case _wMou:
       oled_write_P(PSTR("Mouse"), false);
+      oled_write_ln("", false);
       break;
     case _Scr:
       oled_write_P(PSTR(" Scrl"), false);
+      oled_write_ln("", false);
       break;
     case _Pad:
       oled_write_P(PSTR("  Pad"), false);
+      oled_write_ln("", false);
+      break;
+    case _Pad2:
+      oled_write_P(PSTR(" Pad2"), false);
+      oled_write_ln("", false);
       break;
     case _Set:
       oled_write_P(PSTR("  Set"), false);
+      oled_write_ln("", false);
       break;
   }
 }
@@ -47,16 +61,19 @@ void oledkit_render_info_user(void) {
     keyball_oled_render_setting();
   } else {
     // 通常モード：レイヤー中心（最小限）
-    // oled_render_layer_state();  // ← 既存のあなたの関数
+    oled_render_layer_state();
 
-    // oled_render_info_layer();
-    // oled_render_info_layer_default();
-    oled_render_info_ball();
-    oled_render_info_keycode();
-    oled_render_info_mods();
-    oled_render_info_cpi();
-    oled_render_info_scroll_step();
-    // oled_render_info_swipe_tag();
-    // oled_render_info_key_pos();
+    oled_write_ln("", false);
+
+    // preset 順番は好きに入れ替えてください
+    // oled_render_info_layer(); // 現在のレイヤー表示
+    // oled_render_info_layer_default(); // 現在のデフォルトレイヤー
+    // oled_render_info_ball(); // トラックボールの現在値
+    // oled_render_info_keycode(); // 送信キーコード
+    oled_render_info_mods(); // modifier keyの状態 順番にShift, Ctrl, Gui, alt, Caps
+    // oled_render_info_cpi(); // ポインターの速度
+    // oled_render_info_scroll_step(); // スクロール速度
+    // oled_render_info_swipe_tag(); // スワイプ状態
+    // oled_render_info_key_pos(); // 押したキーの位置
   }
 }
