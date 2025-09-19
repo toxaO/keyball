@@ -132,36 +132,79 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
   if (denom_v == 0) denom_v = 1;
 
   // 主成分選択 / スクロールスナップ適用
-  keyball_scrollsnap_mode_t snap = keyball_get_scrollsnap_mode();
+  // Base snap mode and temporary FREE logic based on tension
+  keyball_scrollsnap_mode_t snap_base = keyball_get_scrollsnap_mode();
+  static uint8_t tension = 0;
+  static uint32_t snap_free_until = 0; // timestamp when temporary FREE ends
+  keyball_scrollsnap_mode_t snap = snap_base;
+  // Thr==0 は常時FREE（VRT/HORの強制解除）として扱う（動作確認のための明確な効果）
+  if (kbpf.scrollsnap_thr == 0 && snap_base != KEYBALL_SCROLLSNAP_MODE_FREE) {
+    snap = KEYBALL_SCROLLSNAP_MODE_FREE;
+  }
   int32_t absx = (sx >= 0) ? sx : -sx;
   int32_t absy = (sy >= 0) ? sy : -sy;
 
   if (absx == 0 && absy == 0) {
     // 何もしない
+    // decay tension when idle
+    if (tension > 0) tension--;
   } else if (snap == KEYBALL_SCROLLSNAP_MODE_VERTICAL) {
     // 垂直専用
     if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
     acc_v += sy;
+    // 直交成分でテンション加算（大きさに比例、1フレーム最大10）
+    // これにより kbpf.scrollsnap_thr は「直交移動量の合計」に対する目安になる
+    uint8_t inc = (absx > 10) ? 10 : (uint8_t)absx;
+    if (inc > 0) {
+      if (kbpf.scrollsnap_thr == 0) {
+        snap = KEYBALL_SCROLLSNAP_MODE_FREE;
+        snap_free_until = now;
+        tension = 0;
+      } else {
+        uint16_t nt = (uint16_t)tension + inc;
+        tension = (nt > 255) ? 255 : (uint8_t)nt;
+      }
+    } else if (tension > 0) {
+      tension--; // 非直交では少しずつ減衰
+    }
   } else if (snap == KEYBALL_SCROLLSNAP_MODE_HORIZONTAL) {
     // 水平専用
     if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
     acc_h += sx;
-  } else {
-    // Free: 対角帯は不感 + 主成分のみ蓄積
-    bool diag_band = false;
-    if (absx != 0 && absy != 0) {
-      // 0.5 < absy/absx < 2.0 の帯域は捨てる
-      diag_band = (absy * 10 > absx * 5) && (absy * 10 < absx * 20);
-    }
-    if (!diag_band) {
-      if (absx == 0 || (absy * 2 >= absx * 4)) {
-        // 垂直優位
-        if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
-        acc_v += sy;
+    // 縦成分でテンション加算（感度改善: absy>=1 で検出）
+    uint8_t inc = (absy > 10) ? 10 : (uint8_t)absy;
+    if (inc > 0) {
+      if (kbpf.scrollsnap_thr == 0) {
+        snap = KEYBALL_SCROLLSNAP_MODE_FREE;
+        snap_free_until = now;
+        tension = 0;
       } else {
-        // 水平優位
-        if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
-        acc_h += sx;
+        uint16_t nt = (uint16_t)tension + inc;
+        tension = (nt > 255) ? 255 : (uint8_t)nt;
+      }
+    } else if (tension > 0) {
+      tension--;
+    }
+  } else {
+    // Free: 縦横を同時に蓄積・出力（対角帯の不感は廃止）
+    if ((acc_v > 0 && sy < 0) || (acc_v < 0 && sy > 0)) acc_v = 0;
+    if ((acc_h > 0 && sx < 0) || (acc_h < 0 && sx > 0)) acc_h = 0;
+    acc_v += sy;
+    acc_h += sx;
+  }
+
+  // 一時FREEのタイムウィンドウ管理
+  if (snap_base != KEYBALL_SCROLLSNAP_MODE_FREE) {
+    // タイマー有効中はFREEを維持
+    if (snap_free_until && TIMER_DIFF_32(now, snap_free_until) < (uint32_t)kbpf.scrollsnap_rst_ms) {
+      snap = KEYBALL_SCROLLSNAP_MODE_FREE;
+    } else {
+      snap_free_until = 0;
+      // 閾値超過でFREE開始
+      if (kbpf.scrollsnap_thr > 0 && tension >= kbpf.scrollsnap_thr) {
+        snap = KEYBALL_SCROLLSNAP_MODE_FREE;
+        snap_free_until = now;
+        tension = 0;
       }
     }
   }

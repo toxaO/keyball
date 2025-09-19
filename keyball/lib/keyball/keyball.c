@@ -265,20 +265,51 @@ void keyboard_post_init_kb(void) {
     set_auto_mouse_layer(kbpf.aml_layer);
   }
 #endif
-// Override activation rule to use dynamic threshold from kbpf
-__attribute__((used)) bool auto_mouse_activation(report_mouse_t mouse_report) {
-  int16_t ax = mouse_report.x; if (ax < 0) ax = -ax;
-  int16_t ay = mouse_report.y; if (ay < 0) ay = -ay;
-  uint16_t mag = (ax > ay) ? (uint16_t)ax : (uint16_t)ay; // use max(|x|,|y|)
-  uint8_t th = kbpf.aml_threshold ? kbpf.aml_threshold : 10;
-  return mag >= th;
-}
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)kbpf.scrollsnap_mode);
 #endif
   keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
   keyboard_post_init_user();
 }
+
+// ---------------------------------------------------------------------------
+// QMK Auto Mouse Layer: activation override
+// QMK側のweakシンボルを上書きし、kbpf.aml_thresholdに基づいた発火条件へ置き換える。
+// 既存のDebounce/Delay/Timeoutやキーイベント連携はQMK側ロジックのまま利用する。
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+__attribute__((used)) bool auto_mouse_activation(report_mouse_t mouse_report) {
+#ifdef KEYBALL_AML_DISABLE_ACTIVATION
+  // デバッグ用: 有効化判定を完全に無効化（確認用）
+  return false;
+#endif
+  // Accumulate movement within a short window and compare against threshold
+  static uint32_t last_ts = 0;
+  static uint32_t acc = 0;
+  uint32_t now = timer_read32();
+  if (TIMER_DIFF_32(now, last_ts) > KEYBALL_AML_ACC_RESET_MS) {
+    acc = 0; // reset accumulation after idle
+  }
+  last_ts = now;
+
+  int16_t ax = mouse_report.x; if (ax < 0) ax = -ax;
+  int16_t ay = mouse_report.y; if (ay < 0) ay = -ay;
+  uint16_t mag = (ax > ay) ? (uint16_t)ax : (uint16_t)ay; // use max(|x|,|y|)
+  // ノイズ抑制: 小さい入力は無視
+  if (mag >= KEYBALL_AML_ACC_MIN_UNIT) {
+    // スケール: 積算を遅らせる（div で割る、上限を設ける）
+    uint16_t scaled = (uint16_t)(mag / KEYBALL_AML_ACC_DIV);
+    if (scaled == 0) scaled = 1;
+    if (scaled > 50) scaled = 50; // 1サンプルの寄与上限
+    acc += (uint32_t)scaled;
+  }
+  uint16_t th = kbpf.aml_threshold ? kbpf.aml_threshold : 100;
+  if (acc >= (uint32_t)th) {
+    acc = 0; // consume
+    return true;
+  }
+  return false;
+}
+#endif
 
 #ifdef SPLIT_KEYBOARD
 void housekeeping_task_kb(void) {

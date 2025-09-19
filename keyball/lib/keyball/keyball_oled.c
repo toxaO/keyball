@@ -7,6 +7,7 @@
 #include "keyball_oled.h"
 #include "keyball.h"
 #include <stdio.h>
+#include <stdarg.h>
 #ifdef RGBLIGHT_ENABLE
 #    include "rgblight.h"
 #endif
@@ -33,7 +34,7 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
         case 0: return 3; // CPI, Glo, Th1
         case 1: return 4; // AML: en, TO, TH, TG_L
         case 2: return 2; // Scroll: Inv, PST
-        case 3: return 1; // SSNP: Mode のみ（Thr/Rstは固定）
+        case 3: return 3; // SSNP: Mode, Thr, Rst を編集可能
         case 4: return 0; // Monitor
         case 5: return 4; // Swipe: St, Dz, Rt, Frz
         case 6: return 0; // Monitor
@@ -233,10 +234,10 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     kbpf.aml_timeout = (uint16_t)cur;
                 } else if (sel == 2) {
                     // TH: ±1 (clamp 1..100)
-                    int32_t th = (int32_t)kbpf.aml_threshold + dir * 1;
-                    if (th < 1) th = 1;
-                    if (th > 100) th = 100;
-                    kbpf.aml_threshold = (uint8_t)th;
+                int32_t th = (int32_t)kbpf.aml_threshold + dir * 50;
+                    if (th < 50) th = 50;
+                    if (th > 1000) th = 1000;
+                    kbpf.aml_threshold = (uint16_t)th;
                 } else if (sel == 3) {
                     // TG_L: 0..31
                     int32_t tg = (int32_t)get_auto_mouse_layer() + dir;
@@ -265,12 +266,25 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
 
             case 3: { // Scroll Snap
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
-                keyball_scrollsnap_mode_t m = keyball_get_scrollsnap_mode();
-                int32_t nm = (int32_t)m + dir;
-                if (nm < 0) nm = 0;
-                if (nm > 2) nm = 2;
-                keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)nm);
-                kbpf.scrollsnap_mode = (uint8_t)nm;
+                uint8_t sel = g_ui_sel_idx[page];
+                if (sel == 0) {
+                    keyball_scrollsnap_mode_t m = keyball_get_scrollsnap_mode();
+                    int32_t nm = (int32_t)m + dir;
+                    if (nm < 0) nm = 0;
+                    if (nm > 2) nm = 2;
+                    keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)nm);
+                    kbpf.scrollsnap_mode = (uint8_t)nm;
+                } else if (sel == 1) {
+                    int32_t v = (int32_t)kbpf.scrollsnap_thr + dir * 1; // ±1
+                    if (v < 0) v = 0;
+                    if (v > 50) v = 50;
+                    kbpf.scrollsnap_thr = (uint8_t)v;
+                } else if (sel == 2) {
+                    int32_t v = (int32_t)kbpf.scrollsnap_rst_ms + dir * 10; // ±10ms
+                    if (v < 20) v = 20;
+                    if (v > 5000) v = 5000;
+                    kbpf.scrollsnap_rst_ms = (uint16_t)v;
+                }
 #endif
             } break;
 
@@ -455,7 +469,7 @@ void keyball_oled_render_setting(void) {
             row_skip(row, 1); // row 12
             oled_writef(row++, "TH:");
             {
-                oled_writef_sel(row++, sel == 2, " %3u", (unsigned)kbpf.aml_threshold);
+                oled_writef_sel(row++, sel == 2, " %4u", (unsigned)kbpf.aml_threshold);
             }
             row_skip(row, 1); // row 12
             oled_writef(row++, "TG_L:");
@@ -513,10 +527,10 @@ void keyball_oled_render_setting(void) {
             oled_writef_sel(row++, sel == 0, "%s", ml);
             row_skip(row, 1); // row 12
             oled_writef(row++, "Thr:");
-            oled_writef(row++, " %3u", (unsigned)KEYBALL_SCROLLSNAP_TENSION_THRESHOLD);
+            oled_writef_sel(row++, sel == 1, " %3u", (unsigned)kbpf.scrollsnap_thr);
             row_skip(row, 1); // row 12
             oled_writef(row++, "Rst:");
-            oled_writef(row++, " %3u", (unsigned)KEYBALL_SCROLLSNAP_RESET_TIMER);
+            oled_writef_sel(row++, sel == 2, " %3u", (unsigned)kbpf.scrollsnap_rst_ms);
             row_skip(row, 1); // row 12
 #else
             oled_writef(row++, "Mode:");

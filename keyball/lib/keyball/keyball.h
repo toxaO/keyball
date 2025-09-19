@@ -82,6 +82,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 12
 #endif
 
+// Auto mouse layer: accumulation reset window (ms)
+#ifndef KEYBALL_AML_ACC_RESET_MS
+#define KEYBALL_AML_ACC_RESET_MS 200
+#endif
+// AML 積算スケーリング（大きいほど積算が遅くなる）
+#ifndef KEYBALL_AML_ACC_DIV
+#define KEYBALL_AML_ACC_DIV 8
+#endif
+// AML 積算に加える最小単位（ノイズ抑制）
+#ifndef KEYBALL_AML_ACC_MIN_UNIT
+#define KEYBALL_AML_ACC_MIN_UNIT 2
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // pointer motion configuration
 // ==== Move shaping (pointer) ====
@@ -384,9 +397,12 @@ typedef struct __attribute__((packed)) {
   uint8_t  aml_enable;      // 0/1
   uint8_t  aml_layer;       // target layer index (0..31, 0xFF=unset)
   uint16_t aml_timeout;     // ms
-  uint8_t  aml_threshold;   // activation threshold (counts)
+  uint16_t aml_threshold;   // activation threshold (counts, 50..1000)
   // Scroll snap (global)
   uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
+  // Scroll snap parameters (global)
+  uint8_t  scrollsnap_thr;   // tension threshold to temporarily free
+  uint16_t scrollsnap_rst_ms; // time to keep FREE before restoring
   // Default base layer configuration (global)
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
 } keyball_profiles_t;
@@ -417,4 +433,4 @@ extern keyball_profiles_t kbpf;
 #endif
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 9 // v9: default_layer を追加（互換なし）
+#define KBPF_VER_CUR 10 // v10: aml_threshold を uint16_t へ拡張（互換なし）

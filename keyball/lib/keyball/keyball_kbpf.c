@@ -104,10 +104,12 @@ void kbpf_defaults(void) {
   kbpf.aml_enable  = 0;
   kbpf.aml_layer   = 0xFFu; // sentinel: unset
   kbpf.aml_timeout = 3000;  // ms (default)
-  kbpf.aml_threshold = 10;  // default movement threshold
+  kbpf.aml_threshold = 100;  // default movement threshold
   // Scroll snap: 既定は Vertical
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL;
+  kbpf.scrollsnap_thr  = KEYBALL_SCROLLSNAP_TENSION_THRESHOLD;
+  kbpf.scrollsnap_rst_ms = KEYBALL_SCROLLSNAP_RESET_TIMER;
 #else
   kbpf.scrollsnap_mode = 0;
 #endif
@@ -151,10 +153,15 @@ static void kbpf_validate(void) {
     if (kbpf.aml_timeout > 9500u) kbpf.aml_timeout = 9500u;
   }
   // threshold clamp (1..100 reasonable)
-  if (kbpf.aml_threshold < 1u) kbpf.aml_threshold = 1u;
-  if (kbpf.aml_threshold > 100u) kbpf.aml_threshold = 100u;
+  if (kbpf.aml_threshold < 50u) kbpf.aml_threshold = 50u;
+  if (kbpf.aml_threshold > 1000u) kbpf.aml_threshold = 1000u;
   // Scroll snap
   if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = 0u;
+  // Scroll snap params
+  if (kbpf.scrollsnap_thr > 50u) kbpf.scrollsnap_thr = 50u; // sane upper bound
+  // 0 allows immediate FREE disable (never switch). typical 0..12
+  if (kbpf.scrollsnap_rst_ms < 20u) kbpf.scrollsnap_rst_ms = 20u;
+  if (kbpf.scrollsnap_rst_ms > 5000u) kbpf.scrollsnap_rst_ms = 5000u;
   // Default layer: clamp 0..31
   if (kbpf.default_layer > 31u) kbpf.default_layer = 0u;
 }
