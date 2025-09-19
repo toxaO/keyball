@@ -43,9 +43,9 @@ const uint16_t CPI_MAX        = 4000;
 const uint8_t SCROLL_DIV_MAX = 7; // ST は 1..7 の 7 段階（4 が中心）
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-const uint16_t AML_TIMEOUT_MIN = 300;   // ms
-const uint16_t AML_TIMEOUT_MAX = 5000;  // ms (was 3000)
-const uint16_t AML_TIMEOUT_QU  = 100;   // Quantization Unit (was 50)
+const uint16_t AML_TIMEOUT_MIN = 100;    // ms
+const uint32_t AML_TIMEOUT_MAX = 120000; // allow HOLD special (note: larger than uint16_t)
+const uint16_t AML_TIMEOUT_QU  = 100;    // base quantization (OLED側で動的ステップ)
 #endif
 
 static const char BL = '\xB0'; // Blank indicator character
@@ -256,11 +256,23 @@ void keyboard_post_init_kb(void) {
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
   // Apply persisted AML settings if available
   set_auto_mouse_enable(kbpf.aml_enable ? true : false);
-  set_auto_mouse_timeout(kbpf.aml_timeout);
+  if (kbpf.aml_timeout >= 60000u) {
+    set_auto_mouse_timeout(65535);
+  } else {
+    set_auto_mouse_timeout(kbpf.aml_timeout);
+  }
   if (kbpf.aml_layer != 0xFFu) {
     set_auto_mouse_layer(kbpf.aml_layer);
   }
 #endif
+// Override activation rule to use dynamic threshold from kbpf
+__attribute__((used)) bool auto_mouse_activation(report_mouse_t mouse_report) {
+  int16_t ax = mouse_report.x; if (ax < 0) ax = -ax;
+  int16_t ay = mouse_report.y; if (ay < 0) ay = -ay;
+  uint16_t mag = (ax > ay) ? (uint16_t)ax : (uint16_t)ay; // use max(|x|,|y|)
+  uint8_t th = kbpf.aml_threshold ? kbpf.aml_threshold : 10;
+  return mag >= th;
+}
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)kbpf.scrollsnap_mode);
 #endif

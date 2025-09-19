@@ -384,6 +384,7 @@ typedef struct __attribute__((packed)) {
   uint8_t  aml_enable;      // 0/1
   uint8_t  aml_layer;       // target layer index (0..31, 0xFF=unset)
   uint16_t aml_timeout;     // ms
+  uint8_t  aml_threshold;   // activation threshold (counts)
   // Scroll snap (global)
   uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
   // Default base layer configuration (global)

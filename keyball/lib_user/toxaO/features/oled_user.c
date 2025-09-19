@@ -49,14 +49,14 @@ void oledkit_render_info_user(void) {
     // 通常モード：レイヤー中心（最小限）
     // oled_render_layer_state();  // ← 既存のあなたの関数
 
-    oled_render_info_layer();
-    oled_render_info_layer_default();
-    // oled_render_info_ball();
-    // oled_render_info_keycode();
-    // oled_render_info_mods();
-    // oled_render_info_cpi();
-    // oled_render_info_scroll_step();
-    oled_render_info_swipe_tag();
-    oled_render_info_key_pos();
+    // oled_render_info_layer();
+    // oled_render_info_layer_default();
+    oled_render_info_ball();
+    oled_render_info_keycode();
+    oled_render_info_mods();
+    oled_render_info_cpi();
+    oled_render_info_scroll_step();
+    // oled_render_info_swipe_tag();
+    // oled_render_info_key_pos();
   }
 }

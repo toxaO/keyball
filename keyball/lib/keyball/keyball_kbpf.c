@@ -104,6 +104,7 @@ void kbpf_defaults(void) {
   kbpf.aml_enable  = 0;
   kbpf.aml_layer   = 0xFFu; // sentinel: unset
   kbpf.aml_timeout = 3000;  // ms (default)
+  kbpf.aml_threshold = 10;  // default movement threshold
   // Scroll snap: 既定は Vertical
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   kbpf.scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL;
@@ -142,8 +143,16 @@ static void kbpf_validate(void) {
   kbpf.aml_enable &= 1u;
   // layer は 0..31 程度（0xFFは未設定とみなす）
   if (kbpf.aml_layer != 0xFFu && kbpf.aml_layer > 31u) kbpf.aml_layer = 0;
-  if (kbpf.aml_timeout < 300u) kbpf.aml_timeout = 300u;
-  if (kbpf.aml_timeout > 5000u) kbpf.aml_timeout = 3000u;
+  // timeout: allow 100..9500 or special 60000 (HOLD)
+  if (kbpf.aml_timeout == 60000u) {
+    // keep
+  } else {
+    if (kbpf.aml_timeout < 100u) kbpf.aml_timeout = 100u;
+    if (kbpf.aml_timeout > 9500u) kbpf.aml_timeout = 9500u;
+  }
+  // threshold clamp (1..100 reasonable)
+  if (kbpf.aml_threshold < 1u) kbpf.aml_threshold = 1u;
+  if (kbpf.aml_threshold > 100u) kbpf.aml_threshold = 100u;
   // Scroll snap
   if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = 0u;
   // Default layer: clamp 0..31

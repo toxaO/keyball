@@ -31,7 +31,7 @@ static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
         case 0: return 3; // CPI, Glo, Th1
-        case 1: return 3; // AML: en, TO, TG_L
+        case 1: return 4; // AML: en, TO, TH, TG_L
         case 2: return 2; // Scroll: Inv, PST
         case 3: return 1; // SSNP: Mode のみ（Thr/Rstは固定）
         case 4: return 0; // Monitor
@@ -113,41 +113,87 @@ static inline void oled_write_val_P(bool selected, const char* text) {
     oled_write_P(text, false);
 }
 
-// Alignment helpers: 左/中央/右寄せで所定行(row)に描画
+// Alignment helpers（5文字幅の行を基準に左/右寄せする）
 typedef enum { OLED_ALIGN_LEFT = 0, OLED_ALIGN_CENTER = 1, OLED_ALIGN_RIGHT = 2 } oled_align_t;
-
-static inline uint8_t kb_oled_cols(void) {
-#ifdef OLED_FONT_WIDTH
-#  ifdef OLED_DISPLAY_WIDTH
-    return (uint8_t)(OLED_DISPLAY_WIDTH / OLED_FONT_WIDTH);
-#  else
-    return 21; // fallback for 128px width, 6px font
-#  endif
-#else
-    return 21;
-#endif
-}
+static inline uint8_t kb_line_width(void) { return 5; }
 
 __attribute__((unused)) static void oled_write_align_P(const char *ptext, uint8_t row, oled_align_t align) {
-    uint8_t cols = kb_oled_cols();
-    uint8_t len  = (uint8_t)strlen_P(ptext);
-    uint8_t col  = 0;
-    if (align == OLED_ALIGN_RIGHT)      col = (len >= cols) ? 0 : (uint8_t)(cols - len);
-    else if (align == OLED_ALIGN_CENTER) col = (len >= cols) ? 0 : (uint8_t)((cols - len) / 2);
-    else                                  col = 0;
-    oled_set_cursor(col, row);
-    oled_write_P(ptext, false);
+    char tmp[16];
+    uint8_t width = kb_line_width();
+    uint8_t lenP = (uint8_t)strlen_P(ptext);
+    uint8_t len  = (lenP > width) ? width : lenP;
+    uint8_t padL = (align == OLED_ALIGN_RIGHT) ? (uint8_t)(width - len) : 0;
+    if (padL > width) padL = 0;
+    // clear and move to row start
+    oled_set_cursor(0, row);
+    for (uint8_t i = 0; i < padL; ++i) oled_write_char(' ', false);
+    // copy at most width chars from PROGMEM
+    for (uint8_t i = 0; i < len; ++i) tmp[i] = (char)pgm_read_byte(ptext + i);
+    tmp[len] = '\0';
+    oled_write(tmp, false);
 }
 
 __attribute__((unused)) static void oled_write_align(const char *text, uint8_t row, oled_align_t align) {
-    uint8_t cols = kb_oled_cols();
+    uint8_t width = kb_line_width();
     uint8_t len  = (uint8_t)strlen(text);
-    uint8_t col  = 0;
-    if (align == OLED_ALIGN_RIGHT)      col = (len >= cols) ? 0 : (uint8_t)(cols - len);
-    else if (align == OLED_ALIGN_CENTER) col = (len >= cols) ? 0 : (uint8_t)((cols - len) / 2);
-    else                                  col = 0;
-    oled_set_cursor(col, row);
-    oled_write(text, false);
+    if (len > width) len = width;
+    uint8_t padL = (align == OLED_ALIGN_RIGHT) ? (uint8_t)(width - len) : 0;
+    if (padL > width) padL = 0;
+    oled_set_cursor(0, row);
+    for (uint8_t i = 0; i < padL; ++i) oled_write_char(' ', false);
+    for (uint8_t i = 0; i < len; ++i) oled_write_char(text[i], false);
+}
+
+// Auto-align helpers: 先頭が空白なら右寄せ、そうでなければ左寄せ
+static void oled_clear_line(uint8_t row) {
+    uint8_t width = kb_line_width();
+    oled_set_cursor(0, row);
+    for (uint8_t i = 0; i < width; ++i) oled_write_char(' ', false);
+}
+
+static void oled_write_auto_P(const char *ptext, uint8_t row) {
+    char first = (char)pgm_read_byte(ptext);
+    oled_align_t a = (first == ' ') ? OLED_ALIGN_RIGHT : OLED_ALIGN_LEFT;
+    oled_clear_line(row);
+    oled_write_align_P(ptext, row, a);
+}
+
+static void oled_write_auto(const char *text, uint8_t row) {
+    oled_align_t a = (text && text[0] == ' ') ? OLED_ALIGN_RIGHT : OLED_ALIGN_LEFT;
+    oled_clear_line(row);
+    oled_write_align(text, row, a);
+}
+
+static void oled_write_val_auto(bool selected, const char *text, uint8_t row) {
+    char buf[24];
+    buf[0] = selected ? '>' : ' ';
+    snprintf(buf + 1, sizeof(buf) - 1, "%s", text);
+    oled_clear_line(row);
+    oled_write_auto(buf, row);
+}
+
+// Right edge (no right margin) for page indicator
+static void oled_write_rightmost(const char *text, uint8_t row) {
+    // right aligned in 5-char width
+    uint8_t width = kb_line_width();
+    uint8_t len  = (uint8_t)strlen(text);
+    if (len > width) len = width;
+    uint8_t padL = (len >= width) ? 0 : (uint8_t)(width - len);
+    oled_set_cursor(0, row);
+    for (uint8_t i = 0; i < padL; ++i) oled_write_char(' ', false);
+    for (uint8_t i = 0; i < len; ++i) oled_write_char(text[i], false);
+}
+__attribute__((unused)) static void oled_write_rightmost_P(const char *ptext, uint8_t row) {
+    char tmp[16];
+    uint8_t width = kb_line_width();
+    uint8_t lenP = (uint8_t)strlen_P(ptext);
+    uint8_t len  = (lenP > width) ? width : lenP;
+    uint8_t padL = (len >= width) ? 0 : (uint8_t)(width - len);
+    for (uint8_t i = 0; i < len; ++i) tmp[i] = (char)pgm_read_byte(ptext + i);
+    tmp[len] = '\0';
+    oled_set_cursor(0, row);
+    for (uint8_t i = 0; i < padL; ++i) oled_write_char(' ', false);
+    oled_write(tmp, false);
 }
 
 // UI操作（矢印キーをOLEDデバッグUIに割当て）
@@ -224,13 +270,35 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     set_auto_mouse_enable(en);
                     kbpf.aml_enable = en ? 1 : 0;
                 } else if (sel == 1) {
-                    // TO: ±100ms (clamp)
-                    int32_t to = (int32_t)get_auto_mouse_timeout() + dir * (int32_t)AML_TIMEOUT_QU;
-                    if (to < AML_TIMEOUT_MIN) to = AML_TIMEOUT_MIN;
-                    if (to > AML_TIMEOUT_MAX) to = AML_TIMEOUT_MAX;
-                    set_auto_mouse_timeout((uint16_t)to);
-                    kbpf.aml_timeout = (uint16_t)to;
+                    // TO: step variable: <3000 => +100/-100, >=3000 => +500/-500（3000→+は3500）
+                    int32_t cur = (int32_t)get_auto_mouse_timeout();
+                    // HOLD handling (60000 internal)
+                    if (cur >= 60000 && dir < 0) {
+                        cur = 9500; // leave HOLD, jump down to 9500 immediately
+                    } else if (dir != 0) {
+                        if (dir > 0) {
+                            cur += (cur < 3000) ? 100 : 500;
+                        } else {
+                            cur -= (cur <= 3000) ? 100 : 500;
+                        }
+                    }
+                    // range clamp and HOLD promotion
+                    if (cur < 100) cur = 100;
+                    if (cur > 9500 && cur < 60000) cur = 60000; // promote to HOLD
+                    if (cur > 60000) cur = 60000;
+                    if (cur >= 60000) {
+                        set_auto_mouse_timeout(65535);
+                    } else {
+                        set_auto_mouse_timeout((uint16_t)cur);
+                    }
+                    kbpf.aml_timeout = (uint16_t)cur;
                 } else if (sel == 2) {
+                    // TH: ±1 (clamp 1..100)
+                    int32_t th = (int32_t)kbpf.aml_threshold + dir * 1;
+                    if (th < 1) th = 1;
+                    if (th > 100) th = 100;
+                    kbpf.aml_threshold = (uint8_t)th;
+                } else if (sel == 3) {
                     // TG_L: 0..31
                     int32_t tg = (int32_t)get_auto_mouse_layer() + dir;
                     if (tg < 0) tg = 0;
@@ -387,318 +455,311 @@ void keyball_oled_render_setting(void) {
         switch (page) {
         case 0: { // 1: Mouse Config（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_P("mouse", false);
-            oled_write_ln(" conf", false);
-            oled_write_ln("cpi:", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("mouse"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
+            oled_write_auto_P(PSTR("cpi:"), row++);
             snprintf(line, sizeof(line), "%u", (unsigned)keyball_get_cpi());
-            oled_write_val_ln(sel == 0, line);
+            oled_write_val_auto(sel == 0, line, row++);
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
             {
                 uint8_t  g   = kbpf.move_gain_lo_fp[keyball_os_idx()];
                 uint16_t pct = (uint16_t)((g * 100u + 127u) / 255u); // 四捨五入
-                oled_write_ln("Glo:", false);
+                oled_write_auto_P(PSTR("Glo:"), row++);
                 snprintf(line, sizeof(line), " %u%%", (unsigned)pct);
-                oled_write_val_ln(sel == 1, line);
+                oled_write_val_auto(sel == 1, line, row++);
             }
-            oled_write_ln("Th1:", false);
+            oled_write_auto_P(PSTR("Th1:"), row++);
             snprintf(line, sizeof(line), "   %u", (unsigned)kbpf.move_th1[keyball_os_idx()]);
-            oled_write_val_ln(sel == 2, line);
+            oled_write_val_auto(sel == 2, line, row++);
 #else
-            oled_write_ln("Glo:", false);
-            oled_write_val_ln(sel == 1, "  OFF");
-            oled_write_ln("Th1:", false);
-            oled_write_val_ln(sel == 2, "   -");
+            oled_write_auto_P(PSTR("Glo:"), row++);
+            oled_write_val_auto(sel == 1, "  OFF", row++);
+            oled_write_auto_P(PSTR("Th1:"), row++);
+            oled_write_val_auto(sel == 2, "   -", row++);
 #endif
             // 追加: ポインタ移動量
             {
                 char b[12];
-                snprintf(b, sizeof b, "x:%4d", (int)keyball.last_mouse.x);
-                oled_write_P(b, false);
-                snprintf(b, sizeof b, "y:%4d", (int)keyball.last_mouse.y);
-                oled_write_P(b, false);
+                snprintf(b, sizeof b, "x:  %d", (int)keyball.last_mouse.x);
+                oled_write_auto(b, row++);
+                snprintf(b, sizeof b, "y:  %d", (int)keyball.last_mouse.y);
+                oled_write_auto(b, row++);
             }
             // ページ表示
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 1: { // 2: Auto Mouse Layer（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_ln("AML", false);
-            oled_write_ln(" conf", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("AML"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-            oled_write_ln("en:", false);
+            oled_write_auto_P(PSTR("en:"), row++);
             snprintf(line, sizeof(line), "   %u", get_auto_mouse_enable() ? 1u : 0u);
-            oled_write_val_ln(sel == 0, line);
-            oled_write_ln("TO:", false);
-            snprintf(line, sizeof(line), "%u", (unsigned)get_auto_mouse_timeout());
-            oled_write_val_ln(sel == 1, line);
-            oled_write_P("TG_L:", false);
+            oled_write_val_auto(sel == 0, line, row++);
+            oled_write_auto_P(PSTR("TO:"), row++);
+            {
+                uint32_t to = (uint32_t)get_auto_mouse_timeout();
+                if (to >= 60000u) {
+                    oled_write_val_auto(sel == 1, " Hold", row++);
+                } else {
+                    snprintf(line, sizeof(line), "%u", (unsigned)to);
+                    oled_write_val_auto(sel == 1, line, row++);
+                }
+            }
+            oled_write_auto_P(PSTR("TH:"), row++);
+            {
+                snprintf(line, sizeof(line), "   %u", (unsigned)kbpf.aml_threshold);
+                oled_write_val_auto(sel == 2, line, row++);
+            }
+            oled_write_auto_P(PSTR("TG_L:"), row++);
             snprintf(line, sizeof(line), "   %u", (unsigned)get_auto_mouse_layer());
-            oled_write_val_ln(sel == 2, line);
+            oled_write_val_auto(sel == 3, line, row++);
 #else
-            oled_write_ln("en:", false);
-            oled_write_val_ln(sel == 0, "    0");
-            oled_write_ln("TO:", false);
-            oled_write_val_ln(sel == 1, " 0");
-            oled_write_P("TG_L:", false);
-            oled_write_val_ln(sel == 2, "    0");
+            oled_write_auto_P(PSTR("en:"), row++);
+            oled_write_val_auto(sel == 0, "    0", row++);
+            oled_write_auto_P(PSTR("TO:"), row++);
+            oled_write_val_auto(sel == 1, " 0", row++);
+            oled_write_auto_P(PSTR("TH:"), row++);
+            oled_write_val_auto(sel == 2, "    0", row++);
+            oled_write_auto_P(PSTR("TG_L:"), row++);
+            oled_write_val_auto(sel == 3, "    0", row++);
 #endif
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 2: { // 3: Scroll Param（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_ln("Scrl", false);
-            oled_write_ln(" conf", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("Scrl"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
             uint8_t os = keyball_os_idx();
             uint8_t inv = kbpf.scroll_invert[os] ? 1 : 0;
             uint8_t preset = kbpf.scroll_preset[os];
-            oled_write_ln("Inv:", false);
+            oled_write_auto_P(PSTR("Inv:"), row++);
             snprintf(line, sizeof(line), "   %u", (unsigned)inv);
-            oled_write_val_ln(sel == 0, line);
-            oled_write_ln("PST:", false);
-            const char *pl = (preset == 2) ? " mac" : (preset == 1) ? " fine" : " norm";
-            oled_write_val_ln(sel == 1, pl);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_val_auto(sel == 0, line, row++);
+            oled_write_auto_P(PSTR("PST:"), row++);
+            {
+                const char *pl = (preset == 2) ? " mac" : (preset == 1) ? " fine" : " norm";
+                oled_write_val_auto(sel == 1, pl, row++);
+            }
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 3: { // 4: Scroll Snap（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_ln("SSNP", false);
-            oled_write_ln(" conf", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("SSNP"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
             keyball_scrollsnap_mode_t m = keyball_get_scrollsnap_mode();
             const char *ml = (m == KEYBALL_SCROLLSNAP_MODE_VERTICAL) ? " VRT" :
                              (m == KEYBALL_SCROLLSNAP_MODE_HORIZONTAL) ? " HOR" : " FRE";
-            oled_write_P("Mode:", false);
-            oled_write_val_ln(sel == 0, ml);
-            oled_write_ln("Thr:", false);
+            oled_write_auto_P(PSTR("Mode:"), row++);
+            oled_write_val_auto(sel == 0, ml, row++);
+            oled_write_auto_P(PSTR("Thr:"), row++);
             snprintf(line, sizeof(line), "    %u", (unsigned)KEYBALL_SCROLLSNAP_TENSION_THRESHOLD);
-            oled_write_ln(line, false);
-            oled_write_ln("Rst:", false);
+            oled_write_auto(line, row++);
+            oled_write_auto_P(PSTR("Rst:"), row++);
             snprintf(line, sizeof(line), "  %u", (unsigned)KEYBALL_SCROLLSNAP_RESET_TIMER);
-            oled_write_ln(line, false);
+            oled_write_auto(line, row++);
 #else
-            oled_write_P("Mode:", false);
-            oled_write_val_ln(sel == 0, " OFF");
-            oled_write_ln("Thr:", false);
-            oled_write_ln("    -", false);
-            oled_write_ln("Rst:", false);
-            oled_write_ln("  -", false);
+            oled_write_auto_P(PSTR("Mode:"), row++);
+            oled_write_val_auto(sel == 0, " OFF", row++);
+            oled_write_auto_P(PSTR("Thr:"), row++);
+            oled_write_auto_P(PSTR("    -"), row++);
+            oled_write_auto_P(PSTR("Rst:"), row++);
+            oled_write_auto_P(PSTR("  -"), row++);
 #endif
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 4: { // 5: Scroll Raw Monitor（指定体裁）
-            oled_write_ln("Scrl", false);
-            oled_write_ln(" moni", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("Scrl"), row++);
+            oled_write_auto_P(PSTR(" moni"), row++);
             int16_t sx, sy, h, v;
             keyball_scroll_get_dbg(&sx, &sy, &h, &v);
-            oled_write_ln("sx:", false);
+            oled_write_auto_P(PSTR("sx:"), row++);
             snprintf(line, sizeof(line), "   %d", (int)sx);
-            oled_write_ln(line, false);
-            oled_write_ln("sy:", false);
+            oled_write_auto(line, row++);
+            oled_write_auto_P(PSTR("sy:"), row++);
             snprintf(line, sizeof(line), "   %d", (int)sy);
-            oled_write_ln(line, false);
-            oled_write_ln("H:", false);
+            oled_write_auto(line, row++);
+            oled_write_auto_P(PSTR("H:"), row++);
             snprintf(line, sizeof(line), "   %d", (int)h);
-            oled_write_ln(line, false);
-            oled_write_ln("V:", false);
+            oled_write_auto(line, row++);
+            oled_write_auto_P(PSTR("V:"), row++);
             snprintf(line, sizeof(line), "   %d", (int)v);
-            oled_write_ln(line, false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 5: { // 6: Swipe Config（指定体裁）
             uint8_t sel = g_ui_sel_idx[page];
             kb_swipe_params_t p = keyball_swipe_get_params();
-            oled_write_P("Swipe", false);
-            oled_write_ln(" conf", false);
-            oled_write_ln("St:", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("Swipe"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
+            oled_write_auto_P(PSTR("St:"), row++);
             snprintf(line, sizeof(line), " %u", (unsigned)p.step);
-            oled_write_val_ln(sel == 0, line);
-            oled_write_ln("Dz:", false);
+            oled_write_val_auto(sel == 0, line, row++);
+            oled_write_auto_P(PSTR("Dz:"), row++);
             snprintf(line, sizeof(line), "   %u", (unsigned)p.deadzone);
-            oled_write_val_P(sel == 1, line);
-            oled_write_ln("Rt:", false);
+            oled_write_val_auto(sel == 1, line, row++);
+            oled_write_auto_P(PSTR("Rt:"), row++);
             snprintf(line, sizeof(line), "  %u", (unsigned)p.reset_ms);
-            oled_write_val_P(sel == 2, line);
-            oled_write_ln("Frz:", false);
+            oled_write_val_auto(sel == 2, line, row++);
+            oled_write_auto_P(PSTR("Frz:"), row++);
             snprintf(line, sizeof(line), "   %u", p.freeze ? 1u : 0u);
-            oled_write_val_P(sel == 3, line);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_val_auto(sel == 3, line, row++);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 6: { // 7: Swipe Monitor（指定体裁）
             uint32_t ar, al, ad, au;
             keyball_swipe_get_accum(&ar, &al, &ad, &au);
-            oled_write_P("Swipe", false);
-            oled_write_ln(" moni", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("Swipe"), row++);
+            oled_write_auto_P(PSTR(" moni"), row++);
             snprintf(line, sizeof(line), "Ac: %u", keyball_swipe_is_active() ? 1u : 0u);
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
             snprintf(line, sizeof(line), "Md: %u", (unsigned)keyball_swipe_mode_tag());
-            oled_write_P(line, false);
-            oled_write_ln("Dir:", false);
+            oled_write_auto(line, row++);
+            oled_write_auto_P(PSTR("Dir:"), row++);
             {
                 const char *d = (keyball_swipe_direction() == KB_SWIPE_UP) ? "  Up" :
                                  (keyball_swipe_direction() == KB_SWIPE_DOWN) ? "  Dn" :
                                  (keyball_swipe_direction() == KB_SWIPE_LEFT) ? "  Lt" :
                                  (keyball_swipe_direction() == KB_SWIPE_RIGHT) ? "  Rt" : "  Non";
-                oled_write_ln(d, false);
+                oled_write_auto_P(d, row++);
             }
             snprintf(line, sizeof(line), "U:  %u", clip0_9999(au));
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
             snprintf(line, sizeof(line), "D:  %u", clip0_9999(ad));
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
             snprintf(line, sizeof(line), "R:  %u", clip0_9999(ar));
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
             snprintf(line, sizeof(line), "L:  %u", clip0_9999(al));
-            oled_write_P(line, false);
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
 
         case 7: { // 8: RGB Light
 #ifdef RGBLIGHT_ENABLE
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_ln("RGB", false);  // "RGB__" 相当
-            oled_write_ln(" conf", false);
-
-            // on/off
-            oled_write_P("light", false);
-            const char *onoff = rgblight_is_enabled() ? "  on" : " off";
-            oled_write_val_P(sel == 0, onoff);
-
-            // HUE
-            oled_write_ln("HUE", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("RGB"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
+            oled_write_auto_P(PSTR("light"), row++);
+            {
+                const char *onoff = rgblight_is_enabled() ? "  on" : " off";
+                oled_write_val_auto(sel == 0, onoff, row++);
+            }
+            oled_write_auto_P(PSTR("HUE"), row++);
             {
                 char v[8];
                 snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_hue());
-                oled_write_val_P(sel == 1, v);
+                oled_write_val_auto(sel == 1, v, row++);
             }
-            // SAT
-            oled_write_ln("SAT", false);
+            oled_write_auto_P(PSTR("SAT"), row++);
             {
                 char v[8];
                 snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_sat());
-                oled_write_val_P(sel == 2, v);
+                oled_write_val_auto(sel == 2, v, row++);
             }
-            // VAL
-            oled_write_ln("VAL", false);
+            oled_write_auto_P(PSTR("VAL"), row++);
             {
                 char v[8];
                 snprintf(v, sizeof(v), " %03u", (unsigned)rgblight_get_val());
-                oled_write_val_P(sel == 3, v);
+                oled_write_val_auto(sel == 3, v, row++);
             }
-            // Mode
-            oled_write_ln("Mode", false);
+            oled_write_auto_P(PSTR("Mode"), row++);
             {
                 char v[8];
                 snprintf(v, sizeof(v), "  %02u", (unsigned)rgblight_get_mode());
-                oled_write_val_P(sel == 4, v);
+                oled_write_val_auto(sel == 4, v, row++);
             }
 #else
-            oled_write_ln("RGB", false);
-            oled_write_ln(" conf", false);
-            oled_write_ln("", false);
-            oled_write_ln("  (RGB disabled)", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("RGB"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
+            oled_write_auto_P(PSTR(""), row++);
+            oled_write_auto_P(PSTR("  (RGB disabled)"), row++);
 #endif
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
         } break;
 
         case 8: { // 9: Default layer conf
             uint8_t sel = g_ui_sel_idx[page];
-            oled_write_P("layer", false);
-            oled_write_ln(" conf", false);
-            oled_write_ln("def:", false);
+            uint8_t row = 0;
+            oled_write_auto_P(PSTR("layer"), row++);
+            oled_write_auto_P(PSTR(" conf"), row++);
+            oled_write_auto_P(PSTR("def:"), row++);
             {
                 char b[8];
                 snprintf(b, sizeof b, "   %u", (unsigned)kbpf.default_layer);
-                oled_write_val_P(sel == 0, b);
+                oled_write_val_auto(sel == 0, b, row++);
             }
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // page indicator
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_auto(line, row++);
         } break;
 
         case 9: { // 10: Send monitor
+            uint8_t row = 0;
             // ヘッダ
-            oled_write_ln("Send", false);
-            oled_write_ln(" moni", false);
+            oled_write_auto_P(PSTR("Send"), row++);
+            oled_write_auto_P(PSTR(" moni"), row++);
             // レイヤ
-            oled_write_ln("Lay:", false);
+            oled_write_auto_P(PSTR("Lay:"), row++);
             {
                 char b[8];
                 snprintf(b, sizeof b, "   %u", (unsigned)keyball.last_layer);
-                oled_write_P(b, false);
+                oled_write_auto(b, row++);
             }
             // キーコード
-            oled_write_ln("kc:", false);
+            oled_write_auto_P(PSTR("kc:"), row++);
             {
                 char b[8];
                 snprintf(b, sizeof b, "%04X", (unsigned)keyball.last_kc & 0xFFFFu);
-                oled_write_P(b, false);
+                oled_write_auto(b, row++);
             }
             // row/col
-            oled_write_P("(r,c)", false);
+            oled_write_auto_P(PSTR("(r,c)"), row++);
             {
                 char b[12];
                 snprintf(b, sizeof b, " %u, %u", (unsigned)keyball.last_pos.row, (unsigned)keyball.last_pos.col);
-                oled_write_P(b, false);
+                oled_write_auto(b, row++);
             }
-            // Mod状態
+            // Mod状態（リアルタイム）
+            oled_write_auto_P(PSTR("scgaC"), row++);
             {
                 char b[8];
-                uint8_t m = keyball.last_mods;
+                uint8_t m = get_mods();
                 led_t leds = host_keyboard_led_state();
-                // 見出し
-                oled_write_P("scgaC", false);
-                // 5文字の状態
                 b[0] = (m & MOD_MASK_SHIFT) ? '+' : '-';
                 b[1] = (m & MOD_MASK_CTRL)  ? '+' : '-';
                 b[2] = (m & MOD_MASK_GUI)   ? '+' : '-';
                 b[3] = (m & MOD_MASK_ALT)   ? '+' : '-';
                 b[4] = leds.caps_lock       ? '+' : '-';
                 b[5] = '\0';
-                oled_write_P(b, false);
+                oled_write_auto(b, row++);
             }
             // ページ
-            oled_write_ln("page", false);
-            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
-            oled_write_P(line, false);
+            oled_write_auto_P(PSTR("page"), row++);
+            snprintf(line, sizeof(line), " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_rightmost(line, row++);
         } break;
     }
 
