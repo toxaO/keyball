@@ -277,6 +277,8 @@ typedef struct {
   uint16_t last_kc;
   keypos_t last_pos;
   report_mouse_t last_mouse;
+  uint8_t last_layer; // 送信時の最上位レイヤ
+  uint8_t last_mods;  // 送信時の修飾キー状態
 
   // Buffer to indicate pressing keys.
   char pressing_keys[KEYBALL_OLED_MAX_PRESSING_KEYCODES + 1];

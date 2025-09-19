@@ -38,5 +38,16 @@ void keyball_oled_render_keyinfo(void);
 void keyball_oled_render_layerinfo(void);
 void keyball_oled_render_ballsubinfo(void);
 
+// New info render helpers (keyboard-level)
+void oled_render_info_layer(void);
+void oled_render_info_layer_default(void);
+void oled_render_info_ball(void);
+void oled_render_info_keycode(void);
+void oled_render_info_mods(void);
+void oled_render_info_cpi(void);
+void oled_render_info_scroll_step(void);
+void oled_render_info_swipe_tag(void);
+void oled_render_info_key_pos(void);
+
 // UI navigation for debug pages
 bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record);

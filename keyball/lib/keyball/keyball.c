@@ -319,6 +319,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   // store last keycode, row, and col for OLED
   keyball.last_kc  = keycode;
   keyball.last_pos = record->event.key;
+  keyball.last_layer = get_highest_layer(layer_state);
+  keyball.last_mods  = get_mods();
 
   pressing_keys_update(keycode, record);
 

@@ -26,7 +26,8 @@
 #undef EECONFIG_KB_DATA_SIZE
 #define EECONFIG_KB_DATA_SIZE 128
 
-// Vial機能: Combo は Vial 側で扱う
+// Vial機能: Combo はVialビルド時のみ有効（Unlock用の2キーを定義）
+#ifdef VIAL_ENABLE
 #define VIAL_COMBO_ENABLE
 // Vialビルド時は TAPPING_TERM_PER_KEY を無効化して互換確保
 #ifdef VIAL_ENABLE
@@ -34,8 +35,10 @@
 #endif
 
 // Vial 用: アンロックコンボ（任意の2キー。左上2キーを選択）
+// Unlock用コンボ（左上2キー）
 #define VIAL_UNLOCK_COMBO_ROWS { 0, 0 }
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
+#endif
 
 // VIA/Vial: レイアウトオプションの初期値を Right に設定
 #undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT

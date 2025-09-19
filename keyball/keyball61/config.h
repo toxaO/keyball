@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 // #define SPLIT_USB_DETECT
 // #define SPLIT_USB_TIMEOUT       500
+#define SPLIT_LAYER_STATE_ENABLE
 
 
 #define SPLIT_TRANSACTION_IDS_KB KEYBALL_GET_INFO

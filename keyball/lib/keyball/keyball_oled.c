@@ -25,7 +25,7 @@ static uint8_t        g_oled_page = 0;
 static bool           g_oled_vertical = false; // 右手マスター用の縦向き表示フラグ
 
 // デバッグUI: ページごとの選択インデックス
-#define KB_UI_PAGES 9
+#define KB_UI_PAGES 10
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
@@ -44,11 +44,12 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
             return 0;
 #endif
         case 8: return 1; // Default layer: def
+        case 9: return 0; // Send monitor (no selector)
     }
     return 0;
 }
 
-#define KB_OLED_PAGE_COUNT      9
+#define KB_OLED_PAGE_COUNT      10
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -110,6 +111,43 @@ static inline void oled_write_val_ln(bool selected, const char* text) {
 static inline void oled_write_val_P(bool selected, const char* text) {
     oled_write_char(selected ? '>' : ' ', false);
     oled_write_P(text, false);
+}
+
+// Alignment helpers: 左/中央/右寄せで所定行(row)に描画
+typedef enum { OLED_ALIGN_LEFT = 0, OLED_ALIGN_CENTER = 1, OLED_ALIGN_RIGHT = 2 } oled_align_t;
+
+static inline uint8_t kb_oled_cols(void) {
+#ifdef OLED_FONT_WIDTH
+#  ifdef OLED_DISPLAY_WIDTH
+    return (uint8_t)(OLED_DISPLAY_WIDTH / OLED_FONT_WIDTH);
+#  else
+    return 21; // fallback for 128px width, 6px font
+#  endif
+#else
+    return 21;
+#endif
+}
+
+__attribute__((unused)) static void oled_write_align_P(const char *ptext, uint8_t row, oled_align_t align) {
+    uint8_t cols = kb_oled_cols();
+    uint8_t len  = (uint8_t)strlen_P(ptext);
+    uint8_t col  = 0;
+    if (align == OLED_ALIGN_RIGHT)      col = (len >= cols) ? 0 : (uint8_t)(cols - len);
+    else if (align == OLED_ALIGN_CENTER) col = (len >= cols) ? 0 : (uint8_t)((cols - len) / 2);
+    else                                  col = 0;
+    oled_set_cursor(col, row);
+    oled_write_P(ptext, false);
+}
+
+__attribute__((unused)) static void oled_write_align(const char *text, uint8_t row, oled_align_t align) {
+    uint8_t cols = kb_oled_cols();
+    uint8_t len  = (uint8_t)strlen(text);
+    uint8_t col  = 0;
+    if (align == OLED_ALIGN_RIGHT)      col = (len >= cols) ? 0 : (uint8_t)(cols - len);
+    else if (align == OLED_ALIGN_CENTER) col = (len >= cols) ? 0 : (uint8_t)((cols - len) / 2);
+    else                                  col = 0;
+    oled_set_cursor(col, row);
+    oled_write(text, false);
 }
 
 // UI操作（矢印キーをOLEDデバッグUIに割当て）
@@ -323,80 +361,6 @@ oled_rotation_t oled_init_kb(oled_rotation_t rotation) {
 }
 #endif
 
-// ---------------------------------------------------------------------------
-// Simple info renderers shared by keymaps
-
-#ifdef OLED_ENABLE
-static char to_1x(uint8_t x) {
-    x &= 0x0f;
-    return x < 10 ? (char)(x + '0') : (char)(x + 'a' - 10);
-}
-static const char BL = '\xB0'; // Blank indicator
-
-void keyball_oled_render_ballinfo(void) {
-    oled_write_P(PSTR("CPI:"), false);
-    {
-        char b[6];
-        snprintf(b, sizeof b, "%4u", (unsigned)keyball_get_cpi());
-        oled_write(b, false);
-    }
-    // sdiv は除数ではなく "感度レベル(ST)" として運用
-    oled_write_P(PSTR(" ST:"), false);
-    {
-        char b[4];
-        snprintf(b, sizeof b, "%u", (unsigned)keyball_get_scroll_div());
-        oled_write(b, false);
-    }
-    oled_write_P(PSTR(" INV:"), false);
-    oled_write_char(kbpf.scroll_invert[keyball_os_idx()] ? '1' : '0', false);
-    oled_write_ln_P(PSTR(""), false);
-}
-
-void keyball_oled_render_keyinfo(void) {
-    // Format: `Key :  R{row}  C{col} K{kc} {name}{name}{name}`
-    oled_write_P(PSTR("Key \xB1"), false);
-    oled_write_char('\xB8', false);
-    oled_write_char(to_1x(keyball.last_pos.row), false);
-    oled_write_char('\xB9', false);
-    oled_write_char(to_1x(keyball.last_pos.col), false);
-    oled_write_P(PSTR("\xBA\xBB"), false);
-    oled_write_char(to_1x(keyball.last_kc >> 4), false);
-    oled_write_char(to_1x(keyball.last_kc), false);
-    oled_write_P(PSTR("  "), false);
-    oled_write(keyball.pressing_keys, false);
-}
-
-void keyball_oled_render_layerinfo(void) {
-    oled_write_P(PSTR("L\xB6\xB7r\xB1"), false);
-    for (uint8_t i = 1; i < 8; i++) {
-        oled_write_char((layer_state_is(i) ? to_1x(i) : BL), false);
-    }
-    oled_write_char(' ', false);
-#    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-    oled_write_P(PSTR("\xC2\xC3"), false);
-    if (get_auto_mouse_enable()) {
-        oled_write_P(PSTR("ON "), false);
-    } else {
-        oled_write_P(PSTR("OFF"), false);
-    }
-    {
-        char b[8];
-        unsigned v = (unsigned)(get_auto_mouse_timeout() / 10);
-        snprintf(b, sizeof b, "%u0", v);
-        oled_write(b, false);
-    }
-#    else
-    oled_write_P(PSTR("\xC2\xC3\xB4\xB5 ---"), false);
-#    endif
-}
-
-void keyball_oled_render_ballsubinfo(void) {
-    char b[20];
-    snprintf(b, sizeof b, "GL:%3ld  TH1:%2d", (long)g_move_gain_lo_fp, (int)g_move_th1);
-    oled_write_ln(b, false);
-}
-#endif // OLED_ENABLE
-
 // Debug rendering ---------------------------------------------------------
 static bool g_dbg_in_render = false;
 
@@ -445,9 +409,15 @@ void keyball_oled_render_setting(void) {
             oled_write_ln("Th1:", false);
             oled_write_val_ln(sel == 2, "   -");
 #endif
-            oled_write_ln("", false);
-            oled_write_ln("", false);
-            // oled_write_ln("page", false);
+            // 追加: ポインタ移動量
+            {
+                char b[12];
+                snprintf(b, sizeof b, "x:%4d", (int)keyball.last_mouse.x);
+                oled_write_P(b, false);
+                snprintf(b, sizeof b, "y:%4d", (int)keyball.last_mouse.y);
+                oled_write_P(b, false);
+            }
+            // ページ表示
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
@@ -683,6 +653,53 @@ void keyball_oled_render_setting(void) {
             snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
             oled_write_P(line, false);
         } break;
+
+        case 9: { // 10: Send monitor
+            // ヘッダ
+            oled_write_ln("Send", false);
+            oled_write_ln(" moni", false);
+            // レイヤ
+            oled_write_ln("Lay:", false);
+            {
+                char b[8];
+                snprintf(b, sizeof b, "   %u", (unsigned)keyball.last_layer);
+                oled_write_P(b, false);
+            }
+            // キーコード
+            oled_write_ln("kc:", false);
+            {
+                char b[8];
+                snprintf(b, sizeof b, "%04X", (unsigned)keyball.last_kc & 0xFFFFu);
+                oled_write_P(b, false);
+            }
+            // row/col
+            oled_write_P("(r,c)", false);
+            {
+                char b[12];
+                snprintf(b, sizeof b, " %u, %u", (unsigned)keyball.last_pos.row, (unsigned)keyball.last_pos.col);
+                oled_write_P(b, false);
+            }
+            // Mod状態
+            {
+                char b[8];
+                uint8_t m = keyball.last_mods;
+                led_t leds = host_keyboard_led_state();
+                // 見出し
+                oled_write_P("scgaC", false);
+                // 5文字の状態
+                b[0] = (m & MOD_MASK_SHIFT) ? '+' : '-';
+                b[1] = (m & MOD_MASK_CTRL)  ? '+' : '-';
+                b[2] = (m & MOD_MASK_GUI)   ? '+' : '-';
+                b[3] = (m & MOD_MASK_ALT)   ? '+' : '-';
+                b[4] = leds.caps_lock       ? '+' : '-';
+                b[5] = '\0';
+                oled_write_P(b, false);
+            }
+            // ページ
+            oled_write_ln("page", false);
+            snprintf(line, sizeof(line), "  %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+            oled_write_P(line, false);
+        } break;
     }
 
     g_dbg_in_render = false;
@@ -690,3 +707,91 @@ void keyball_oled_render_setting(void) {
 
 // Backward-compatible alias
 void keyball_oled_render_debug(void) { keyball_oled_render_setting(); }
+
+// ---------------------------------------------------------------------------
+// Simple info renderers shared by keymaps
+
+void oled_render_info_layer(void) {
+    // Effective layer = highest bit of (layer_state | default_layer_state)
+    uint8_t eff = get_highest_layer(layer_state | default_layer_state);
+    oled_write_P("Lay: ", false);
+    char b[8];
+    snprintf(b, sizeof b, "    %u", (unsigned)eff);
+    oled_write_P(b, false);
+}
+
+void oled_render_info_layer_default(void) {
+    // Default layer (from kbpf or default_layer_state)
+    uint8_t def = kbpf.default_layer;
+    oled_write_P("DefL:", false);
+    char b[8];
+    snprintf(b, sizeof b, "    %u", (unsigned)def);
+    oled_write_P(b, false);
+}
+
+void oled_render_info_ball(void) {
+    oled_write_P("ball:", false);
+    char b[12];
+    snprintf(b, sizeof b, "x%4d", (int)keyball.last_mouse.x);
+    oled_write_P(b, false);
+    snprintf(b, sizeof b, "y%4d", (int)keyball.last_mouse.y);
+    oled_write_P(b, false);
+    snprintf(b, sizeof b, "h%4d", (int)keyball.last_mouse.h);
+    oled_write_P(b, false);
+    snprintf(b, sizeof b, "v%4d", (int)keyball.last_mouse.v);
+    oled_write_P(b, false);
+}
+
+void oled_render_info_keycode(void) {
+    oled_write_ln("kc:", false);
+    char b[8];
+    snprintf(b, sizeof b, " %04X", (unsigned)keyball.last_kc & 0xFFFFu);
+    oled_write_P(b, false);
+}
+
+void oled_render_info_mods(void) {
+    oled_write_ln("Mods:", false);
+    oled_write_P("scgaC", false);
+    char s[6];
+    uint8_t m = get_mods();
+    led_t leds = host_keyboard_led_state();
+    s[0] = (m & MOD_MASK_SHIFT) ? '+' : '-';
+    s[1] = (m & MOD_MASK_CTRL)  ? '+' : '-';
+    s[2] = (m & MOD_MASK_GUI)   ? '+' : '-';
+    s[3] = (m & MOD_MASK_ALT)   ? '+' : '-';
+    s[4] = leds.caps_lock       ? '+' : '-';
+    s[5] = '\0';
+    oled_write_P(s, false);
+}
+
+void oled_render_info_cpi(void) {
+    oled_write_ln("cpi:", false);
+    char b[8];
+    snprintf(b, sizeof b, " %u", (unsigned)keyball_get_cpi());
+    oled_write_P(b, false);
+}
+
+void oled_render_info_scroll_step(void) {
+    oled_write_ln("scr:", false);
+    char b[8];
+    snprintf(b, sizeof b, "    %u", (unsigned)keyball_get_scroll_div());
+    oled_write_P(b, false);
+    // invert flag (per OS)
+    oled_write_P("inv:", false);
+    uint8_t inv = kbpf.scroll_invert[keyball_os_idx()] ? 1u : 0u;
+    oled_write_ln(inv ? "+" : "-", false);
+}
+
+void oled_render_info_swipe_tag(void) {
+    oled_write_P("SW_t:", false);
+    char b[8];
+    snprintf(b, sizeof b, "    %u", (unsigned)keyball_swipe_mode_tag());
+    oled_write_P(b, false);
+}
+
+void oled_render_info_key_pos(void) {
+    oled_write_ln("r,c:", false);
+    char b[12];
+    snprintf(b, sizeof b, " %u, %u", (unsigned)keyball.last_pos.row, (unsigned)keyball.last_pos.col);
+    oled_write_P(b, false);
+}
