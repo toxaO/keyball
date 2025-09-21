@@ -57,3 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_MATRIX_SPLIT    { 37, 37 }
 #endif
+
+// kbpf保存用に KB データ領域サイズを拡大
+#undef  EECONFIG_KB_DATA_SIZE
+#define EECONFIG_KB_DATA_SIZE 128

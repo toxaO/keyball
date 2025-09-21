@@ -70,6 +70,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 200
 #endif
 
+// スクロール反転の既定（未定義の場合は0=off）
+#ifndef KEYBALL_SCROLL_INVERT
+#define KEYBALL_SCROLL_INVERT 0
+#endif
+
 // 最終出力に適用する水平/垂直の個別ゲイン（固定小数点: 256=1.00）
 #ifndef KEYBALL_SCROLL_HOR_GAIN_FP
 #define KEYBALL_SCROLL_HOR_GAIN_FP 256

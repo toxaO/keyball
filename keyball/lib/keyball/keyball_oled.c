@@ -867,3 +867,24 @@ void oled_render_info_key_pos(void) {
     snprintf(b, sizeof b, " %u, %u", (unsigned)keyball.last_pos.row, (unsigned)keyball.last_pos.col);
     oled_write_P(b, false);
 }
+
+// ---------------------------------------------------------------------------
+// Backward-compatible wrappers (keyball_oled_* -> oled_render_info_*)
+
+void keyball_oled_render_keyinfo(void) {
+    oled_render_info_keycode();
+    oled_render_info_mods();
+}
+
+void keyball_oled_render_ballinfo(void) {
+    oled_render_info_ball();
+}
+
+void keyball_oled_render_layerinfo(void) {
+    oled_render_info_layer();
+    oled_render_info_layer_default();
+}
+
+void keyball_oled_render_ballsubinfo(void) {
+    oled_render_info_key_pos();
+}

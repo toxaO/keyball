@@ -369,15 +369,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   pressing_keys_update(keycode, record);
 
   // ---- Debug: log key events (row/col/layer/keycode) ----
+#ifdef DYNAMIC_KEYMAP_ENABLE
   {
     uint8_t row = record->event.key.row;
     uint8_t col = record->event.key.col;
     uint8_t hl  = get_highest_layer(layer_state);
-#    ifdef DYNAMIC_KEYMAP_ENABLE
     uint16_t assigned = dynamic_keymap_get_keycode(hl, row, col);
-#    else
-    uint16_t assigned = pgm_read_word(&keymaps[hl][row][col]);
-#    endif
     uprintf("EV kc=%04X assigned=%04X pressed=%u row=%u col=%u layer=%u mods=%02X os=%u\n",
             (unsigned)keycode,
             (unsigned)assigned,
@@ -387,7 +384,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             (unsigned)hl,
             (unsigned)get_mods(),
             (unsigned)detected_host_os());
+    (void)assigned; (void)row; (void)col; (void)hl; // quiet unused when uprintf is stubbed
   }
+#endif
 
   // OLEDデバッグUI用の矢印キー処理（消費したらホストへ送らない）
   if (keyball_oled_handle_ui_key(keycode, record)) {
