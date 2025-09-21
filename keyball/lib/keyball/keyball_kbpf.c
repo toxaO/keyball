@@ -116,6 +116,10 @@ void kbpf_defaults(void) {
   kbpf_set_swipe_defaults(&kbpf);
   // Default layer
   kbpf.default_layer = 0; // 初期値 0
+  // 水平スクロールゲイン（%）: 垂直を基準(100%)
+  kbpf.scroll_hor_gain_pct = 100;
+  // Move deadzone 既定
+  kbpf.move_deadzone = KB_MOVE_DEADZONE;
 }
 
 // Ensure loaded data is sane. 互換は持たず、異なる版はデフォルトに初期化。
@@ -141,6 +145,8 @@ static void kbpf_validate(void) {
   if (kbpf.swipe_reset_ms > 250) kbpf.swipe_reset_ms = KB_SW_RST_MS;
   if (kbpf.scroll_deadzone > 32)    kbpf.scroll_deadzone   = KB_SCROLL_DEADZONE;
   if (kbpf.scroll_hysteresis > 32)  kbpf.scroll_hysteresis = KB_SCROLL_HYST;
+  // Move deadzone clamp
+  if (kbpf.move_deadzone > 32) kbpf.move_deadzone = KB_MOVE_DEADZONE;
   // AML
   kbpf.aml_enable &= 1u;
   // layer は 0..31 程度（0xFFは未設定とみなす）
@@ -158,10 +164,13 @@ static void kbpf_validate(void) {
   // Scroll snap
   if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = 0u;
   // Scroll snap params
-  if (kbpf.scrollsnap_thr > 50u) kbpf.scrollsnap_thr = 50u; // sane upper bound
+  if (kbpf.scrollsnap_thr > 500u) kbpf.scrollsnap_thr = 500u; // sane upper bound
   // 0 allows immediate FREE disable (never switch). typical 0..12
   if (kbpf.scrollsnap_rst_ms < 20u) kbpf.scrollsnap_rst_ms = 20u;
   if (kbpf.scrollsnap_rst_ms > 5000u) kbpf.scrollsnap_rst_ms = 5000u;
+  // 水平スクロールゲイン（%）: 1..100 にクランプ
+  if (kbpf.scroll_hor_gain_pct < 1u) kbpf.scroll_hor_gain_pct = 1u;
+  if (kbpf.scroll_hor_gain_pct > 100u) kbpf.scroll_hor_gain_pct = 100u;
   // Default layer: clamp 0..31
   if (kbpf.default_layer > 31u) kbpf.default_layer = 0u;
 }

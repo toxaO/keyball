@@ -52,21 +52,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_SCROLL_STEP_DEFAULT 4
 #endif
 
-// 1 なら従来、2 で半段階、3 なら 1/3 ...（分解能を上げたいほど大きく）
-#ifndef KEYBALL_SCROLL_FINE_DEN
-#define KEYBALL_SCROLL_FINE_DEN 4
-#endif
 // 入力がしばらく無い時に余りを捨てる（ms）
 #ifndef KEYBALL_SCROLL_IDLE_RESET_MS
 #define KEYBALL_SCROLL_IDLE_RESET_MS 80
-#endif
-// 方向が変わったら余りをゼロに（バネ戻り防止）
-#ifndef KEYBALL_SCROLL_RESET_ON_DIRCHANGE
-#define KEYBALL_SCROLL_RESET_ON_DIRCHANGE 1
-#endif
-// 1フレームで出す最大ホイール量（スパイク抑制）
-#ifndef KEYBALL_SCROLL_FRAME_CLAMP
-#define KEYBALL_SCROLL_FRAME_CLAMP 8
 #endif
 
 /// To disable scroll snap feature, define 0 in your config.h
@@ -75,11 +63,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #ifndef KEYBALL_SCROLLSNAP_RESET_TIMER
-#define KEYBALL_SCROLLSNAP_RESET_TIMER 100
+#define KEYBALL_SCROLLSNAP_RESET_TIMER 500
 #endif
 
 #ifndef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
-#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 12
+#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 200
+#endif
+
+// 最終出力に適用する水平/垂直の個別ゲイン（固定小数点: 256=1.00）
+#ifndef KEYBALL_SCROLL_HOR_GAIN_FP
+#define KEYBALL_SCROLL_HOR_GAIN_FP 256
+#endif
+#ifndef KEYBALL_SCROLL_VER_GAIN_FP
+#define KEYBALL_SCROLL_VER_GAIN_FP 256
 #endif
 
 // Auto mouse layer: accumulation reset window (ms)
@@ -393,6 +389,8 @@ typedef struct __attribute__((packed)) {
   // 互換保持のため残置（現行ロジックでは未使用）
   uint8_t scroll_deadzone;   // スクロール用デッドゾーン
   uint8_t scroll_hysteresis; // スクロール反転ヒステリシス
+  // Move(deadzone)
+  uint8_t  move_deadzone;    // 0..32 程度の小さなデッドゾーン
   // Auto mouse layer settings
   uint8_t  aml_enable;      // 0/1
   uint8_t  aml_layer;       // target layer index (0..31, 0xFF=unset)
@@ -401,8 +399,11 @@ typedef struct __attribute__((packed)) {
   // Scroll snap (global)
   uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
   // Scroll snap parameters (global)
-  uint8_t  scrollsnap_thr;   // tension threshold to temporarily free
+  uint16_t  scrollsnap_thr;   // tension threshold to temporarily free
   uint16_t scrollsnap_rst_ms; // time to keep FREE before restoring
+  // Horizontal scroll gain as a percentage of vertical (global)
+  // 1..100 (%). 100% = KEYBALL_SCROLL_VER_GAIN_FP と同等
+  uint8_t  scroll_hor_gain_pct;
   // Default base layer configuration (global)
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
 } keyball_profiles_t;
@@ -432,5 +433,10 @@ extern keyball_profiles_t kbpf;
 #define KB_SCROLL_HYST 0
 #endif
 
+// Move(deadzone) 既定値
+#ifndef KB_MOVE_DEADZONE
+#define KB_MOVE_DEADZONE 0
+#endif
+
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 10 // v10: aml_threshold を uint16_t へ拡張（互換なし）
+#define KBPF_VER_CUR 13 // v13: move_deadzone を追加（互換なし）

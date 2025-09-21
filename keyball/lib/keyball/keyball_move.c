@@ -11,6 +11,7 @@ static inline int16_t clamp_xy(int16_t v) {
 
 int32_t g_move_gain_lo_fp = KEYBALL_MOVE_GAIN_LO_FP;
 int16_t g_move_th1 = KEYBALL_MOVE_TH1;
+int16_t g_move_th2 = KEYBALL_MOVE_TH2;
 
 void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
                                            report_mouse_t *output,
@@ -46,12 +47,12 @@ void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
 
     if (mag <= g_move_th1) {
       gain_fp = g_lo;
-    } else if (mag >= KEYBALL_MOVE_TH2) {
+    } else if (mag >= g_move_th2) {
       gain_fp = g_hi;
     } else {
       // 線形補間
       int32_t num = (int32_t)(mag - g_move_th1);
-      int32_t den = (int32_t)(KEYBALL_MOVE_TH2 - g_move_th1);
+      int32_t den = (int32_t)(g_move_th2 - g_move_th1);
       if (den < 1) den = 1; // 保険
       gain_fp = g_lo + ((g_hi - g_lo) * num) / den;
     }

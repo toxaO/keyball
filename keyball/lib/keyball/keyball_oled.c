@@ -31,9 +31,9 @@ static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
-        case 0: return 3; // CPI, Glo, Th1
+        case 0: return 4; // CPI, Glo, Th1, Th2
         case 1: return 4; // AML: en, TO, TH, TG_L
-        case 2: return 2; // Scroll: Inv, PST
+        case 2: return 5; // Scroll: ST, Dz, Inv, PST, H_Ga
         case 3: return 3; // SSNP: Mode, Thr, Rst を編集可能
         case 4: return 0; // Monitor
         case 5: return 4; // Swipe: St, Dz, Rt, Frz
@@ -199,6 +199,14 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     if (th1 > (int32_t)th2 - 1) th1 = (int32_t)th2 - 1;
                     kbpf.move_th1[os] = (uint8_t)th1;
                     g_move_th1        = (int16_t)th1;
+                } else if (sel == 3) {
+                    // Th2 ±1 (th1+1 .. 63)
+                    int32_t th1 = (int32_t)kbpf.move_th1[os];
+                    int32_t th2 = (int32_t)kbpf.move_th2[os] + dir;
+                    if (th2 < th1 + 1) th2 = th1 + 1;
+                    if (th2 > 63) th2 = 63;
+                    kbpf.move_th2[os] = (uint8_t)th2;
+                    g_move_th2        = (int16_t)th2;
                 }
             } break;
 
@@ -251,16 +259,33 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             case 2: { // Scroll conf
                 uint8_t os = keyball_os_idx();
                 if (sel == 0) {
+                    // ST: 1..7（内部でクランプ）
+                    int32_t nv = (int32_t)keyball_get_scroll_div() + dir;
+                    if (nv < 1) nv = 1; // 下限のガード（set側でもクランプされる）
+                    keyball_set_scroll_div((uint8_t)nv);
+                } else if (sel == 1) {
+                    // Scroll Dz: 0..32
+                    int32_t v = (int32_t)kbpf.scroll_deadzone + dir;
+                    if (v < 0) v = 0;
+                    if (v > 9) v = 9;
+                    kbpf.scroll_deadzone = (uint8_t)v;
+                } else if (sel == 2) {
                     // Inv: 0/1 toggle
                     uint8_t v = kbpf.scroll_invert[os] ? 1 : 0;
                     v = (dir > 0) ? 1 : 0;
                     kbpf.scroll_invert[os] = v;
-                } else if (sel == 1) {
+                } else if (sel == 3) {
                     // PST: 0..2 cycle（norm/fine/mac）
                     int32_t p = (int32_t)kbpf.scroll_preset[os] + dir;
                     if (p < 0) p = 0;
                     if (p > 2) p = 2;
                     kbpf.scroll_preset[os] = (uint8_t)p;
+                } else if (sel == 4) {
+                    // H_Ga: 1..100 (%), 1刻み
+                    int32_t v = (int32_t)kbpf.scroll_hor_gain_pct + dir * 1;
+                    if (v < 1) v = 1;
+                    if (v > 100) v = 100;
+                    kbpf.scroll_hor_gain_pct = (uint8_t)v;
                 }
             } break;
 
@@ -275,13 +300,13 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)nm);
                     kbpf.scrollsnap_mode = (uint8_t)nm;
                 } else if (sel == 1) {
-                    int32_t v = (int32_t)kbpf.scrollsnap_thr + dir * 1; // ±1
+                    int32_t v = (int32_t)kbpf.scrollsnap_thr + dir * 10; // ±10
                     if (v < 0) v = 0;
-                    if (v > 50) v = 50;
-                    kbpf.scrollsnap_thr = (uint8_t)v;
+                    if (v > 400) v = 400;
+                    kbpf.scrollsnap_thr = (uint16_t)v;
                 } else if (sel == 2) {
-                    int32_t v = (int32_t)kbpf.scrollsnap_rst_ms + dir * 10; // ±10ms
-                    if (v < 20) v = 20;
+                    int32_t v = (int32_t)kbpf.scrollsnap_rst_ms + dir * 100; // ±100ms
+                    if (v < 100) v = 100;
                     if (v > 5000) v = 5000;
                     kbpf.scrollsnap_rst_ms = (uint16_t)v;
                 }
@@ -423,9 +448,10 @@ void keyball_oled_render_setting(void) {
                 oled_writef_sel(row++, sel == 1, " %u%%", (unsigned)pct); // row 8
             }
             row_skip(row, 1); // row 9
-            oled_writef(row++, "Th1:"); // row 10
-            oled_writef_sel(row++, sel == 2, " %3u", (unsigned)kbpf.move_th1[keyball_os_idx()]); // row 11
-            row_skip(row, 1); // row 12
+            oled_writef(row++, "Th:"); // row 10
+            oled_writef_sel(row++, sel == 2, "1:%2u", (unsigned)kbpf.move_th1[keyball_os_idx()]); // row 11
+            oled_writef_sel(row++, sel == 3, "2:%2u", (unsigned)kbpf.move_th2[keyball_os_idx()]); // row 12
+            row_skip(row, 1); // row 13
 #else
             oled_writef(row++, "Glo:");
             oled_writef_sel(row++, sel == 1, "OFF");
@@ -433,16 +459,19 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, "Th1:");
             oled_writef_sel(row++, sel == 2, "-");
             row_skip(row, 1);
+            oled_writef(row++, "Th2:");
+            oled_writef_sel(row++, sel == 3, "-");
+            row_skip(row, 1);
 #endif
             // 追加: ポインタ移動量
-            {
-                char b[12];
-                snprintf(b, sizeof b, "x:%2d", (int)keyball.last_mouse.x);
-                oled_writef(row++, "%s", b); // row 13
-                snprintf(b, sizeof b, "y:%2d", (int)keyball.last_mouse.y);
-                oled_writef(row++, "%s", b); // row 14
-            }
-            row_skip(row, 1); // row 15
+            // {
+            //     char b[12];
+            //     snprintf(b, sizeof b, "x:%3d", (int)keyball.last_mouse.x);
+            //     oled_writef(row++, "%s", b); // row 13
+            //     snprintf(b, sizeof b, "y:%3d", (int)keyball.last_mouse.y);
+            //     oled_writef(row++, "%s", b); // row 14 or 16 depending
+            // }
+            row_skip(row, 2); // row 16 or 18 depending
             // ページ表示
             oled_writef(row++, "%2u/%2u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count()); // row 16
         } break;
@@ -501,15 +530,26 @@ void keyball_oled_render_setting(void) {
             uint8_t os = keyball_os_idx();
             uint8_t inv = kbpf.scroll_invert[os] ? 1 : 0;
             uint8_t preset = kbpf.scroll_preset[os];
-            oled_writef(row++, "Inv:");
-            oled_writef_sel(row++, sel == 0, " %3u", (unsigned)inv);
+            // ST（スクロールステップ）
+            oled_writef_sel(row++, sel == 0, "ST:%1u", (unsigned)keyball_get_scroll_div());
             row_skip(row, 1); // row 12
-            oled_writef(row++, "Mode:");
+            // Scroll deadzone
+            oled_writef_sel(row++, sel == 1, "Dz:%1u", (unsigned)kbpf.scroll_deadzone);
+            row_skip(row, 1); // row 12
+            oled_writef_sel(row++, sel == 2, "Iv:%1u", (unsigned)inv);
+            row_skip(row, 1); // row 12
             {
-                const char *pl = (preset == 2) ? "mac" : (preset == 1) ? "fin" : "nor";
-                oled_writef_sel(row++, sel == 1, " %s", pl);
+                const char *pl = (preset == 2) ? "m" : (preset == 1) ? "f" : "n";
+                oled_writef_sel(row++, sel == 3, "Md:%s", pl);
             }
-            row_skip(row, 7); // row 12
+            row_skip(row, 1); // row 12
+            oled_writef(row++, "H_Ga:");
+            {
+                uint8_t pct = kbpf.scroll_hor_gain_pct; // 1..100
+                // ちょうど4桁で収まる "%3u%%" を使う（例: "100%", " 99%", "  1%"）
+                oled_writef_sel(row++, sel == 4, "%3u%%", (unsigned)pct);
+            }
+            row_skip(row, 2); // 項目が1つ増えたので1行分減らす
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
@@ -530,7 +570,7 @@ void keyball_oled_render_setting(void) {
             oled_writef_sel(row++, sel == 1, " %3u", (unsigned)kbpf.scrollsnap_thr);
             row_skip(row, 1); // row 12
             oled_writef(row++, "Rst:");
-            oled_writef_sel(row++, sel == 2, " %3u", (unsigned)kbpf.scrollsnap_rst_ms);
+            oled_writef_sel(row++, sel == 2, "%4u", (unsigned)kbpf.scrollsnap_rst_ms);
             row_skip(row, 1); // row 12
 #else
             oled_writef(row++, "Mode:");
@@ -553,12 +593,18 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " moni");
             row_skip(row, 1); // row 12
             int16_t sx, sy, h, v;
+            int32_t ah, av;
+            int8_t  t;
             keyball_scroll_get_dbg(&sx, &sy, &h, &v);
-            oled_writef(row++, "sx:"); oled_writef(row++, " %3d", (int)sx);
-            oled_writef(row++, "sy:"); oled_writef(row++, " %3d", (int)sy);
-            oled_writef(row++, "H:");  oled_writef(row++, " %3d", (int)h);
-            oled_writef(row++, "V:");  oled_writef(row++, " %3d", (int)v);
-            row_skip(row, 4); // row 12
+            keyball_scroll_get_dbg_inner(&ah, &av, &t);
+            oled_writef(row++, "x:%3d", (int)sx);
+            oled_writef(row++, "y:%3d", (int)sy);
+            oled_writef(row++, "h:%3d", (int)h);
+            oled_writef(row++, "v:%3d", (int)v);
+            oled_writef(row++, "ah:");oled_writef(row++, " %4d", (int)ah);
+            oled_writef(row++, "av:");oled_writef(row++, " %4d", (int)av);
+            oled_writef(row++, "t:%3d", (int)t);
+            row_skip(row, 3); // row 12
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
@@ -622,7 +668,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " conf");
             row_skip(row, 1); // row 12
             oled_writef(row++, "light");
-            oled_writef_sel(row++, sel == 0, "%s", rgblight_is_enabled() ? "on" : "off");
+            oled_writef_sel(row++, sel == 0, "%s", rgblight_is_enabled() ? "  on" : " off");
             row_skip(row, 1); // row 12
             oled_writef(row++, "HUE");
             {
@@ -697,7 +743,7 @@ void keyball_oled_render_setting(void) {
             {
                 char b[8];
                 snprintf(b, sizeof b, "%04X", (unsigned)keyball.last_kc & 0xFFFFu);
-                oled_writef(row++, "%s", b);
+                oled_writef(row++, " %s", b);
             }
             row_skip(row, 1); // row 12
             // row/col

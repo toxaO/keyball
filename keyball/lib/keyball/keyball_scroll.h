@@ -22,3 +22,4 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
                                              bool is_left);
 
 void keyball_scroll_get_dbg(int16_t *sx, int16_t *sy, int16_t *h, int16_t *v);
+void keyball_scroll_get_dbg_inner(int32_t *ah, int32_t *av, int8_t *t);

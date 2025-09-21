@@ -50,9 +50,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // scroll_inv
 #define KEYBALL_SCROLL_INVERT 1
 
-// 水平方向の閾値
-#undef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
-#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 0
+// Scroll snap の初期テンション閾値（FREE解放までの直交移動量合計の目安）
+#undef  KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
+#define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 200
 
 //default
 #undef  KEYBALL_CPI_DEFAULT

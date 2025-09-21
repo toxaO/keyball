@@ -163,6 +163,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_set_scroll_div(kbpf.scroll_step[keyball_os_idx()]);
       g_move_gain_lo_fp = kbpf.move_gain_lo_fp[keyball_os_idx()];
       g_move_th1 = kbpf.move_th1[keyball_os_idx()];
+      g_move_th2 = kbpf.move_th2[keyball_os_idx()];
       keyball_swipe_set_step(kbpf.swipe_step);
       keyball_swipe_set_deadzone(kbpf.swipe_deadzone);
       keyball_swipe_set_reset_ms(kbpf.swipe_reset_ms);
@@ -179,8 +180,15 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case KBC_SAVE:
       kbpf.move_gain_lo_fp[keyball_os_idx()] =
           (uint8_t)_CONSTRAIN(g_move_gain_lo_fp, 1, 255);
-      kbpf.move_th1[keyball_os_idx()] =
-          (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.move_th2[keyball_os_idx()] - 1);
+      // Save move th2 first so th1 can clamp against it
+      kbpf.move_th2[keyball_os_idx()] = (uint8_t)_CONSTRAIN(g_move_th2, 1, 63);
+      if (kbpf.move_th1[keyball_os_idx()] >= kbpf.move_th2[keyball_os_idx()]) {
+        kbpf.move_th1[keyball_os_idx()] = kbpf.move_th2[keyball_os_idx()] - 1;
+        g_move_th1 = kbpf.move_th1[keyball_os_idx()];
+      } else {
+        kbpf.move_th1[keyball_os_idx()] =
+            (uint8_t)_CONSTRAIN(g_move_th1, 0, kbpf.move_th2[keyball_os_idx()] - 1);
+      }
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
       kbpf.aml_enable  = get_auto_mouse_enable() ? 1 : 0;
       kbpf.aml_timeout = get_auto_mouse_timeout();
