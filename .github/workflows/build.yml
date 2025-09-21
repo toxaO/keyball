@@ -1,4 +1,4 @@
-name: Keyball manual build
+name: Keyball manual build (QMK/Vial)
 
 on:
   workflow_dispatch:
@@ -11,6 +11,12 @@ on:
         description: "Keymap"
         required: true
         default: "mymap"
+      impl:
+        description: "Build implementation (qmk or vial)"
+        required: true
+        default: "qmk"
+        type: choice
+        options: ["qmk", "vial"]
       qmk_tag:
         description: "QMK firmware tag (例: 0.30.3 / v0.30.3)"
         required: false
@@ -22,7 +28,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build ${{ inputs.kb }}:${{ inputs.km }}
+    name: Build ${{ inputs.impl }} • ${{ inputs.kb }}:${{ inputs.km }}
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +36,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Checkout QMK to tag
+      - name: Checkout QMK to tag (only for impl=qmk)
+        if: inputs.impl == 'qmk'
         run: |
           set -euo pipefail
           TAG="${{ inputs.qmk_tag }}"
@@ -61,22 +68,34 @@ jobs:
           python3 -m venv .venv
           . .venv/bin/activate
           python3 -m pip install -U pip qmk
+          # QMK側をHOMEに設定（vialでもqmkコマンドの準備は共通）
           qmk setup -H "$GITHUB_WORKSPACE/qmk_firmware" -y || true
 
-      - name: Link keyboards/keyball → ../../keyball
+      - name: Link keyboards/keyball → ../../keyball (qmk & vial trees)
         run: |
           rm -rf qmk_firmware/keyboards/keyball
           mkdir -p qmk_firmware/keyboards
           ln -s ../../keyball qmk_firmware/keyboards/keyball
           ls -l qmk_firmware/keyboards
+          rm -rf vial-qmk/keyboards/keyball || true
+          mkdir -p vial-qmk/keyboards
+          ln -s ../../keyball vial-qmk/keyboards/keyball
+          ls -l vial-qmk/keyboards
 
-      # qmk_firmware を作業ディレクトリにしてビルド（.build の場所を安定化）
-      - name: Build
+      # impl=qmk: qmk_firmware を作業ディレクトリにしてビルド（.build の場所を安定化）
+      - name: Build (impl=qmk)
+        if: inputs.impl == 'qmk'
         working-directory: qmk_firmware
         run: |
           . ../.venv/bin/activate
           qmk clean -q -n -y || true
           qmk compile -kb "${{ inputs.kb }}" -km "${{ inputs.km }}"
+
+      # impl=vial: Vial用QMKでビルド。SKIP_GIT=yesはネットワーク不要化、VIAL_ENABLE=yesでVial機能を有効化
+      - name: Build (impl=vial)
+        if: inputs.impl == 'vial'
+        run: |
+          make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes "${{ inputs.kb }}:${{ inputs.km }}"
 
       # 成果物の場所を可視化（デバッグ用）
       - name: Show build outputs
@@ -87,6 +106,9 @@ jobs:
           echo "::endgroup::"
           echo "::group::tree qmk_firmware/.build"
           (ls -al qmk_firmware/.build && find qmk_firmware/.build -maxdepth 3 -type f) || true
+          echo "::endgroup::"
+          echo "::group::tree vial-qmk/.build"
+          (ls -al vial-qmk/.build && find vial-qmk/.build -maxdepth 3 -type f) || true
           echo "::endgroup::"
           echo "::group::hunt uf2/hex/bin"
           find . -maxdepth 3 \( -name "*.uf2" -o -name "*.hex" -o -name "*.bin" \) -print || true
@@ -101,7 +123,7 @@ jobs:
           SAFE_KB="${SAFE_KB//\//_}"
           SAFE_KB="${SAFE_KB//:/_}"
           SAFE_KB="${SAFE_KB// /_}"
-          SAFE_NAME="${SAFE_KB}-${{ inputs.km }}"
+          SAFE_NAME="${{ inputs.impl }}-${SAFE_KB}-${{ inputs.km }}"
           echo "ARTIFACT_NAME=$SAFE_NAME" >> "$GITHUB_ENV"
           echo "artifact=$SAFE_NAME" >> "$GITHUB_OUTPUT"
           echo "Artifact name: $SAFE_NAME"
@@ -121,5 +143,8 @@ jobs:
             qmk_firmware/*.uf2
             qmk_firmware/*.hex
             qmk_firmware/*.bin
+            vial-qmk/.build/**/*.uf2
+            vial-qmk/.build/**/*.hex
+            vial-qmk/.build/**/*.bin
           if-no-files-found: error
           retention-days: 14
