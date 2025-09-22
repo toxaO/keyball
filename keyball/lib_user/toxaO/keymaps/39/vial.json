@@ -40,8 +40,6 @@
     { "name": "KBC_RST",  "title": "Reset Keyball configuration",                 "shortName": "KBC\nRST" },
     { "name": "KBC_SAVE", "title": "Persist Keyball configuration to EEPROM",     "shortName": "KBC\nSAVE" },
     { "name": "STG_TOG",  "title": "Toggle OLED setting view",                    "shortName": "STG\nTOG" },
-    { "name": "STG_NP",   "title": "OLED setting page next",                      "shortName": "STG\nNP" },
-    { "name": "STG_PP",   "title": "OLED setting page previous",                  "shortName": "STG\nPP" },
     { "name": "SCRL_TO",  "title": "Toggle scroll mode",                          "shortName": "SCRL\nTO" },
     { "name": "SCRL_MO",  "title": "Enable scroll mode while pressed",            "shortName": "SCRL\nMO" },
     { "name": "SSNP_VRT", "title": "Set scroll snap mode: vertical",              "shortName": "SSNP\nVRT" },

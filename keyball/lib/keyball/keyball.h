@@ -186,42 +186,40 @@ enum keyball_keycodes {
 
   // (removed) Pointer parameter adjustment keycodes were deprecated in favor of OLED setting UI
 
-  // Setting view (Kb 2..4)
+  // Setting view (Kb 2)
   STG_TOG = QK_KB_2, // Toggle setting view
-  STG_NP  = QK_KB_3, // Setting page next
-  STG_PP  = QK_KB_4, // Setting page previous
 
-  // Scroll control (Kb 5..6)
+  // Scroll control (Kb 3..4)  [番号を詰めた]
   // Only mode toggles are provided. Others are handled via OLED setting UI.
-  SCRL_TO  = QK_KB_5,  // Toggle scroll mode
-  SCRL_MO  = QK_KB_6,  // Momentary scroll mode
+  SCRL_TO  = QK_KB_3,  // Toggle scroll mode
+  SCRL_MO  = QK_KB_4,  // Momentary scroll mode
 
-  // Scroll snap (Kb 7..9)
+  // Scroll snap (Kb 5..7)  [番号を詰めた]
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
-  SSNP_VRT = QK_KB_7,  // Set scroll snap mode to vertical
-  SSNP_HOR = QK_KB_8,  // Set scroll snap mode to horizontal
-  SSNP_FRE = QK_KB_9,  // Disable scroll snap mode (free)
+  SSNP_VRT = QK_KB_5,  // Set scroll snap mode to vertical
+  SSNP_HOR = QK_KB_6,  // Set scroll snap mode to horizontal
+  SSNP_FRE = QK_KB_7,  // Disable scroll snap mode (free)
 #endif
 
-  // Swipe action keys (Kb 10..14)
-  APP_SW  = QK_KB_10,
-  VOL_SW  = QK_KB_11,
-  BRO_SW  = QK_KB_12,
-  TAB_SW  = QK_KB_13,
-  WIN_SW  = QK_KB_14,
+  // Swipe action keys (Kb 8..12)  [番号を詰めた]
+  APP_SW  = QK_KB_8,
+  VOL_SW  = QK_KB_9,
+  BRO_SW  = QK_KB_10,
+  TAB_SW  = QK_KB_11,
+  WIN_SW  = QK_KB_12,
 
-  // Multi action keys (Kb 15..18): A,B,C,D correspond to LEFT,RIGHT,UP,DOWN
-  MULTI_A = QK_KB_15,
-  MULTI_B = QK_KB_16,
-  MULTI_C = QK_KB_17,
-  MULTI_D = QK_KB_18,
+  // Multi action keys (Kb 13..16): A,B,C,D correspond to LEFT,RIGHT,UP,DOWN  [番号を詰めた]
+  MULTI_A = QK_KB_13,
+  MULTI_B = QK_KB_14,
+  MULTI_C = QK_KB_15,
+  MULTI_D = QK_KB_16,
 
-  // Arrow proxy swipe key (Kb 19)
-  SW_ARR  = QK_KB_19,
+  // Arrow proxy swipe key (Kb 17)  [番号を詰めた]
+  SW_ARR  = QK_KB_17,
 
-  // Extension swipe keys (Kb 20..21): for user-expansion examples
-  SW_EX1  = QK_KB_20,
-  SW_EX2  = QK_KB_21,
+  // Extension swipe keys (Kb 18..19): for user-expansion examples  [番号を詰めた]
+  SW_EX1  = QK_KB_18,
+  SW_EX2  = QK_KB_19,
 
   KEYBALL_SAFE_RANGE,
 

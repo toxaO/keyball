@@ -214,12 +214,6 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case STG_TOG:
       keyball_oled_mode_toggle();
       return false;
-    case STG_NP:
-      keyball_oled_next_page();
-      return false;
-    case STG_PP:
-      keyball_oled_prev_page();
-      return false;
 
     // Swipe action keys: begin on press
     case APP_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(1); return false; // KBS_TAG_APP (=1)

@@ -158,10 +158,10 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
         return true; // ホストへは送らない
     }
 
-    // 値調整 / ページ送り（Shift+←/→）
+    // ページ送り / 値調整（Shift+←/→で値、非Shiftでページ）
     if (keycode == KC_LEFT || keycode == KC_RIGHT) {
-        // Shift 併用ならページ移動（内部でデバウンスするためここでは呼ばない）
-        if (get_mods() & MOD_MASK_SHIFT) {
+        // 非Shift: ページ移動（内部でデバウンスするためここでは呼ばない）
+        if ((get_mods() & MOD_MASK_SHIFT) == 0) {
             if (keycode == KC_LEFT) {
                 keyball_oled_prev_page();
             } else {
@@ -169,8 +169,9 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             }
             return true; // ホストへは送らない
         }
+        // Shift併用: 値調整
         if (!ui_op_ready()) return true; // 入力は消費
-        int dir = (keycode == KC_RIGHT) ? +1 : -1;
+        int dir = (keycode == KC_RIGHT) ? +1 : -1; // S+R: 増加, S+L: 減少
 
         switch (page) {
             case 0: { // Mouse conf
