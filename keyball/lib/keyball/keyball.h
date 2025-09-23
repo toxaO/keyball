@@ -96,6 +96,133 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_AML_ACC_MIN_UNIT 2
 #endif
 
+//////////////////////////////////////////////////////////////////////////////
+// kbpf persistent defaults (edit here to tweak build-time behaviour)
+//////////////////////////////////////////////////////////////////////////////
+
+// --- Per-OS slot defaults --------------------------------------------------
+// Applied to every kbpf OS profile (0..7) when kbpf_defaults() runs.
+#ifndef KBPF_DEFAULT_CPI
+#    define KBPF_DEFAULT_CPI KEYBALL_CPI_DEFAULT
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_STEP
+#    define KBPF_DEFAULT_SCROLL_STEP KEYBALL_SCROLL_STEP_DEFAULT
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_INVERT
+#    define KBPF_DEFAULT_SCROLL_INVERT ((KEYBALL_SCROLL_INVERT) ? 1 : 0)
+#endif
+#ifndef KBPF_DEFAULT_MOVE_GAIN_LO_FP
+#    define KBPF_DEFAULT_MOVE_GAIN_LO_FP KEYBALL_MOVE_GAIN_LO_FP
+#endif
+#ifndef KBPF_DEFAULT_MOVE_TH1
+#    define KBPF_DEFAULT_MOVE_TH1 KEYBALL_MOVE_TH1
+#endif
+#ifndef KBPF_DEFAULT_MOVE_TH2
+#    define KBPF_DEFAULT_MOVE_TH2 KEYBALL_MOVE_TH2
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_INTERVAL
+#    define KBPF_DEFAULT_SCROLL_INTERVAL 1
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_VALUE
+#    define KBPF_DEFAULT_SCROLL_VALUE 1
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_PRESET
+#    define KBPF_DEFAULT_SCROLL_PRESET 1
+#endif
+// macOS specific overrides (slot = OS_MACOS)
+#ifndef KBPF_DEFAULT_SCROLL_INTERVAL_MAC
+#    define KBPF_DEFAULT_SCROLL_INTERVAL_MAC 120
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_VALUE_MAC
+#    define KBPF_DEFAULT_SCROLL_VALUE_MAC 120
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_PRESET_MAC
+#    define KBPF_DEFAULT_SCROLL_PRESET_MAC 2
+#endif
+
+// --- Global defaults -------------------------------------------------------
+// Single shared settings persisted once per keyboard.
+// Swipe behaviour -----------------------------------------------------------
+#ifndef KBPF_DEFAULT_SWIPE_STEP
+#    define KBPF_DEFAULT_SWIPE_STEP 180
+#endif
+#ifndef KBPF_DEFAULT_SWIPE_DEADZONE
+#    define KBPF_DEFAULT_SWIPE_DEADZONE 1
+#endif
+#ifndef KBPF_DEFAULT_SWIPE_FREEZE
+#    define KBPF_DEFAULT_SWIPE_FREEZE 1
+#endif
+#ifndef KBPF_DEFAULT_SWIPE_RESET_MS
+#    define KBPF_DEFAULT_SWIPE_RESET_MS 30
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_DEADZONE
+#    define KBPF_DEFAULT_SCROLL_DEADZONE 0
+#endif
+// hysteresisは未実装
+#ifndef KBPF_DEFAULT_SCROLL_HYSTERESIS
+#    define KBPF_DEFAULT_SCROLL_HYSTERESIS 0
+#endif
+#ifndef KBPF_DEFAULT_MOVE_DEADZONE
+#    define KBPF_DEFAULT_MOVE_DEADZONE 0
+#endif
+#ifndef KBPF_DEFAULT_AML_ENABLE
+#    define KBPF_DEFAULT_AML_ENABLE 0
+#endif
+#ifndef KBPF_DEFAULT_AML_LAYER
+#    define KBPF_DEFAULT_AML_LAYER 0xFFu
+#endif
+#ifndef KBPF_DEFAULT_AML_TIMEOUT
+#    define KBPF_DEFAULT_AML_TIMEOUT 3000
+#endif
+#ifndef KBPF_DEFAULT_AML_THRESHOLD
+#    define KBPF_DEFAULT_AML_THRESHOLD 100
+#endif
+#ifndef KBPF_DEFAULT_SCROLLSNAP_MODE
+#    define KBPF_DEFAULT_SCROLLSNAP_MODE KEYBALL_SCROLLSNAP_MODE_VERTICAL
+#endif
+#ifndef KBPF_DEFAULT_SCROLLSNAP_THR
+#    define KBPF_DEFAULT_SCROLLSNAP_THR KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
+#endif
+#ifndef KBPF_DEFAULT_SCROLLSNAP_RESET_MS
+#    define KBPF_DEFAULT_SCROLLSNAP_RESET_MS KEYBALL_SCROLLSNAP_RESET_TIMER
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_HOR_GAIN_PCT
+#    define KBPF_DEFAULT_SCROLL_HOR_GAIN_PCT 100
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_LAYER_ENABLE
+#    define KBPF_DEFAULT_SCROLL_LAYER_ENABLE 1
+#endif
+#ifndef KBPF_DEFAULT_SCROLL_LAYER_INDEX
+#    define KBPF_DEFAULT_SCROLL_LAYER_INDEX 6
+#endif
+#ifndef KBPF_DEFAULT_LAYER
+#    define KBPF_DEFAULT_LAYER 0
+#endif
+
+// --- Compatibility aliases -------------------------------------------------
+// Preserve historical macro names so older user configuration overrides keep working.
+#ifndef KB_SW_STEP
+#    define KB_SW_STEP KBPF_DEFAULT_SWIPE_STEP
+#endif
+#ifndef KB_SW_DEADZONE
+#    define KB_SW_DEADZONE KBPF_DEFAULT_SWIPE_DEADZONE
+#endif
+#ifndef KB_SWIPE_FREEZE_POINTER
+#    define KB_SWIPE_FREEZE_POINTER KBPF_DEFAULT_SWIPE_FREEZE
+#endif
+#ifndef KB_SW_RST_MS
+#    define KB_SW_RST_MS KBPF_DEFAULT_SWIPE_RESET_MS
+#endif
+#ifndef KB_SCROLL_DEADZONE
+#    define KB_SCROLL_DEADZONE KBPF_DEFAULT_SCROLL_DEADZONE
+#endif
+#ifndef KB_SCROLL_HYST
+#    define KB_SCROLL_HYST KBPF_DEFAULT_SCROLL_HYSTERESIS
+#endif
+#ifndef KB_MOVE_DEADZONE
+#    define KB_MOVE_DEADZONE KBPF_DEFAULT_MOVE_DEADZONE
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // pointer motion configuration
 // ==== Move shaping (pointer) ====
@@ -407,6 +534,9 @@ typedef struct __attribute__((packed)) {
   // Horizontal scroll gain as a percentage of vertical (global)
   // 1..100 (%). 100% = KEYBALL_SCROLL_VER_GAIN_FP と同等
   uint8_t  scroll_hor_gain_pct;
+  // Auto scroll layer configuration (global)
+  uint8_t  scroll_layer_enable; // 0/1
+  uint8_t  scroll_layer_index;  // 0..31
   // Default base layer configuration (global)
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
 } keyball_profiles_t;
@@ -415,31 +545,5 @@ typedef struct __attribute__((packed)) {
 
 extern keyball_profiles_t kbpf;
 
-// 既定値（ビルド時デフォルトを反映）
-#ifndef KB_SW_STEP
-#define KB_SW_STEP 180
-#endif
-#ifndef KB_SW_DEADZONE
-#define KB_SW_DEADZONE 1
-#endif
-#ifndef KB_SWIPE_FREEZE_POINTER
-#define KB_SWIPE_FREEZE_POINTER 1
-#endif
-#ifndef KB_SW_RST_MS
-#define KB_SW_RST_MS 30
-#endif
-
-#ifndef KB_SCROLL_DEADZONE
-#define KB_SCROLL_DEADZONE 0
-#endif
-#ifndef KB_SCROLL_HYST
-#define KB_SCROLL_HYST 0
-#endif
-
-// Move(deadzone) 既定値
-#ifndef KB_MOVE_DEADZONE
-#define KB_MOVE_DEADZONE 0
-#endif
-
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 13 // v13: move_deadzone を追加（互換なし）
+#define KBPF_VER_CUR 14 // v14: scroll layer config を追加（互換なし）

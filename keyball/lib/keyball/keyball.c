@@ -264,8 +264,10 @@ void keyboard_post_init_kb(void) {
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   keyball_set_scrollsnap_mode((keyball_scrollsnap_mode_t)kbpf.scrollsnap_mode);
 #endif
-  keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
-  keyboard_post_init_user();
+    keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
+    keyboard_post_init_user();
+
+    keyball_refresh_scroll_layer();
 }
 
 // ---------------------------------------------------------------------------

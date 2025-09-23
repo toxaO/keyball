@@ -36,9 +36,6 @@ static uint8_t g_prev_highest_layer = 0xFFu;
 // layer state setting ------------------------------
 layer_state_t layer_state_set_user(layer_state_t state) {
 
-    // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == _Scr);
-
     // 設定レイヤから離れたタイミングで、その時点のRGBモードを保持
     {
         uint8_t highest = get_highest_layer(state);

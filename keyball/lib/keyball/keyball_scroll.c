@@ -52,6 +52,21 @@ void keyball_scroll_get_dbg_inner(int32_t *ah, int32_t *av, int8_t *t) {
     *t = g_dbg_t;
 }
 
+void keyball_apply_scroll_layer_state(uint32_t state) {
+  if (!kbpf.scroll_layer_enable) {
+    keyball_set_scroll_mode(false);
+    return;
+  }
+
+  uint8_t highest = get_highest_layer(state);
+  bool enable = (highest == kbpf.scroll_layer_index);
+  keyball_set_scroll_mode(enable);
+}
+
+void keyball_refresh_scroll_layer(void) {
+  keyball_apply_scroll_layer_state(layer_state);
+}
+
 bool keyball_get_scroll_mode(void) { return keyball.scroll_mode; }
 
 void keyball_set_scroll_mode(bool mode) {

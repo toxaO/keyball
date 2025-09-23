@@ -44,3 +44,8 @@ void keyball_on_adjust_layout(keyball_adjust_t v) {
     rgblight_set_effect_range(0, lednum_this + lednum_that);
 #endif
 }
+
+layer_state_t layer_state_set_kb(layer_state_t state) {
+    keyball_apply_scroll_layer_state(state);
+    return state;
+}

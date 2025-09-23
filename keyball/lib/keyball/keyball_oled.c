@@ -33,7 +33,7 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
         case 0: return 4; // CPI, Glo, Th1, Th2
         case 1: return 4; // AML: en, TO, TH, TG_L
-        case 2: return 5; // Scroll: ST, Dz, Inv, PST, H_Ga
+        case 2: return 7; // Scroll: ST, Dz, Inv, S_On, S_Ly, PST, H_Ga
         case 3: return 3; // SSNP: Mode, Thr, Rst を編集可能
         case 4: return 0; // Monitor
         case 5: return 4; // Swipe: St, Dz, Rt, Frz
@@ -276,12 +276,29 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     v = (dir > 0) ? 1 : 0;
                     kbpf.scroll_invert[os] = v;
                 } else if (sel == 3) {
+                    // Scroll layer enable: 0/1
+                    bool en = kbpf.scroll_layer_enable ? true : false;
+                    en = (dir > 0);
+                    kbpf.scroll_layer_enable = en ? 1 : 0;
+                    if (en) {
+                        keyball_refresh_scroll_layer();
+                    } else {
+                        keyball_set_scroll_mode(false);
+                    }
+                } else if (sel == 4) {
+                    // Scroll layer index: 0..31
+                    int32_t layer = (int32_t)kbpf.scroll_layer_index + dir;
+                    if (layer < 0) layer = 0;
+                    if (layer > 31) layer = 31;
+                    kbpf.scroll_layer_index = (uint8_t)layer;
+                    keyball_refresh_scroll_layer();
+                } else if (sel == 5) {
                     // PST: 0..2 cycle（norm/fine/mac）
                     int32_t p = (int32_t)kbpf.scroll_preset[os] + dir;
                     if (p < 0) p = 0;
                     if (p > 2) p = 2;
                     kbpf.scroll_preset[os] = (uint8_t)p;
-                } else if (sel == 4) {
+                } else if (sel == 6) {
                     // H_Ga: 1..100 (%), 1刻み
                     int32_t v = (int32_t)kbpf.scroll_hor_gain_pct + dir * 1;
                     if (v < 1) v = 1;
@@ -532,24 +549,26 @@ void keyball_oled_render_setting(void) {
             uint8_t preset = kbpf.scroll_preset[os];
             // ST（スクロールステップ）
             oled_writef_sel(row++, sel == 0, "ST:%1u", (unsigned)keyball_get_scroll_div());
-            row_skip(row, 1); // row 12
             // Scroll deadzone
             oled_writef_sel(row++, sel == 1, "Dz:%1u", (unsigned)kbpf.scroll_deadzone);
-            row_skip(row, 1); // row 12
+            // inverse
             oled_writef_sel(row++, sel == 2, "Iv:%1u", (unsigned)inv);
-            row_skip(row, 1); // row 12
+            // Scroll layer auto togglet
+            oled_writef(row++, "ScLy:");
+            oled_writef_sel(row++, sel == 3, " %3s", (unsigned)(kbpf.scroll_layer_enable ? "on" : "off"));
+            oled_writef(row++, "LNo.:");
+            oled_writef_sel(row++, sel == 4, " %02u", (unsigned)kbpf.scroll_layer_index);
             {
                 const char *pl = (preset == 2) ? "m" : (preset == 1) ? "f" : "n";
-                oled_writef_sel(row++, sel == 3, "Md:%s", pl);
+                oled_writef_sel(row++, sel == 5, "Md:%s", pl);
             }
-            row_skip(row, 1); // row 12
             oled_writef(row++, "H_Ga:");
             {
                 uint8_t pct = kbpf.scroll_hor_gain_pct; // 1..100
                 // ちょうど4桁で収まる "%3u%%" を使う（例: "100%", " 99%", "  1%"）
-                oled_writef_sel(row++, sel == 4, "%3u%%", (unsigned)pct);
+                oled_writef_sel(row++, sel == 6, "%3u%%", (unsigned)pct);
             }
-            row_skip(row, 2); // 項目が1つ増えたので1行分減らす
+            row_skip(row, 2);
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 

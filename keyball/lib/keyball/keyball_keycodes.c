@@ -175,6 +175,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       set_auto_mouse_timeout(kbpf.aml_timeout);
       if (kbpf.aml_layer != 0xFFu) set_auto_mouse_layer(kbpf.aml_layer);
 #endif
+      keyball_refresh_scroll_layer();
       break;
 
     case KBC_SAVE:
