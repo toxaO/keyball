@@ -24,6 +24,9 @@
 
 #include "keyball.h"
 #include "drivers/sensors/pmw33xx_common.h"
+#if defined(POINTING_DEVICE_DRIVER_pmw3360) || defined(POINTING_DEVICE_DRIVER_pmw3389)
+bool pmw33xx_check_signature(uint8_t sensor);
+#endif
 #include "pointing_device.h"
 #include "os_detection.h"
 #include "timer.h"
@@ -172,18 +175,6 @@ static void rpc_get_info_invoke(void) {
 
   // split keyboard negotiation completed.
 
-#    if (defined(VIA_ENABLE) || defined(VIAL_ENABLE))
-  // ワンショット矯正: 初回起動時のみ下位2bitを Right(=1) に矯正し、フラグを立てる。
-  // kbpf.reserved bit0 を使用して一度きりの適用とする。
-  uint32_t curr = via_get_layout_options();
-  if ( ((curr & 0x3u) != 0x01u) && ((kbpf.reserved & 0x0001u) == 0u) ) {
-    uint32_t next = (curr & ~0x3u) | 0x01u; // Right
-    via_set_layout_options(next);
-    kbpf.reserved |= 0x0001u; // applied
-    kbpf_write();
-  }
-#    endif
-
   keyball_on_adjust_layout(KEYBALL_ADJUST_PRIMARY);
 }
 
@@ -241,7 +232,11 @@ void keyboard_post_init_kb(void) {
 #if defined(POINTING_DEVICE_STATUS_SUCCESS)
   keyball.this_have_ball = (pointing_device_get_status() == POINTING_DEVICE_STATUS_SUCCESS);
 #else
+#  if defined(POINTING_DEVICE_DRIVER_pmw3360) || defined(POINTING_DEVICE_DRIVER_pmw3389)
+  keyball.this_have_ball = pmw33xx_check_signature(0);
+#  else
   keyball.this_have_ball = true;
+#  endif
 #endif
   kbpf_defaults();        // まず既定値
   kbpf_read();            // EEPROMから上書き
