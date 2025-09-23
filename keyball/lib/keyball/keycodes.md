@@ -14,13 +14,11 @@ Only a minimal set of keyboard-level keycodes remain. All detailed parameter adj
 | `KBC_RST`  | `Kb 0`          | `0x7e00` | Reset Keyball configuration               |
 | `KBC_SAVE` | `Kb 1`          | `0x7e01` | Persist configuration to EEPROM           |
 | `STG_TOG`  | `Kb 2`          | `0x7e02` | Toggle OLED setting view                  |
-| `STG_NP`   | `Kb 3`          | `0x7e03` | OLED setting page next                    |
-| `STG_PP`   | `Kb 4`          | `0x7e04` | OLED setting page previous                |
-| `SCRL_TO`  | `Kb 5`          | `0x7e05` | Toggle scroll mode                        |
-| `SCRL_MO`  | `Kb 6`          | `0x7e06` | Enable scroll mode while pressed          |
-| `SSNP_VRT` | `Kb 7`          | `0x7e07` | Set scroll snap mode to vertical          |
-| `SSNP_HOR` | `Kb 8`          | `0x7e08` | Set scroll snap mode to horizontal        |
-| `SSNP_FRE` | `Kb 9`          | `0x7e09` | Disable scroll snap mode (free)           |
+| `SCRL_TO`  | `Kb 3`          | `0x7e03` | Toggle scroll mode                        |
+| `SCRL_MO`  | `Kb 4`          | `0x7e04` | Enable scroll mode while pressed          |
+| `SSNP_VRT` | `Kb 5`          | `0x7e05` | Set scroll snap mode to vertical          |
+| `SSNP_HOR` | `Kb 6`          | `0x7e06` | Set scroll snap mode to horizontal        |
+| `SSNP_FRE` | `Kb 7`          | `0x7e07` | Disable scroll snap mode (free)           |
 
 ### Swipe Actions
 The following keys start a swipe session on press and end it on release. Actual
@@ -29,11 +27,11 @@ actions per direction are implemented in user code via hooks
 
 | Keycode | Value on Remap | Hex     | Description                  |
 |:--------|:----------------|:--------|:-----------------------------|
-| `APP_SW` | `Kb 10`        | `0x7e0a` | App switch swipe             |
-| `VOL_SW` | `Kb 11`        | `0x7e0b` | Volume/media swipe           |
-| `BRO_SW` | `Kb 12`        | `0x7e0c` | Browser/history swipe        |
-| `TAB_SW` | `Kb 13`        | `0x7e0d` | Tab switch swipe             |
-| `WIN_SW` | `Kb 14`        | `0x7e0e` | Window/desktop swipe         |
+| `APP_SW` | `Kb 8`         | `0x7e08` | App switch swipe             |
+| `VOL_SW` | `Kb 9`         | `0x7e09` | Volume/media swipe           |
+| `BRO_SW` | `Kb 10`        | `0x7e0a` | Browser/history swipe        |
+| `TAB_SW` | `Kb 11`        | `0x7e0b` | Tab switch swipe             |
+| `WIN_SW` | `Kb 12`        | `0x7e0c` | Window/desktop swipe         |
 
 <a id="japanese"></a>
 ## 特殊キーコード
@@ -46,13 +44,11 @@ actions per direction are implemented in user code via hooks
 | `KBC_RST`  | `Kb 0`          | `0x7e00` | Keyball の設定をリセット                  |
 | `KBC_SAVE` | `Kb 1`          | `0x7e01` | Keyball の設定を EEPROM に保存            |
 | `STG_TOG`  | `Kb 2`          | `0x7e02` | OLEDの設定表示を切り替え                  |
-| `STG_NP`   | `Kb 3`          | `0x7e03` | OLED設定ページを次に送る                  |
-| `STG_PP`   | `Kb 4`          | `0x7e04` | OLED設定ページを前に戻す                  |
-| `SCRL_TO`  | `Kb 5`          | `0x7e05` | スクロールモードのトグル                  |
-| `SCRL_MO`  | `Kb 6`          | `0x7e06` | 押下中のみスクロールモード有効            |
-| `SSNP_VRT` | `Kb 7`          | `0x7e07` | スクロールスナップを垂直に設定            |
-| `SSNP_HOR` | `Kb 8`          | `0x7e08` | スクロールスナップを水平に設定            |
-| `SSNP_FRE` | `Kb 9`          | `0x7e09` | スクロールスナップを解除（自由）          |
+| `SCRL_TO`  | `Kb 3`          | `0x7e03` | スクロールモードのトグル                  |
+| `SCRL_MO`  | `Kb 4`          | `0x7e04` | 押下中のみスクロールモード有効            |
+| `SSNP_VRT` | `Kb 5`          | `0x7e05` | スクロールスナップを垂直に設定            |
+| `SSNP_HOR` | `Kb 6`          | `0x7e06` | スクロールスナップを水平に設定            |
+| `SSNP_FRE` | `Kb 7`          | `0x7e07` | スクロールスナップを解除（自由）          |
 
 ### スワイプ実行
 以下のキーは押下でスワイプ開始、解放で終了します。実際の方向別アクションは
@@ -60,8 +56,13 @@ actions per direction are implemented in user code via hooks
 
 | キーコード | Remap上での表記 | 値       | 説明                       |
 |:-----------|:----------------|:---------|:---------------------------|
-| `APP_SW`  | `Kb 10`         | `0x7e0a` | アプリ切替スワイプ         |
-| `VOL_SW`  | `Kb 11`         | `0x7e0b` | 音量/メディア操作スワイプ  |
-| `BRO_SW`  | `Kb 12`         | `0x7e0c` | ブラウザ/履歴スワイプ      |
-| `TAB_SW`  | `Kb 13`         | `0x7e0d` | タブ切替スワイプ           |
-| `WIN_SW`  | `Kb 14`         | `0x7e0e` | ウィンドウ/デスクトップ系  |
+| `APP_SW`  | `Kb 8`          | `0x7e08` | アプリ切替スワイプ         |
+| `VOL_SW`  | `Kb 9`          | `0x7e09` | 音量/メディア操作スワイプ  |
+| `BRO_SW`  | `Kb 10`         | `0x7e0a` | ブラウザ/履歴スワイプ      |
+| `TAB_SW`  | `Kb 11`         | `0x7e0b` | タブ切替スワイプ           |
+| `WIN_SW`  | `Kb 12`         | `0x7e0c` | ウィンドウ/デスクトップ系  |
+
+補足: OLED設定ページの操作はキーコードから削除されました。操作方法は以下の通りです。
+
+- ページ送り: `KC_LEFT`（前ページ）/ `KC_RIGHT`（次ページ）
+- 値の調整: `Shift+KC_LEFT`（減少）/ `Shift+KC_RIGHT`（増加）

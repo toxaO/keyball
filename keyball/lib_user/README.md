@@ -53,7 +53,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 ### 2.2 掲載方針（customKeycodes）
 - Vial の `customKeycodes` には「キーボードレベル（QK_KB_*）の機能」のみを掲載します。
-  - 現状の掲載対象（例）: `KBC_RST`/`KBC_SAVE`、`STG_TOG`/`STG_NP`/`STG_PP`、`SCRL_TO`/`SCRL_MO`、`SSNP_*`（有効時）、スワイプ実行 `APP_SW`/`VOL_SW`/`BRO_SW`/`TAB_SW`/`WIN_SW` など。
+- 現状の掲載対象（例）: `KBC_RST`/`KBC_SAVE`、`STG_TOG`、`SCRL_TO`/`SCRL_MO`、`SSNP_*`（有効時）、スワイプ実行 `APP_SW`/`VOL_SW`/`BRO_SW`/`TAB_SW`/`WIN_SW` など。
 - ユーザーレベル（QK_USER_*）のキーは Vial のリストに掲載しません（配布初期状態の安定性重視）。
   - 必要に応じ、Vial の「Any」で 16 進値（`QK_USER_*` 範囲）を直接指定して割当可能です（表示は 16 進のまま）。
 
