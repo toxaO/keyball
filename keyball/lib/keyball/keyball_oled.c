@@ -397,10 +397,9 @@ oled_rotation_t oled_init_kb(oled_rotation_t rotation) {
     // まず既存ユーザ初期化を反映
     rotation = oled_init_user(rotation);
 
-    // 右手かつマスターのときに90度回転（時計回り）
-    if (is_keyboard_master() && !is_keyboard_left()) {
+    if (is_keyboard_master()) {
         g_oled_vertical = true;
-        return OLED_ROTATION_270; // 現在から180度追加で回転
+        return OLED_ROTATION_270;
     }
 
     g_oled_vertical = false;
