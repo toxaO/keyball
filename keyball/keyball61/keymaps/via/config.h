@@ -40,6 +40,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
 
-// VIA/Vial: レイアウトオプションの初期値を Right に設定
+// VIA/Vial: レイアウトオプションは未設定から開始（ボール位置は実機判定に委ねる）
 #undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
-#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0

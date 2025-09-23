@@ -38,17 +38,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
     // Auto enable scroll mode when the highest layer is 3
     keyball_set_scroll_mode(get_highest_layer(state) == _Scr);
-    // 設定レイヤーは常にデバッグ表示
-    {
-        uint8_t hl = get_highest_layer(state);
-        if (hl == _Set) {
-            keyball_oled_set_mode(KB_OLED_MODE_SETTING);
-        } else {
-            keyball_oled_set_mode(KB_OLED_MODE_NORMAL);
-        }
-    }
-
-    // （元に戻す）ここではスワイプレイヤ固定を行わない
 
     // 設定レイヤから離れたタイミングで、その時点のRGBモードを保持
     {
@@ -56,9 +45,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         if (!g_setting_mode_inited) {
             g_setting_rgb_mode   = rgblight_get_mode();
             g_setting_mode_inited = true;
-        }
-        if (g_prev_highest_layer == _Set && highest != _Set) {
-            g_setting_rgb_mode = rgblight_get_mode();
         }
         g_prev_highest_layer = highest;
     }
@@ -69,29 +55,8 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         case _Def:
             rgblight_mode_noeeprom(g_setting_rgb_mode);
             break;
-        case _Sym:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _mCur:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _wCur:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
-            break;
-        case _mMou:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 2);
-            break;
-        case _wMou:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 2);
-            break;
-        case _NumP:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 0);
-            break;
         case _Scr:
             rgblight_mode_noeeprom(RGBLIGHT_MODE_SNAKE + 2);
-            break;
-        case _Set:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
             break;
     }
 

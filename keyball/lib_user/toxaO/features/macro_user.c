@@ -65,74 +65,456 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     mod_state = get_mods();
 
     switch (keycode) {
-        case ESC_LNG2:
-            if (record->event.pressed) {
-                tap_code(KC_ESC);
-                tap_code(KC_LNG2);
+
+      //------------------------------------------------------------
+      // basic shortcut key
+      //------------------------------------------------------------
+        case RALT(KC_C):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(LGUI(KC_C));
+                break;
+              default:
+                tap_code16(LCTL(KC_C));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_V):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(LGUI(KC_V));
+                break;
+              default:
+                tap_code16(LCTL(KC_V));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_X):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(LGUI(KC_X));
+                break;
+              default:
+                tap_code16(LCTL(KC_X));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_BSPC):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RALT(KC_BSPC));
+                break;
+              default:
+                tap_code16(KC_DEL);
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_A):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_A));
+                break;
+              default:
+                tap_code16(LCTL(KC_A));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_W):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_W));
+                break;
+              default:
+                tap_code16(LCTL(KC_W));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_Z):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_Z));
+                break;
+              default:
+                tap_code16(LCTL(KC_Z));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_Y):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_Y));
+                break;
+              default:
+                tap_code16(LCTL(KC_Y));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_Q):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_Q));
+                break;
+              default:
+                tap_code16(LCTL(KC_Q));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_F):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_F));
+                break;
+              default:
+                tap_code16(LCTL(KC_F));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_S):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_S));
+                break;
+              default:
+                tap_code16(LCTL(KC_S));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_R):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_R));
+                break;
+              default:
+                tap_code16(LCTL(KC_R));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_T):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_T));
+                break;
+              default:
+                tap_code16(LCTL(KC_T));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(S(KC_T)):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(S(KC_T)));
+                break;
+              default:
+                tap_code16(LCTL(S(KC_T)));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(KC_TAB):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(KC_TAB));
+                break;
+              default:
+                tap_code16(LCTL(KC_TAB));
+                break;
+            }
+          }
+          return false;
+
+        case RALT(S(KC_TAB)):
+          if(record->event.pressed) {
+            switch(host_os) {
+              case OS_MACOS:
+              case OS_IOS:
+                tap_code16(RGUI(S(KC_TAB)));
+                break;
+              default:
+                tap_code16(LCTL(S(KC_TAB)));
+                break;
+            }
+          }
+          return false;
+
+      //------------------------------------------------------------
+      // home end key
+      //------------------------------------------------------------
+        case RALT(KC_LEFT):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_LEFT));
+                default:
+                  tap_code(KC_HOME);
+              }
             }
             return false;
 
-        case _Cur_ENT:
-            if (!record->tap.count && record->event.pressed) {
-              switch (host_os) {
+        case RALT(KC_RIGHT):
+            if(record->event.pressed) {
+              switch(host_os) {
                 case OS_MACOS:
-                case OS_IOS:
-                  layer_on(_mCur);
-                  break;
-
-                case OS_WINDOWS:
-                  layer_on(_wCur);
-                  break;
-
+                  tap_code16(RALT(KC_RIGHT));
+                default:
+                  tap_code(KC_END);
               }
-                return false;
-
-            } else {
-              layer_off(_mCur);
-              layer_off(_wCur);
-
             }
-            return true;
+            return false;
 
-        case _Mou_SCLN:
-            if (!record->tap.count && record->event.pressed) {
-              switch (host_os) {
+        case RALT(KC_UP):
+            if(record->event.pressed) {
+              switch(host_os) {
                 case OS_MACOS:
-                case OS_IOS:
-                  layer_on(_mMou);
-                  break;
-
-                case OS_WINDOWS:
-                  layer_on(_wMou);
-                  break;
-
+                  tap_code16(RALT(KC_UP));
+                default:
+                  tap_code(KC_PGUP);
               }
-                return false;
-            } else {
-              layer_off(_mMou);
-              layer_off(_wMou);
-
             }
-            return true;
+            return false;
 
-        case MO(_mMou):
-            if (record->event.pressed) {
-              switch (host_os) {
+        case RALT(KC_DOWN):
+            if(record->event.pressed) {
+              switch(host_os) {
                 case OS_MACOS:
-                case OS_IOS:
-                  layer_on(_mMou);
-                  break;
-
-                case OS_WINDOWS:
-                  layer_on(_wMou);
-                  break;
-
+                  tap_code16(RALT(KC_DOWN));
+                default:
+                  tap_code(KC_PGDN);
               }
-            } else {
-              layer_off(_mMou);
-              layer_off(_wMou);
-
             }
+            return false;
+
+
+      //------------------------------------------------------------
+      // function key
+      //------------------------------------------------------------
+        case RALT(KC_F1):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F1));
+                default:
+                  tap_code(KC_F1);
+              }
+            }
+            return false;
+
+        case RALT(KC_F2):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F2));
+                default:
+                  tap_code(KC_F2);
+              }
+            }
+            return false;
+
+        case RALT(KC_F3):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F3));
+                default:
+                  tap_code(KC_F3);
+              }
+            }
+            return false;
+
+        case RALT(KC_F4):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F4));
+                default:
+                  tap_code(KC_F4);
+              }
+            }
+            return false;
+
+        case RALT(KC_F5):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F5));
+                default:
+                  tap_code(KC_F5);
+              }
+            }
+            return false;
+
+        case RALT(KC_F6):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F6));
+                default:
+                  tap_code(KC_F6);
+              }
+            }
+            return false;
+
+        case RALT(KC_F7):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F7));
+                default:
+                  tap_code(KC_F7);
+              }
+            }
+            return false;
+
+        case RALT(KC_F8):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F8));
+                default:
+                  tap_code(KC_F8);
+              }
+            }
+            return false;
+
+        case RALT(KC_F9):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F9));
+                default:
+                  tap_code(KC_F9);
+              }
+            }
+            return false;
+
+        case RALT(KC_F10):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F10));
+                default:
+                  tap_code(KC_F10);
+              }
+            }
+            return false;
+
+        case RALT(KC_F11):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F11));
+                default:
+                  tap_code(KC_F11);
+              }
+            }
+            return false;
+
+        case RALT(KC_F12):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F12));
+                default:
+                  tap_code(KC_F12);
+              }
+            }
+            return false;
+
+        case RALT(KC_F13):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F13));
+                default:
+                  tap_code(KC_F13);
+              }
+            }
+            return false;
+
+        case RALT(KC_F14):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F14));
+                default:
+                  tap_code(KC_F14);
+              }
+            }
+            return false;
+
+
+        case RALT(KC_F15):
+            if(record->event.pressed) {
+              switch(host_os) {
+                case OS_MACOS:
+                  tap_code16(RALT(KC_F15));
+                default:
+                  tap_code(KC_F15);
+              }
+            }
+            return false;
+
+      //------------------------------------------------------------
+      // 個人的なやつ
+      //------------------------------------------------------------
+        case ESC_LNG2:
+            if (record->event.pressed) { tap_code(KC_ESC); tap_code(KC_LNG2); }
             return false;
 
         case KC_H:
@@ -213,89 +595,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return true;
 
-        // FLICK_*: 擬似フリック入力（_Pad想定）。
-        // タップ=ベース文字、スワイプ方向は swipe_user.c のタグ別処理へ委譲。
-        case FLICK_A: {
-            static flick_state_t st; (void)pad_a_keydown_ms;
-            return handle_flick_key(KBS_TAG_FLICK_A, KC_A, record, &st);
-        }
-        case FLICK_D: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_D, KC_D, record, &st);
-        }
-        case FLICK_G: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_G, KC_G, record, &st);
-        }
-        case FLICK_J: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_J, KC_J, record, &st);
-        }
-        case FLICK_M: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_M, KC_M, record, &st);
-        }
-        case FLICK_P: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_P, KC_P, record, &st);
-        }
-        case FLICK_S: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_S, KC_S, record, &st);
-        }
-        case FLICK_V: {
-            static flick_state_t st;
-            return handle_flick_key(KBS_TAG_FLICK_V, KC_V, record, &st);
-        }
-
-        case MULTI_A:
-        case MULTI_B:
-            // MULTI_A/B は keyboard レベル（multi_user.c）で処理する
-            return true;
-
-        case MULTI_C:
-            if (keyball_swipe_is_active()) {
-                kb_swipe_tag_t tag = keyball_swipe_mode_tag();
-                // FLICK 系タグ有効時: タップ=UP、ダブルタップ=DOWN（UPはダブル時に抑止）
-                if (kb_is_flick_tag(tag)) {
-                    if (record->event.pressed) {
-                        // ダブルタップ判定（直前の単発予約があり、TAPPING_TERM内の再押下）
-                        if (mc_waiting_single && mc_token != INVALID_DEFERRED_TOKEN && timer_elapsed(mc_first_tap_ms) < TAPPING_TERM) {
-                            cancel_deferred_exec(mc_token);
-                            mc_token = INVALID_DEFERRED_TOKEN;
-                            mc_waiting_single = false;
-                            // ダブルタップ: DOWN相当のみ送出（UPは抑止）
-                            keyball_swipe_fire_once(KB_SWIPE_DOWN);
-                            return false;
-                        }
-                        // 単発候補: TAPPING_TERM後にUP相当を遅延送出
-                        mc_first_tap_ms = timer_read();
-                        mc_waiting_single = true;
-                        mc_token = defer_exec(TAPPING_TERM, multi_c_single_cb, NULL);
-                        return false;
-                    } else {
-                        // 離しでは何もしない（遅延送出 or 二度押しで処理済み）
-                        return false;
-                    }
-                }
-                return true; // FLICK以外のタグはKB側へ委譲
-            }
-            // タグなしデフォルト: LT(10, KC_ENTER) ≒ LT(_Set, KC_ENT)
-            if (record->event.pressed) {
-                multi_c_active = true;
-                multi_c_keydown_ms = timer_read();
-                layer_on(_Set);
-            } else {
-                if (multi_c_active) {
-                    if (timer_elapsed(multi_c_keydown_ms) < TAPPING_TERM) {
-                        tap_code16(KC_ENTER);
-                    }
-                    layer_off(_Set);
-                    multi_c_active = false;
-                }
-            }
-            return false;
-
         case KC_LCTL:
         case CTL_T(KC_ESC):
             if (record->event.pressed) {
@@ -361,7 +660,93 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        // スワイプジェスチャー（APP_SW〜WIN_SW）、MULTI_A〜D はキーボードレベルで処理されます
+      //------------------------------------------------------------
+      // FLICK_*: 擬似フリック入力（_Pad想定）。
+      // タップ=ベース文字、スワイプ方向は swipe_user.c のタグ別処理へ委譲。
+      //------------------------------------------------------------
+        case FLICK_A: {
+            static flick_state_t st; (void)pad_a_keydown_ms;
+            return handle_flick_key(KBS_TAG_FLICK_A, KC_A, record, &st);
+        }
+        case FLICK_D: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_D, KC_D, record, &st);
+        }
+        case FLICK_G: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_G, KC_G, record, &st);
+        }
+        case FLICK_J: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_J, KC_J, record, &st);
+        }
+        case FLICK_M: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_M, KC_M, record, &st);
+        }
+        case FLICK_P: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_P, KC_P, record, &st);
+        }
+        case FLICK_S: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_S, KC_S, record, &st);
+        }
+        case FLICK_V: {
+            static flick_state_t st;
+            return handle_flick_key(KBS_TAG_FLICK_V, KC_V, record, &st);
+        }
+
+      //------------------------------------------------------------
+      // multi key 独自実装
+      //------------------------------------------------------------
+        case MULTI_A:
+        case MULTI_B:
+            // MULTI_A/B は keyboard レベル（multi_user.c）で処理する
+            return true;
+
+        case MULTI_C:
+            if (keyball_swipe_is_active()) {
+                kb_swipe_tag_t tag = keyball_swipe_mode_tag();
+                // FLICK 系タグ有効時: タップ=UP、ダブルタップ=DOWN（UPはダブル時に抑止）
+                if (kb_is_flick_tag(tag)) {
+                    if (record->event.pressed) {
+                        // ダブルタップ判定（直前の単発予約があり、TAPPING_TERM内の再押下）
+                        if (mc_waiting_single && mc_token != INVALID_DEFERRED_TOKEN && timer_elapsed(mc_first_tap_ms) < TAPPING_TERM) {
+                            cancel_deferred_exec(mc_token);
+                            mc_token = INVALID_DEFERRED_TOKEN;
+                            mc_waiting_single = false;
+                            // ダブルタップ: DOWN相当のみ送出（UPは抑止）
+                            keyball_swipe_fire_once(KB_SWIPE_DOWN);
+                            return false;
+                        }
+                        // 単発候補: TAPPING_TERM後にUP相当を遅延送出
+                        mc_first_tap_ms = timer_read();
+                        mc_waiting_single = true;
+                        mc_token = defer_exec(TAPPING_TERM, multi_c_single_cb, NULL);
+                        return false;
+                    } else {
+                        // 離しでは何もしない（遅延送出 or 二度押しで処理済み）
+                        return false;
+                    }
+                }
+                return true; // FLICK以外のタグはKB側へ委譲
+            }
+            // タグなしデフォルト: LT(10, KC_ENTER) ≒ LT(_Set, KC_ENT)
+            if (record->event.pressed) {
+                multi_c_active = true;
+                multi_c_keydown_ms = timer_read();
+                layer_on(_Scr);
+            } else {
+                if (multi_c_active) {
+                    if (timer_elapsed(multi_c_keydown_ms) < TAPPING_TERM) {
+                        tap_code16(KC_ENTER);
+                    }
+                    layer_off(_Scr);
+                    multi_c_active = false;
+                }
+            }
+            return false;
 
     }
     return true;

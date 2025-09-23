@@ -57,9 +57,9 @@ void keyball_on_multi_c(kb_swipe_tag_t tag) {
     if (kb_is_flick_tag(tag)) { return; }
     if (tag == 0) { tap_code16(KC_F3); return; }
     switch (tag) {
-    case KBS_TAG_APP: tap_code16_os(w_TASK, m_MIS_CON, m_MIS_CON, KC_NO, KC_NO); break;
-    case KBS_TAG_TAB: tap_code16_os(w_LAST_TAB, S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO); break;
-    case KBS_TAG_BRO: tap_code16_os(w_RELOAD, m_RELOAD, m_RELOAD, KC_NO, KC_NO); break;
+    case KBS_TAG_APP: tap_code16_os(w_TASK, LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO); break;
+    case KBS_TAG_TAB: tap_code16_os(LAST_TAB, S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO); break;
+    case KBS_TAG_BRO: tap_code16_os(RELOAD, RELOAD, RELOAD, KC_NO, KC_NO); break;
     case KBS_TAG_VOL: tap_code(KC_VOLU); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_UP); }
@@ -72,9 +72,9 @@ void keyball_on_multi_c(kb_swipe_tag_t tag) {
 void keyball_on_multi_d(kb_swipe_tag_t tag) {
     if (tag == 0) { tap_code16(KC_F4); return; }
     switch (tag) {
-    case KBS_TAG_APP: tap_code16_os(w_DESK, m_APP_CON, m_APP_CON, KC_NO, KC_NO); break;
-    case KBS_TAG_TAB: tap_code16_os(w_CLOSE, m_CLOSE, m_CLOSE, KC_NO, KC_NO); break;
-    case KBS_TAG_BRO: tap_code16_os(w_NEW_TAB, m_NEW_TAB, m_NEW_TAB, KC_NO, KC_NO); break;
+    case KBS_TAG_APP: tap_code16_os(w_DESK, LCTL(KC_DOWN), LCTL(KC_DOWN), KC_NO, KC_NO); break;
+    case KBS_TAG_TAB: tap_code16_os(CLOSE, CLOSE, CLOSE, KC_NO, KC_NO); break;
+    case KBS_TAG_BRO: tap_code16_os(NEW_TAB, NEW_TAB, NEW_TAB, KC_NO, KC_NO); break;
     case KBS_TAG_VOL: tap_code(KC_VOLD); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_DOWN); }

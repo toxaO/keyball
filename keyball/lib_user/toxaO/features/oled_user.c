@@ -18,19 +18,11 @@ void oled_render_layer_state(void) {
       oled_write_P(PSTR("  Sym"), false);
       oled_write_P(PSTR(" /Num"), false);
       break;
-    case _mCur:
+    case _Cur:
       oled_write_P(PSTR("  Cur"), false);
       oled_write_P(PSTR(" / Fn"), false);
       break;
-    case _wCur:
-      oled_write_P(PSTR("  Cur"), false);
-      oled_write_P(PSTR(" / Fn"), false);
-      break;
-    case _mMou:
-      oled_write_P(PSTR("Mouse"), false);
-      oled_write_ln("", false);
-      break;
-    case _wMou:
+    case _Mou:
       oled_write_P(PSTR("Mouse"), false);
       oled_write_ln("", false);
       break;
@@ -40,14 +32,6 @@ void oled_render_layer_state(void) {
       break;
     case _Pad:
       oled_write_P(PSTR("  Pad"), false);
-      oled_write_ln("", false);
-      break;
-    case _Pad2:
-      oled_write_P(PSTR(" Pad2"), false);
-      oled_write_ln("", false);
-      break;
-    case _Set:
-      oled_write_P(PSTR("  Set"), false);
       oled_write_ln("", false);
       break;
   }
