@@ -54,7 +54,7 @@ static bool handle_flick_key(kb_swipe_tag_t tag, uint16_t tap_kc, keyrecord_t *r
     uint16_t elapsed = timer_elapsed(st->down_ms);
     keyball_swipe_end();
     if (!fired && elapsed < TAPPING_TERM) {
-      tap_code16(tap_kc);
+      tap_code16_with_oneshot(tap_kc);
     }
   }
   return false; // 常にここで完結
@@ -72,7 +72,7 @@ static uint32_t multi_c_single_cb(uint32_t trigger_time, void *cb_arg) {
 }
 
 // tap_code16_osはuser_utilで定義
-// tap_code16(win, mac, os, linux, unsure)でキーコード指定可能
+// tap_code16_with_oneshot(win, mac, os, linux, unsure)でキーコード指定可能
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   /* swipe_mode = keycode; */
@@ -123,7 +123,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
 
     case ESC_LNG2:
-      if (record->event.pressed) { tap_code(KC_ESC); tap_code(KC_LNG2); }
+      if (record->event.pressed) { tap_code16_with_oneshot(KC_ESC); tap_code16_with_oneshot(KC_LNG2); }
       return false;
 
     case KC_H:
@@ -243,7 +243,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         unregister_code(KC_LSFT);
         sft_pressed = false;
         if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < TAPPING_TERM) {
-          tap_code(KC_LNG2);
+          tap_code16_with_oneshot(KC_LNG2);
         }
         layer_off(_NumP);
       }
@@ -252,7 +252,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KANA_C_N:
       if (record->event.pressed) {
         if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < 500) {
-          tap_code(KC_LNG2);
+          tap_code16_with_oneshot(KC_LNG2);
           layer_on(_NumP);
         } else {
           register_code(KC_LCTL);
@@ -263,7 +263,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         unregister_code(KC_LCTL);
         kana_c_pressed = false;
         if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < TAPPING_TERM) {
-          tap_code(KC_LNG1);
+          tap_code16_with_oneshot(KC_LNG1);
         }
         layer_off(_NumP);
       }
@@ -312,7 +312,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   } else {
                     if (multi_c_active) {
                       if (timer_elapsed(multi_c_keydown_ms) < TAPPING_TERM) {
-                        tap_code16(KC_ENTER);
+                        tap_code16_with_oneshot(KC_ENTER);
                       }
                       layer_off(_Scr);
                       multi_c_active = false;
@@ -365,10 +365,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(LGUI(KC_C));
+                        tap_code16_with_oneshot(LGUI(KC_C));
                         break;
                       default:
-                        tap_code16(LCTL(KC_C));
+                        tap_code16_with_oneshot(LCTL(KC_C));
                         break;
                     }
                   }
@@ -379,10 +379,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(LGUI(KC_V));
+                        tap_code16_with_oneshot(LGUI(KC_V));
                         break;
                       default:
-                        tap_code16(LCTL(KC_V));
+                        tap_code16_with_oneshot(LCTL(KC_V));
                         break;
                     }
                   }
@@ -393,10 +393,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(LGUI(KC_X));
+                        tap_code16_with_oneshot(LGUI(KC_X));
                         break;
                       default:
-                        tap_code16(LCTL(KC_X));
+                        tap_code16_with_oneshot(LCTL(KC_X));
                         break;
                     }
                   }
@@ -407,10 +407,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RALT(KC_BSPC));
+                        tap_code16_with_oneshot(RALT(KC_BSPC));
                         break;
                       default:
-                        tap_code16(KC_DEL);
+                        tap_code16_with_oneshot(KC_DEL);
                         break;
                     }
                   }
@@ -421,10 +421,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_A));
+                        tap_code16_with_oneshot(RGUI(KC_A));
                         break;
                       default:
-                        tap_code16(LCTL(KC_A));
+                        tap_code16_with_oneshot(LCTL(KC_A));
                         break;
                     }
                   }
@@ -435,10 +435,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_W));
+                        tap_code16_with_oneshot(RGUI(KC_W));
                         break;
                       default:
-                        tap_code16(LCTL(KC_W));
+                        tap_code16_with_oneshot(LCTL(KC_W));
                         break;
                     }
                   }
@@ -449,10 +449,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_Z));
+                        tap_code16_with_oneshot(RGUI(KC_Z));
                         break;
                       default:
-                        tap_code16(LCTL(KC_Z));
+                        tap_code16_with_oneshot(LCTL(KC_Z));
                         break;
                     }
                   }
@@ -463,10 +463,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_Y));
+                        tap_code16_with_oneshot(RGUI(KC_Y));
                         break;
                       default:
-                        tap_code16(LCTL(KC_Y));
+                        tap_code16_with_oneshot(LCTL(KC_Y));
                         break;
                     }
                   }
@@ -477,10 +477,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_Q));
+                        tap_code16_with_oneshot(RGUI(KC_Q));
                         break;
                       default:
-                        tap_code16(LCTL(KC_Q));
+                        tap_code16_with_oneshot(LCTL(KC_Q));
                         break;
                     }
                   }
@@ -491,10 +491,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_F));
+                        tap_code16_with_oneshot(RGUI(KC_F));
                         break;
                       default:
-                        tap_code16(LCTL(KC_F));
+                        tap_code16_with_oneshot(LCTL(KC_F));
                         break;
                     }
                   }
@@ -505,10 +505,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_S));
+                        tap_code16_with_oneshot(RGUI(KC_S));
                         break;
                       default:
-                        tap_code16(LCTL(KC_S));
+                        tap_code16_with_oneshot(LCTL(KC_S));
                         break;
                     }
                   }
@@ -519,10 +519,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_R));
+                        tap_code16_with_oneshot(RGUI(KC_R));
                         break;
                       default:
-                        tap_code16(LCTL(KC_R));
+                        tap_code16_with_oneshot(LCTL(KC_R));
                         break;
                     }
                   }
@@ -533,10 +533,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_T));
+                        tap_code16_with_oneshot(RGUI(KC_T));
                         break;
                       default:
-                        tap_code16(LCTL(KC_T));
+                        tap_code16_with_oneshot(LCTL(KC_T));
                         break;
                     }
                   }
@@ -547,10 +547,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(S(KC_T)));
+                        tap_code16_with_oneshot(RGUI(S(KC_T)));
                         break;
                       default:
-                        tap_code16(LCTL(S(KC_T)));
+                        tap_code16_with_oneshot(LCTL(S(KC_T)));
                         break;
                     }
                   }
@@ -561,10 +561,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(KC_TAB));
+                        tap_code16_with_oneshot(RGUI(KC_TAB));
                         break;
                       default:
-                        tap_code16(LCTL(KC_TAB));
+                        tap_code16_with_oneshot(LCTL(KC_TAB));
                         break;
                     }
                   }
@@ -575,10 +575,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                       case OS_IOS:
-                        tap_code16(RGUI(S(KC_TAB)));
+                        tap_code16_with_oneshot(RGUI(S(KC_TAB)));
                         break;
                       default:
-                        tap_code16(LCTL(S(KC_TAB)));
+                        tap_code16_with_oneshot(LCTL(S(KC_TAB)));
                         break;
                     }
                   }
@@ -591,9 +591,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_LEFT));
+                        tap_code16_with_oneshot(RCTL(KC_LEFT));
                       default:
-                        tap_code(KC_HOME);
+                        tap_code16_with_oneshot(KC_HOME);
                     }
                   }
                   return false;
@@ -602,9 +602,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_RIGHT));
+                        tap_code16_with_oneshot(RCTL(KC_RIGHT));
                       default:
-                        tap_code(KC_END);
+                        tap_code16_with_oneshot(KC_END);
                     }
                   }
                   return false;
@@ -613,9 +613,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_UP));
+                        tap_code16_with_oneshot(RCTL(KC_UP));
                       default:
-                        tap_code(KC_PGUP);
+                        tap_code16_with_oneshot(KC_PGUP);
                     }
                   }
                   return false;
@@ -624,9 +624,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_DOWN));
+                        tap_code16_with_oneshot(RCTL(KC_DOWN));
                       default:
-                        tap_code(KC_PGDN);
+                        tap_code16_with_oneshot(KC_PGDN);
                     }
                   }
                   return false;
@@ -639,9 +639,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F1));
+                        tap_code16_with_oneshot(RCTL(KC_F1));
                       default:
-                        tap_code(KC_F1);
+                        tap_code16_with_oneshot(KC_F1);
                     }
                   }
                   return false;
@@ -650,9 +650,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F2));
+                        tap_code16_with_oneshot(RCTL(KC_F2));
                       default:
-                        tap_code(KC_F2);
+                        tap_code16_with_oneshot(KC_F2);
                     }
                   }
                   return false;
@@ -661,9 +661,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F3));
+                        tap_code16_with_oneshot(RCTL(KC_F3));
                       default:
-                        tap_code(KC_F3);
+                        tap_code16_with_oneshot(KC_F3);
                     }
                   }
                   return false;
@@ -672,9 +672,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F4));
+                        tap_code16_with_oneshot(RCTL(KC_F4));
                       default:
-                        tap_code(KC_F4);
+                        tap_code16_with_oneshot(KC_F4);
                     }
                   }
                   return false;
@@ -683,9 +683,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F5));
+                        tap_code16_with_oneshot(RCTL(KC_F5));
                       default:
-                        tap_code(KC_F5);
+                        tap_code16_with_oneshot(KC_F5);
                     }
                   }
                   return false;
@@ -694,9 +694,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F6));
+                        tap_code16_with_oneshot(RCTL(KC_F6));
                       default:
-                        tap_code(KC_F6);
+                        tap_code16_with_oneshot(KC_F6);
                     }
                   }
                   return false;
@@ -705,9 +705,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F7));
+                        tap_code16_with_oneshot(RCTL(KC_F7));
                       default:
-                        tap_code(KC_F7);
+                        tap_code16_with_oneshot(KC_F7);
                     }
                   }
                   return false;
@@ -716,9 +716,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F8));
+                        tap_code16_with_oneshot(RCTL(KC_F8));
                       default:
-                        tap_code(KC_F8);
+                        tap_code16_with_oneshot(KC_F8);
                     }
                   }
                   return false;
@@ -727,9 +727,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F9));
+                        tap_code16_with_oneshot(RCTL(KC_F9));
                       default:
-                        tap_code(KC_F9);
+                        tap_code16_with_oneshot(KC_F9);
                     }
                   }
                   return false;
@@ -738,9 +738,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F10));
+                        tap_code16_with_oneshot(RCTL(KC_F10));
                       default:
-                        tap_code(KC_F10);
+                        tap_code16_with_oneshot(KC_F10);
                     }
                   }
                   return false;
@@ -749,9 +749,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F11));
+                        tap_code16_with_oneshot(RCTL(KC_F11));
                       default:
-                        tap_code(KC_F11);
+                        tap_code16_with_oneshot(KC_F11);
                     }
                   }
                   return false;
@@ -760,9 +760,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F12));
+                        tap_code16_with_oneshot(RCTL(KC_F12));
                       default:
-                        tap_code(KC_F12);
+                        tap_code16_with_oneshot(KC_F12);
                     }
                   }
                   return false;
@@ -771,9 +771,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F13));
+                        tap_code16_with_oneshot(RCTL(KC_F13));
                       default:
-                        tap_code(KC_F13);
+                        tap_code16_with_oneshot(KC_F13);
                     }
                   }
                   return false;
@@ -782,9 +782,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F14));
+                        tap_code16_with_oneshot(RCTL(KC_F14));
                       default:
-                        tap_code(KC_F14);
+                        tap_code16_with_oneshot(KC_F14);
                     }
                   }
                   return false;
@@ -794,9 +794,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F15));
+                        tap_code16_with_oneshot(RCTL(KC_F15));
                       default:
-                        tap_code(KC_F15);
+                        tap_code16_with_oneshot(KC_F15);
                     }
                   }
                   return false;
@@ -805,9 +805,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F16));
+                        tap_code16_with_oneshot(RCTL(KC_F16));
                       default:
-                        tap_code(KC_F16);
+                        tap_code16_with_oneshot(KC_F16);
                     }
                   }
                   return false;
@@ -816,9 +816,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F17));
+                        tap_code16_with_oneshot(RCTL(KC_F17));
                       default:
-                        tap_code(KC_F17);
+                        tap_code16_with_oneshot(KC_F17);
                     }
                   }
                   return false;
@@ -827,9 +827,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F18));
+                        tap_code16_with_oneshot(RCTL(KC_F18));
                       default:
-                        tap_code(KC_F18);
+                        tap_code16_with_oneshot(KC_F18);
                     }
                   }
                   return false;
@@ -838,9 +838,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F19));
+                        tap_code16_with_oneshot(RCTL(KC_F19));
                       default:
-                        tap_code(KC_F19);
+                        tap_code16_with_oneshot(KC_F19);
                     }
                   }
                   return false;
@@ -849,9 +849,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   if(record->event.pressed) {
                     switch(host_os) {
                       case OS_MACOS:
-                        tap_code16(RCTL(KC_F20));
+                        tap_code16_with_oneshot(RCTL(KC_F20));
                       default:
-                        tap_code(KC_F20);
+                        tap_code16_with_oneshot(KC_F20);
                     }
                   }
                   return false;

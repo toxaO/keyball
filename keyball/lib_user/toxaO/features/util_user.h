@@ -14,6 +14,8 @@ void tap_code16_os(
     uint16_t unsure
     );
 
+void tap_code16_with_oneshot(uint16_t keycode);
+
 // void reset_eeprom(void);
 
 #endif // UTIL_H

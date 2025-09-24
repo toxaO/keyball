@@ -45,6 +45,20 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t *record) {
 // }
 
 
+void tap_code16_with_oneshot(uint16_t keycode) {
+  uint8_t osm = get_oneshot_mods();
+  if (osm) {
+    add_weak_mods(osm);
+    send_keyboard_report();
+  }
+  tap_code16(keycode);
+  if (osm) {
+    del_weak_mods(osm);
+    send_keyboard_report();
+    clear_oneshot_mods();
+  }
+}
+
 void tap_code16_os(
     uint16_t win,
     uint16_t mac,
@@ -53,19 +67,19 @@ void tap_code16_os(
     uint16_t unsure) {
   switch (host_os) {
     case OS_WINDOWS:
-      tap_code16(win);
+      tap_code16_with_oneshot(win);
       break;
     case OS_MACOS:
-      tap_code16(mac);
+      tap_code16_with_oneshot(mac);
       break;
     case OS_IOS:
-      tap_code16(ios);
+      tap_code16_with_oneshot(ios);
       break;
     case OS_LINUX:
-      tap_code16(linux);
+      tap_code16_with_oneshot(linux);
       break;
     case OS_UNSURE:
-      tap_code16(unsure);
+      tap_code16_with_oneshot(unsure);
       break;
   }
 }
