@@ -7,6 +7,10 @@
 #include "swipe_user.h"
 #include "lib/keyball/keyball.h"
 
+// Swipeの動作はこのファイルで指定します。
+
+// tap_code16_osはuser_utilで定義
+// tap_code16(win, mac, os, linux, unsure)でキーコード指定可能
 
 void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     dprintf("SWIPE FIRE tag=%u dir=%u\n", (unsigned)tag, (unsigned)dir);
@@ -101,8 +105,11 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         default: break;
         }
         break;
-    /*
+
     // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
+    // default動作はlib/keyball/keyball_swipe_default.cに記載されていますが、
+    // 以下のコメントアウトを外して上書き可能です。
+    /*
     case KBS_TAG_EX1:
         switch (dir) {
         case KB_SWIPE_UP:    tap_code16(KC_F11); break;
@@ -122,15 +129,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
     */
-    case KBS_TAG_PAD_A:
-        // _Pad レイヤの KC_A 長押し → スワイプ方向で分岐
-        switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16(KC_B); break;
-        case KB_SWIPE_RIGHT: tap_code16(KC_C); break;
-        case KB_SWIPE_UP:    tap_code16(AT);   break; // JISの記号定義に合わせて AT を使用
-        default: break;
-        }
-        break;
 
     // FLICK_* 系：ベースキーごとの方向マッピング
     case KBS_TAG_FLICK_A:

@@ -29,12 +29,15 @@ static inline void tap_code16_os_kb(uint16_t win, uint16_t mac, uint16_t ios, ui
   }
 }
 
+// multi key Aの動作
 static void kb_default_multi_a(kb_swipe_tag_t tag) {
+  // tagなしの動作
   if (tag == 0) {
     // Undo: Win/Linux=Ctrl+Z, mac/iOS=GUI+Z
     tap_code16_os_kb(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
     return;
   }
+  // tagありの時の動作
   switch (tag) {
     case KBS_TAG_APP:
       // Desktop move left (Win: Win+Ctrl+Left, Mac: Ctrl+Left)
@@ -147,6 +150,7 @@ static void kb_default_multi_d(kb_swipe_tag_t tag) {
   }
 }
 
+// kbレベルのカスタムキー動作
 bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case SCRL_MO:
@@ -198,6 +202,18 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
       kbpf.scrollsnap_mode = (uint8_t)keyball_get_scrollsnap_mode();
 #endif
+      // RGB ライトの現在状態をEEPROMへ永続化（on/off, HSV, mode）
+#ifdef RGBLIGHT_ENABLE
+      if (rgblight_is_enabled()) {
+        rgblight_enable();  // フラグをEEPROMに保存
+      } else {
+        rgblight_disable(); // 無効もEEPROMに保存
+      }
+      // 現在の色とモードも保存（noeepromでないAPIを使う）
+      rgblight_sethsv(rgblight_get_hue(), rgblight_get_sat(), rgblight_get_val());
+      rgblight_mode(rgblight_get_mode());
+#endif
+
       kbpf_write(); // OSごとの全データ+グローバルを一括保存
       dprintf("KBPF saved (ver=%u) AML(en=%u,tg=%u,to=%u) SSNP=%u\n",
               kbpf.version,
@@ -217,16 +233,20 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       return false;
 
     // Swipe action keys: begin on press
-    case APP_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(1); return false; // KBS_TAG_APP (=1)
-    case VOL_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(2); return false; // KBS_TAG_VOL (=2)
-    case BRO_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(3); return false; // KBS_TAG_BRO (=3)
-    case TAB_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(4); return false; // KBS_TAG_TAB (=4)
-    case WIN_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(5); return false; // KBS_TAG_WIN (=5)
-    case SW_ARR: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR); return false; // Arrow proxy swipe
+      // g_swipe_keydown_msはタップ動作判定のため
+      // swipe_beginでスワイプ状態タグ付け
+      // タグさえ付けてしまえば、他のキーでも同様の動作可能
+    case APP_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_APP); return false;
+    case VOL_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_VOL); return false;
+    case BRO_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_BRO); return false;
+    case TAB_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_TAB); return false;
+    case WIN_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_WIN); return false;
+    case SW_ARR: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR); return false;
     case SW_EX1: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX1); return false; // Extension swipe 1
     case SW_EX2: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX2); return false; // Extension swipe 2
 
     // Arrow keys as swipe-direction proxies while swipe mode held
+    // ボールの操作ではなく、アローキーを使用してもスワイプ動作の各方向が発火
     case KC_LEFT:
     case KC_RIGHT:
     case KC_UP:
@@ -242,6 +262,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       return true;
 
     // MULTI keys: A,B,C,D
+      // マルチキーはスワイプタグごとに動作が変わるキー
     case MULTI_A: {
       kb_swipe_tag_t tag = keyball_swipe_is_active() ? keyball_swipe_mode_tag() : 0;
       if (keyball_on_multi_a) keyball_on_multi_a(tag); else kb_default_multi_a(tag);
@@ -301,7 +322,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
         if (!fired && elapsed < TAPPING_TERM) {
           // User-level override first
           kb_swipe_tag_t tag = 0;
-          if (keycode == APP_SW) tag = KBS_TAG_APP;
+          if      (keycode == APP_SW) tag = KBS_TAG_APP;
           else if (keycode == VOL_SW) tag = KBS_TAG_VOL;
           else if (keycode == BRO_SW) tag = KBS_TAG_BRO;
           else if (keycode == TAB_SW) tag = KBS_TAG_TAB;
@@ -309,20 +330,21 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           else if (keycode == SW_ARR) tag = KBS_TAG_ARR;
           else if (keycode == SW_EX1) tag = KBS_TAG_EX1;
           else if (keycode == SW_EX2) tag = KBS_TAG_EX2;
+
+          // Generic fallback
+          // void keyball_on_swipe_tap(kb_swipe_tag_t tag) を使用してuserレベルで上書き可能
+          // 参考）lib_user/swipe_user.c
           if (keyball_on_swipe_tap && tag != 0) {
             keyball_on_swipe_tap(tag);
           } else {
-            // Generic fallback
-            uint16_t kc = KC_NO;
-            if (keycode == APP_SW) kc = KC_F1;
-            else if (keycode == VOL_SW) kc = KC_F2;
-            else if (keycode == BRO_SW) kc = KC_F3;
-            else if (keycode == TAB_SW) kc = KC_F4;
-            else if (keycode == WIN_SW) kc = KC_F5;
-            else if (keycode == SW_ARR) kc = KC_NO; // 明示: 何も送らない
-            else if (keycode == SW_EX1) kc = KC_F10;
-            else if (keycode == SW_EX2) kc = KC_F15;
-            if (kc != KC_NO) tap_code16(kc);
+            if      (keycode == APP_SW) tap_code16_os_kb(LGUI(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
+            else if (keycode == VOL_SW) tap_code(KC_MPLY);
+            else if (keycode == BRO_SW) tap_code16_os_kb(LCTL(KC_R), LGUI(KC_R), LGUI(KC_R), LCTL(KC_R), KC_NO);
+            else if (keycode == TAB_SW) tap_code16_os_kb(LCTL(KC_T), LGUI(KC_T), LGUI(KC_T), LCTL(KC_T), KC_NO);
+            else if (keycode == WIN_SW) tap_code16_os_kb(LGUI(KC_UP), LCTL(RCTL(KC_F)), LCTL(RCTL(KC_F)), KC_NO, KC_NO);
+            else if (keycode == SW_ARR) tap_code(KC_NO);
+            else if (keycode == SW_EX1) tap_code(KC_F13);
+            else if (keycode == SW_EX2) tap_code(KC_F18);
           }
         }
         return false;

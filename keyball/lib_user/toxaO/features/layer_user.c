@@ -28,34 +28,32 @@ HSV_YELLOW
 ------------------------------
 */
 
-// 選択中のRGBアニメーションモード（設定レイヤで更新し、_Def に適用）
-static uint8_t g_setting_rgb_mode = 0;
-static bool    g_setting_mode_inited = false;
-static uint8_t g_prev_highest_layer = 0xFFu;
+// _Scr 入退でRGBモードを一時切替するための保存領域
+#ifdef RGBLIGHT_ENABLE
+static uint8_t g_saved_rgb_mode = 0;
+static bool    g_in_scr          = false;
+#endif
 
 // layer state setting ------------------------------
 layer_state_t layer_state_set_user(layer_state_t state) {
+    uint8_t highest = get_highest_layer(state);
 
-    // 設定レイヤから離れたタイミングで、その時点のRGBモードを保持
-    {
-        uint8_t highest = get_highest_layer(state);
-        if (!g_setting_mode_inited) {
-            g_setting_rgb_mode   = rgblight_get_mode();
-            g_setting_mode_inited = true;
+#ifdef RGBLIGHT_ENABLE
+    // _Scr に入ったら現在モードを保存し、SNAKEへ一時切替。
+    // _Scr から離れたら保存しておいたモードへ戻す。
+    if (highest == _Scr) {
+        if (!g_in_scr) {
+            g_saved_rgb_mode = rgblight_get_mode();
+            g_in_scr = true;
         }
-        g_prev_highest_layer = highest;
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_SNAKE + 2);
+    } else {
+        if (g_in_scr) {
+            rgblight_mode_noeeprom(g_saved_rgb_mode);
+            g_in_scr = false;
+        }
     }
-
-    //LED------------------------------
-    uint8_t layer = biton32(state);
-    switch (layer) {
-        case _Def:
-            rgblight_mode_noeeprom(g_setting_rgb_mode);
-            break;
-        case _Scr:
-            rgblight_mode_noeeprom(RGBLIGHT_MODE_SNAKE + 2);
-            break;
-    }
+#endif
 
     return state;
 }
