@@ -851,16 +851,37 @@ void oled_render_info_keycode(void) {
 void oled_render_info_mods(void) {
     oled_write_P("Mods:", false);
     oled_write_P("scgaC", false);
-    char s[6];
-    uint8_t m = get_mods();
+
+    char active[6];
+    uint8_t mods = get_mods();
     led_t leds = host_keyboard_led_state();
-    s[0] = (m & MOD_MASK_SHIFT) ? '+' : '-';
-    s[1] = (m & MOD_MASK_CTRL)  ? '+' : '-';
-    s[2] = (m & MOD_MASK_GUI)   ? '+' : '-';
-    s[3] = (m & MOD_MASK_ALT)   ? '+' : '-';
-    s[4] = leds.caps_lock       ? '+' : '-';
-    s[5] = '\0';
-    oled_write_P(s, false);
+    active[0] = (mods & MOD_MASK_SHIFT) ? '+' : '-';
+    active[1] = (mods & MOD_MASK_CTRL)  ? '+' : '-';
+    active[2] = (mods & MOD_MASK_GUI)   ? '+' : '-';
+    active[3] = (mods & MOD_MASK_ALT)   ? '+' : '-';
+    active[4] = leds.caps_lock          ? '+' : '-';
+    active[5] = '\0';
+    oled_write_P(active, false);
+
+    uint8_t osm = get_oneshot_mods();
+    uint8_t osl = get_oneshot_locked_mods();
+    char oneshot[5];
+    oneshot[0] = (osm & MOD_MASK_SHIFT) ? '+' : '-';
+    oneshot[1] = (osm & MOD_MASK_CTRL)  ? '+' : '-';
+    oneshot[2] = (osm & MOD_MASK_GUI)   ? '+' : '-';
+    oneshot[3] = (osm & MOD_MASK_ALT)   ? '+' : '-';
+    oneshot[4] = '\0';
+    oled_write_P(" OSM:", false);
+    oled_write_P(oneshot, false);
+
+    char locked[5];
+    locked[0] = (osl & MOD_MASK_SHIFT) ? '+' : '-';
+    locked[1] = (osl & MOD_MASK_CTRL)  ? '+' : '-';
+    locked[2] = (osl & MOD_MASK_GUI)   ? '+' : '-';
+    locked[3] = (osl & MOD_MASK_ALT)   ? '+' : '-';
+    locked[4] = '\0';
+    oled_write_P(" LCK:", false);
+    oled_write_P(locked, false);
 }
 
 void oled_render_info_cpi(void) {
