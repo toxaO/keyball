@@ -31,7 +31,7 @@ static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
-        case 0: return 4; // CPI, Glo, Th1, Th2
+        case 0: return 5; // CPI, Glo, Th1, Th2, Dz
         case 1: return 4; // AML: en, TO, TH, TG_L
         case 2: return 7; // Scroll: ST, Dz, Inv, S_On, S_Ly, PST, H_Ga
         case 3: return 3; // SSNP: Mode, Thr, Rst を編集可能
@@ -208,6 +208,12 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     if (th2 > 63) th2 = 63;
                     kbpf.move_th2[os] = (uint8_t)th2;
                     g_move_th2        = (int16_t)th2;
+                } else if (sel == 4) {
+                    // Dz: Move deadzone 0..9（UIは1桁表示。内部は0..32対応）
+                    int32_t v = (int32_t)kbpf.move_deadzone + dir;
+                    if (v < 0) v = 0;
+                    if (v > 9) v = 9;
+                    kbpf.move_deadzone = (uint8_t)v;
                 }
             } break;
 
@@ -448,37 +454,39 @@ void keyball_oled_render_setting(void) {
 
     uint8_t page = keyball_oled_get_page();
         switch (page) {
-        case 0: { // 1: Mouse Config（指定体裁）
-            uint8_t sel = g_ui_sel_idx[page];
-            uint8_t row = 0;
-            oled_writef(row++, "mouse"); // row 1
-            oled_writef(row++, " conf"); // row 2
-            row_skip(row, 1);            // row 3
-            oled_writef(row++, "cpi:");  // row 4
-            oled_writef_sel(row++, sel == 0, "%u", (unsigned)keyball_get_cpi()); // row 5
-            row_skip(row, 1);            // row 6
+            case 0: { // 1: Mouse Config（指定体裁）
+                uint8_t sel = g_ui_sel_idx[page];
+                uint8_t row = 0;
+                oled_writef(row++, "mouse"); // row 1
+                oled_writef(row++, " conf"); // row 2
+                row_skip(row, 1);            // row 3
+                oled_writef(row++, "cpi:");  // row 4
+                oled_writef_sel(row++, sel == 0, "%u", (unsigned)keyball_get_cpi()); // row 5
+                row_skip(row, 1);            // row 6
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
-            {
-                uint8_t  g   = kbpf.move_gain_lo_fp[keyball_os_idx()];
-                uint16_t pct = (uint16_t)((g * 100u + 127u) / 255u); // 四捨五入
-                oled_writef(row++, "Glo:"); // row 7
-                oled_writef_sel(row++, sel == 1, " %u%%", (unsigned)pct); // row 8
-            }
-            row_skip(row, 1); // row 9
-            oled_writef(row++, "Th:"); // row 10
-            oled_writef_sel(row++, sel == 2, "1:%2u", (unsigned)kbpf.move_th1[keyball_os_idx()]); // row 11
-            oled_writef_sel(row++, sel == 3, "2:%2u", (unsigned)kbpf.move_th2[keyball_os_idx()]); // row 12
-            row_skip(row, 1); // row 13
+                {
+                    uint8_t  g   = kbpf.move_gain_lo_fp[keyball_os_idx()];
+                    uint16_t pct = (uint16_t)((g * 100u + 127u) / 255u); // 四捨五入
+                    oled_writef(row++, "Glo:"); // row 7
+                    oled_writef_sel(row++, sel == 1, " %u%%", (unsigned)pct); // row 8
+                }
+                row_skip(row, 1); // row 9
+                oled_writef(row++, "Th:"); // row 10
+                oled_writef_sel(row++, sel == 2, "1:%2u", (unsigned)kbpf.move_th1[keyball_os_idx()]); // row 11
+                oled_writef_sel(row++, sel == 3, "2:%2u", (unsigned)kbpf.move_th2[keyball_os_idx()]); // row 12
+                row_skip(row, 1); // row 13
+                // Move deadzone（0..9 表示）
+                oled_writef_sel(row++, sel == 4, "DZ:%1u", (unsigned)kbpf.move_deadzone);
 #else
-            oled_writef(row++, "Glo:");
-            oled_writef_sel(row++, sel == 1, "OFF");
-            row_skip(row, 1);
-            oled_writef(row++, "Th1:");
-            oled_writef_sel(row++, sel == 2, "-");
-            row_skip(row, 1);
-            oled_writef(row++, "Th2:");
-            oled_writef_sel(row++, sel == 3, "-");
-            row_skip(row, 1);
+                oled_writef(row++, "Glo:");
+                oled_writef_sel(row++, sel == 1, "OFF");
+                row_skip(row, 1);
+                oled_writef(row++, "Th1:");
+                oled_writef_sel(row++, sel == 2, "-");
+                row_skip(row, 1);
+                oled_writef(row++, "Th2:");
+                oled_writef_sel(row++, sel == 3, "-");
+                row_skip(row, 1);
 #endif
             // 追加: ポインタ移動量
             // {
@@ -488,7 +496,7 @@ void keyball_oled_render_setting(void) {
             //     snprintf(b, sizeof b, "y:%3d", (int)keyball.last_mouse.y);
             //     oled_writef(row++, "%s", b); // row 14 or 16 depending
             // }
-            row_skip(row, 2); // row 16 or 18 depending
+            row_skip(row, 1); // 調整: 末尾の空行を1行に
             // ページ表示
             oled_writef(row++, "%2u/%2u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count()); // row 16
         } break;

@@ -163,7 +163,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define KBPF_DEFAULT_SCROLL_HYSTERESIS 0
 #endif
 #ifndef KBPF_DEFAULT_MOVE_DEADZONE
-#    define KBPF_DEFAULT_MOVE_DEADZONE 0
+#    define KBPF_DEFAULT_MOVE_DEADZONE 1
 #endif
 #ifndef KBPF_DEFAULT_AML_ENABLE
 #    define KBPF_DEFAULT_AML_ENABLE 0
@@ -235,18 +235,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // 低速域ゲイン（0.25 ≒ 64/256）、高速域ゲイン（1.00 ≒ 256/256）
 #ifndef KEYBALL_MOVE_GAIN_LO_FP
-#define KEYBALL_MOVE_GAIN_LO_FP 144 // 144/256 ≒ 0.5625
+// 低速域ゲイン（固定小数点1/256）。少し抑えて蓄積寄りに。
+#define KEYBALL_MOVE_GAIN_LO_FP 112 // 112/256 = 0.4375
 #endif
 #ifndef KEYBALL_MOVE_GAIN_HI_FP
-#define KEYBALL_MOVE_GAIN_HI_FP 256 // 1.00
+#define KEYBALL_MOVE_GAIN_HI_FP 256 // 1.00（変更なし）
 #endif
 
 // 速度の近似は max(|x|,|y|) を使用（軽い・十分）
 #ifndef KEYBALL_MOVE_TH1
-#define KEYBALL_MOVE_TH1 3 // ここまでは低速域ゲイン
+// 速度しきい値（mag = max(|x|,|y|)）
+#define KEYBALL_MOVE_TH1 4 // ここまでは低速域ゲイン
 #endif
 #ifndef KEYBALL_MOVE_TH2
-#define KEYBALL_MOVE_TH2 12 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
+#define KEYBALL_MOVE_TH2 16 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
 #endif
 
 #ifndef KEYBALL_MOVE_IDLE_RESET_MS

@@ -25,6 +25,15 @@ void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
     int16_t sx = (int16_t)report->x;
     int16_t sy = (int16_t)report->y;
 
+    // 小さなノイズを抑えるためのデッドゾーン（kbpf.move_deadzone）
+    {
+      uint8_t dz = kbpf.move_deadzone; // 0..32 程度
+      int16_t ax = (sx < 0 ? -sx : sx);
+      int16_t ay = (sy < 0 ? -sy : sy);
+      if (ax <= (int16_t)dz) sx = 0;
+      if (ay <= (int16_t)dz) sy = 0;
+    }
+
     // アイドル・方向反転で蓄積を捨てる（跳ね防止）
     uint32_t now = timer_read32();
     if (TIMER_DIFF_32(now, last_ts) > KEYBALL_MOVE_IDLE_RESET_MS) {
