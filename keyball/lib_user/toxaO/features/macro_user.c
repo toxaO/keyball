@@ -25,7 +25,6 @@ static uint16_t first_shift_tap_time = 0;
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 bool canceller = false;
 
-static uint16_t pad_a_keydown_ms = 0; // deprecated: KC_A用だったが互換のため残置
 static uint16_t multi_c_keydown_ms = 0;
 static bool multi_c_active = false;
 
@@ -33,6 +32,18 @@ static bool multi_c_active = false;
 typedef struct {
   uint16_t down_ms;
 } flick_state_t;
+
+static deferred_token tg_pa_token = INVALID_DEFERRED_TOKEN;
+static bool tg_pa_gui_registered = false;
+static bool tg_pa_active = false;
+static uint16_t tg_pa_press_time = 0;
+
+static uint32_t tg_pa_hold_cb(uint32_t trigger_time, void *cb_arg) {
+  register_code(KC_LGUI);
+  tg_pa_gui_registered = true;
+  tg_pa_token = INVALID_DEFERRED_TOKEN;
+  return 0;
+}
 
 static bool handle_flick_key(kb_swipe_tag_t tag, uint16_t tap_kc, keyrecord_t *record, flick_state_t *st) {
   if (record->event.pressed) {
@@ -67,11 +78,50 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   /* swipe_mode = keycode; */
   mod_state = get_mods();
 
+  if (tg_pa_active && keycode != TG_PA_GU && record->event.pressed && tg_pa_token != INVALID_DEFERRED_TOKEN) {
+    cancel_deferred_exec(tg_pa_token);
+    tg_pa_token = INVALID_DEFERRED_TOKEN;
+    if (!tg_pa_gui_registered) {
+      register_code(KC_LGUI);
+      tg_pa_gui_registered = true;
+    }
+  }
+
   switch (keycode) {
 
     //------------------------------------------------------------
     // 個人的なやつ
     //------------------------------------------------------------
+    case TG_PA_GU:
+      if (record->event.pressed) {
+        tg_pa_active = true;
+        tg_pa_gui_registered = false;
+        tg_pa_press_time = timer_read();
+        if (tg_pa_token != INVALID_DEFERRED_TOKEN) {
+          cancel_deferred_exec(tg_pa_token);
+        }
+        tg_pa_token = defer_exec(TAPPING_TERM, tg_pa_hold_cb, NULL);
+      } else {
+        tg_pa_active = false;
+        if (tg_pa_token != INVALID_DEFERRED_TOKEN && timer_elapsed(tg_pa_press_time) >= TAPPING_TERM) {
+          cancel_deferred_exec(tg_pa_token);
+          tg_pa_token = INVALID_DEFERRED_TOKEN;
+          if (!tg_pa_gui_registered) {
+            register_code(KC_LGUI);
+            tg_pa_gui_registered = true;
+          }
+        }
+        if (tg_pa_token != INVALID_DEFERRED_TOKEN) {
+          cancel_deferred_exec(tg_pa_token);
+          tg_pa_token = INVALID_DEFERRED_TOKEN;
+          layer_on(_Pad);
+        } else if (tg_pa_gui_registered) {
+          unregister_code(KC_LGUI);
+          tg_pa_gui_registered = false;
+        }
+      }
+      return false;
+
     case ESC_LNG2:
       if (record->event.pressed) { tap_code(KC_ESC); tap_code(KC_LNG2); }
       return false;
@@ -275,7 +325,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // タップ=ベース文字、スワイプ方向は swipe_user.c のタグ別処理へ委譲。
     //------------------------------------------------------------
     case FLICK_A: {
-                    static flick_state_t st; (void)pad_a_keydown_ms;
+                    static flick_state_t st;
                     return handle_flick_key(KBS_TAG_FLICK_A, KC_A, record, &st);
                   }
     case FLICK_D: {

@@ -242,6 +242,9 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         break;
     case KBS_TAG_ARR:
         // タップ時は何もしない
+        // 個人的セッティング
+        tap_code(KC_ESC);
+        tap_code(KC_LNG2);
         break;
     /*
     // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド

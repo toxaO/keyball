@@ -39,6 +39,7 @@ enum custom_keycodes {
     EISU_S_N = KEYBALL_SAFE_RANGE, // == 例:QK_KB_20であれば、以下はそこから順番のキーコードになる。
     KANA_C_N,
     ESC_LNG2,
+    TG_PA_GU,
 
     // フリック用カスタムキーコード
     FLICK_A,
