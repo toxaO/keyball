@@ -6,13 +6,7 @@ extern int host_os;
 
 // int16_t my_abs(int16_t num);
 
-void tap_code16_os(
-    uint16_t win,
-    uint16_t mac,
-    uint16_t ios,
-    uint16_t linux,
-    uint16_t unsure
-    );
+// OS依存送出はKBレベルの tap_code16_os() を使用します（keyball.h）。
 
 void tap_code16_with_oneshot(uint16_t keycode);
 

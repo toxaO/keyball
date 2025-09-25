@@ -9,6 +9,7 @@
 
 #include "lib/keyball/keyball.h"
 #include "deferred_exec.h"
+#include "print.h"
 
 // mod override用変数
 uint8_t mod_state;
@@ -220,6 +221,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         kana_c_pressed = false;
       }
       return true;
+
+    // LED_NEXT: 一時的なLED検証機能は撤回
 
     case KC_LSFT:
     case EISU_S:

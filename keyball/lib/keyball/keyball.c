@@ -30,6 +30,7 @@ bool pmw33xx_check_signature(uint8_t sensor);
 #include "pointing_device.h"
 #include "os_detection.h"
 #include "timer.h"
+ 
 
 #ifdef DYNAMIC_KEYMAP_ENABLE
 #    include "dynamic_keymap.h"
@@ -101,6 +102,32 @@ static inline uint8_t osi(void) {
 
 uint8_t keyball_os_idx(void) {
   return osi();
+}
+
+// KB-level: oneshot対応付き tap
+static void tap_code16_with_oneshot_kb(uint16_t keycode) {
+  uint8_t osm = get_oneshot_mods();
+  if (osm) {
+    add_weak_mods(osm);
+    send_keyboard_report();
+  }
+  tap_code16(keycode);
+  if (osm) {
+    del_weak_mods(osm);
+    send_keyboard_report();
+    clear_oneshot_mods();
+  }
+}
+
+// KB-level OS dependent tap helper (with oneshot support)
+void tap_code16_os(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure) {
+  switch (detected_host_os()) {
+    case OS_WINDOWS: if (win   != KC_NO) tap_code16_with_oneshot_kb(win);    break;
+    case OS_MACOS:   if (mac   != KC_NO) tap_code16_with_oneshot_kb(mac);    break;
+    case OS_IOS:     if (ios   != KC_NO) tap_code16_with_oneshot_kb(ios);    break;
+    case OS_LINUX:   if (linux != KC_NO) tap_code16_with_oneshot_kb(linux);  break;
+    case OS_UNSURE:  if (unsure!= KC_NO) tap_code16_with_oneshot_kb(unsure); break;
+  }
 }
 
 static inline uint16_t clamp_cpi(uint16_t c) {
@@ -223,6 +250,7 @@ void keyboard_post_init_kb(void) {
   // register transaction handlers on secondary.
   if (!is_keyboard_master()) {
     transaction_register_rpc(KEYBALL_GET_INFO, rpc_get_info_handler);
+    // no extra RPCs at the moment
   }
 #endif
 

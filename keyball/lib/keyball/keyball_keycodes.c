@@ -19,36 +19,27 @@
 static uint16_t g_swipe_keydown_ms = 0;
 
 // --- KB-level default helpers (used when user override is absent) ---
-static inline void tap_code16_os_kb(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure) {
-  switch (detected_host_os()) {
-    case OS_WINDOWS: tap_code16(win);   break;
-    case OS_MACOS:   tap_code16(mac);   break;
-    case OS_IOS:     tap_code16(ios);   break;
-    case OS_LINUX:   tap_code16(linux); break;
-    case OS_UNSURE:  tap_code16(unsure);break;
-  }
-}
 
 // multi key Aの動作
 static void kb_default_multi_a(kb_swipe_tag_t tag) {
   // tagなしの動作
   if (tag == 0) {
     // Undo: Win/Linux=Ctrl+Z, mac/iOS=GUI+Z
-    tap_code16_os_kb(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
+    tap_code16_os(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
     return;
   }
   // tagありの時の動作
   switch (tag) {
     case KBS_TAG_APP:
       // Desktop move left (Win: Win+Ctrl+Left, Mac: Ctrl+Left)
-      tap_code16_os_kb(G(C(KC_LEFT)), LCTL(KC_LEFT), LCTL(KC_LEFT), KC_NO, KC_NO);
+      tap_code16_os(G(C(KC_LEFT)), LCTL(KC_LEFT), LCTL(KC_LEFT), KC_NO, KC_NO);
       break;
     case KBS_TAG_TAB:
       tap_code16(S(C(KC_TAB))); // prev tab
       break;
     case KBS_TAG_BRO:
       // Browser back (Win), mac: GUI+Left
-      tap_code16_os_kb(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO);
+      tap_code16_os(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO);
       break;
     case KBS_TAG_VOL:
       tap_code(KC_MNXT);
@@ -66,20 +57,20 @@ static void kb_default_multi_a(kb_swipe_tag_t tag) {
 static void kb_default_multi_b(kb_swipe_tag_t tag) {
   if (tag == 0) {
     // Redo: Win/Linux=Ctrl+Y, mac/iOS=GUI+Shift+Z
-    tap_code16_os_kb(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(KC_Y), C(KC_Y));
+    tap_code16_os(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(KC_Y), C(KC_Y));
     return;
   }
   switch (tag) {
     case KBS_TAG_APP:
       // Desktop move right (Win: Win+Ctrl+Right, Mac: Ctrl+Right)
-      tap_code16_os_kb(G(C(KC_RIGHT)), LCTL(KC_RIGHT), LCTL(KC_RIGHT), KC_NO, KC_NO);
+      tap_code16_os(G(C(KC_RIGHT)), LCTL(KC_RIGHT), LCTL(KC_RIGHT), KC_NO, KC_NO);
       break;
     case KBS_TAG_TAB:
       tap_code16(C(KC_TAB)); // next tab
       break;
     case KBS_TAG_BRO:
       // Browser forward (Win), mac: GUI+Right
-      tap_code16_os_kb(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO);
+      tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO);
       break;
     case KBS_TAG_VOL:
       tap_code(KC_MPRV);
@@ -99,15 +90,15 @@ static void kb_default_multi_c(kb_swipe_tag_t tag) {
   switch (tag) {
     case KBS_TAG_APP:
       // Task view / Mission Control
-      tap_code16_os_kb(C(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
+      tap_code16_os(C(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
       break;
     case KBS_TAG_TAB:
       // Last tab
-      tap_code16_os_kb(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
+      tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
       break;
     case KBS_TAG_BRO:
       // Reload
-      tap_code16_os_kb(C(KC_R), G(KC_R), G(KC_R), KC_NO, KC_NO);
+      tap_code16_os(C(KC_R), G(KC_R), G(KC_R), KC_NO, KC_NO);
       break;
     case KBS_TAG_VOL:
       tap_code(KC_VOLU);
@@ -127,15 +118,15 @@ static void kb_default_multi_d(kb_swipe_tag_t tag) {
   switch (tag) {
     case KBS_TAG_APP:
       // Show desktop / App Expose
-      tap_code16_os_kb(G(KC_D), LCTL(KC_DOWN), LCTL(KC_DOWN), KC_NO, KC_NO);
+      tap_code16_os(G(KC_D), LCTL(KC_DOWN), LCTL(KC_DOWN), KC_NO, KC_NO);
       break;
     case KBS_TAG_TAB:
       // Close tab
-      tap_code16_os_kb(C(KC_W), G(KC_W), G(KC_W), KC_NO, KC_NO);
+      tap_code16_os(C(KC_W), G(KC_W), G(KC_W), KC_NO, KC_NO);
       break;
     case KBS_TAG_BRO:
       // New tab
-      tap_code16_os_kb(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
+      tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
       break;
     case KBS_TAG_VOL:
       tap_code(KC_VOLD);
@@ -337,11 +328,11 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           if (keyball_on_swipe_tap && tag != 0) {
             keyball_on_swipe_tap(tag);
           } else {
-            if      (keycode == APP_SW) tap_code16_os_kb(LGUI(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
+            if      (keycode == APP_SW) tap_code16_os(LGUI(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
             else if (keycode == VOL_SW) tap_code(KC_MPLY);
-            else if (keycode == BRO_SW) tap_code16_os_kb(LCTL(KC_R), LGUI(KC_R), LGUI(KC_R), LCTL(KC_R), KC_NO);
-            else if (keycode == TAB_SW) tap_code16_os_kb(LCTL(KC_T), LGUI(KC_T), LGUI(KC_T), LCTL(KC_T), KC_NO);
-            else if (keycode == WIN_SW) tap_code16_os_kb(LGUI(KC_UP), LCTL(RCTL(KC_F)), LCTL(RCTL(KC_F)), KC_NO, KC_NO);
+            else if (keycode == BRO_SW) tap_code16_os(LCTL(KC_R), LGUI(KC_R), LGUI(KC_R), LCTL(KC_R), KC_NO);
+            else if (keycode == TAB_SW) tap_code16_os(LCTL(KC_T), LGUI(KC_T), LGUI(KC_T), LCTL(KC_T), KC_NO);
+            else if (keycode == WIN_SW) tap_code16_os(LGUI(KC_UP), LCTL(RCTL(KC_F)), LCTL(RCTL(KC_F)), KC_NO, KC_NO);
             else if (keycode == SW_ARR) tap_code(KC_NO);
             else if (keycode == SW_EX1) tap_code(KC_F13);
             else if (keycode == SW_EX2) tap_code(KC_F18);

@@ -77,18 +77,26 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         switch (dir) {
         case KB_SWIPE_UP:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_UP); }
+            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_UP))); }
+            // 個人的セッティング
             else                        { tap_code16_with_oneshot(MGN_U); }
             break;
         case KB_SWIPE_DOWN:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_DOWN); }
+            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_DOWN))); }
+            // 個人的セッティング
             else                        { tap_code16_with_oneshot(MGN_D); }
             break;
         case KB_SWIPE_LEFT:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_LEFT); }
+            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_LEFT))); }
+            // 個人的セッティング
             else                        { tap_code16_with_oneshot(MGN_L); }
             break;
         case KB_SWIPE_RIGHT:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_RIGHT); }
+            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_RIGHT))); }
+            // 個人的セッティング
             else                        { tap_code16_with_oneshot(MGN_R); }
             break;
         default: break;
@@ -107,8 +115,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         break;
 
     // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
-    // default動作はlib/keyball/keyball_swipe_default.cに記載されていますが、
-    // 以下のコメントアウトを外して上書き可能です。
+    // デフォルト動作はユーザーレベルで定義してください（本ファイルで上書き可能）。
     /*
     case KBS_TAG_EX1:
         switch (dir) {
@@ -222,7 +229,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
     }
 }
 
-// タップ（発火なしで離した）時のフォールバックをユーザー側で上書き
+// タップ時の動作はここで指定する。
 void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
     switch (tag) {
     case KBS_TAG_APP:
@@ -242,6 +249,8 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         break;
     case KBS_TAG_ARR:
         // タップ時は何もしない
+        // tap_code(KC_NO);
+
         // 個人的セッティング
         tap_code16_with_oneshot(KC_ESC);
         tap_code16_with_oneshot(KC_LNG2);

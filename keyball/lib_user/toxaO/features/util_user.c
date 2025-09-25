@@ -59,30 +59,7 @@ void tap_code16_with_oneshot(uint16_t keycode) {
   }
 }
 
-void tap_code16_os(
-    uint16_t win,
-    uint16_t mac,
-    uint16_t ios,
-    uint16_t linux,
-    uint16_t unsure) {
-  switch (host_os) {
-    case OS_WINDOWS:
-      tap_code16_with_oneshot(win);
-      break;
-    case OS_MACOS:
-      tap_code16_with_oneshot(mac);
-      break;
-    case OS_IOS:
-      tap_code16_with_oneshot(ios);
-      break;
-    case OS_LINUX:
-      tap_code16_with_oneshot(linux);
-      break;
-    case OS_UNSURE:
-      tap_code16_with_oneshot(unsure);
-      break;
-  }
-}
+// OS依存送出は KB レベルの tap_code16_os() を利用してください。
 
 // void reset_eeprom(void) {
 //   eeconfig_init();

@@ -168,7 +168,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 
 ### 9) 補足: tap_code16_os について
 
-`tap_code16_os(win, mac, ios, linux, unsure)` は OS 検出結果（`host_os = detected_host_os()`）に応じて、OSごとのキーストロークを選択して送出するユーティリティです（`keyball/lib_user/features/util.c`）。
+`tap_code16_os(win, mac, ios, linux, unsure)` は OS 検出結果（`detected_host_os()`）に応じて、OSごとのキーストロークを選択して送出するユーティリティです（KBレベルで提供）。One-shotモディファイアに対応しており、発動時に現在のoneshot modsを一時適用してから送出します。
 - 例: `tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO)` は
   - Windows: `Ctrl + L`、macOS/iOS: `Cmd + L`、Linux: 無効（KC_NO）
 - OSごとにショートカットが異なる場面で、コード分岐を簡潔にできます。

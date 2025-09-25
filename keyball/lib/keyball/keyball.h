@@ -549,3 +549,13 @@ extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
 #define KBPF_VER_CUR 14 // v14: scroll layer config を追加（互換なし）
+
+//////////////////////////////////////////////////////////////////////////////
+// OS-dependent key tap helper (KB-level)
+//
+// ユーザー/キーボード両方から共通利用するため、KBレベルで提供します。
+// host OS を検出して、対応するキーコードを tap_code16() で送出します。
+// それぞれ未使用の場合は KC_NO を指定してください。
+void tap_code16_os(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure);
+
+ 
