@@ -5,9 +5,6 @@
   "matrix": { "rows": 8, "cols": 6 },
   "lighting": "qmk_rgblight",
   "layouts" : {
-    "labels": [
-      [ "Ball availability", "None", "Right", "Left", "Dual" ]
-    ],
     "keymap": [
   [ { "x": 2 }, "0,2", { "x": 7.75 }, "4,2" ],
   [ { "y": -0.875, "x": 3 }, "0,3", { "x": 5.75 }, "4,3" ],
