@@ -61,3 +61,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // kbpf保存用に KB データ領域サイズを拡大
 #undef  EECONFIG_KB_DATA_SIZE
 #define EECONFIG_KB_DATA_SIZE 128
+
+// Auto Mouse Layer を有効化
+#ifndef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#endif

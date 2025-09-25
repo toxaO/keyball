@@ -6,7 +6,7 @@
 
 // Vial 用: レイヤー数（mymap は多数のレイヤーを使用）
 #undef DYNAMIC_KEYMAP_LAYER_COUNT
-#define DYNAMIC_KEYMAP_LAYER_COUNT 12
+#define DYNAMIC_KEYMAP_LAYER_COUNT 16
 
 // Vial 用: キーボード UID（固有値）
 #define VIAL_KEYBOARD_UID {0x4B, 0x66, 0x5A, 0xCA, 0x0B, 0xAD, 0x5B, 0x75}
@@ -39,7 +39,3 @@
 #define VIAL_UNLOCK_COMBO_ROWS { 0, 0 }
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 #endif
-
-// VIA/Vial: レイアウトオプションの初期値を Right に設定
-#undef  VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT
-#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT 0x00000001
