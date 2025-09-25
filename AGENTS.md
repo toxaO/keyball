@@ -20,7 +20,7 @@
 - keyball44と39に関してはqmkとvialでビルド可能で動作確認済。61はビルドは可能だが動作は未確認。
 - ビルドに関しては作業終了時にコマンド make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball{39, 44, 61}:mymapで行ってください。
 - keyball61はduplex matrixを採用しているため、対応が必要。
-- vial.jsonのレイアウトがまだ正しく作成されていない。39と44に関してはとりあえずrightは正しい。
+- vial.jsonのためのkeyboard layout editorで作成したjsonファイルを
 - one shot modifierのon/offをLEDの点灯で表すためにrgblight_atを使用したい。RPCの実装が必要だが検証が必要。
 
 ## 現在の不具合

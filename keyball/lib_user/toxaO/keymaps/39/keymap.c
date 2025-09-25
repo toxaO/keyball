@@ -122,3 +122,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // clang-format on
+
+#ifdef COMBO_ENABLE
+// Vial/VIA 環境では動的提供されるが、通常ビルドでもシンボルを用意する
+combo_t key_combos[] __attribute__((weak)) = {};
+#endif
+
+#ifdef TAP_DANCE_ENABLE
+tap_dance_action_t tap_dance_actions[] __attribute__((weak)) = {};
+#endif
+
+#ifdef KEY_OVERRIDE_ENABLE
+// keymap_introspection が参照するため、空の配列でも必ず用意する
+const key_override_t *key_overrides[] __attribute__((weak)) = { NULL };
+#endif
