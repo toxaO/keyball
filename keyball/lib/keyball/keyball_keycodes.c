@@ -218,6 +218,32 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
     case SCRL_TO:
       keyball_set_scroll_mode(!keyball_get_scroll_mode());
       break;
+
+    // Speed adjustments -------------------------------------------------
+    case SCSP_INC: {
+      uint8_t v = keyball_get_scroll_div();
+      if (v < 7) v++;
+      keyball_set_scroll_div(v);
+      return false;
+    }
+    case SCSP_DEC: {
+      uint8_t v = keyball_get_scroll_div();
+      if (v > 1) v--;
+      keyball_set_scroll_div(v);
+      return false;
+    }
+    case MOSP_INC: {
+      uint16_t cpi = keyball_get_cpi();
+      if (cpi < 12000) cpi += 100; // guard upper
+      keyball_set_cpi(cpi);
+      return false;
+    }
+    case MOSP_DEC: {
+      uint16_t cpi = keyball_get_cpi();
+      if (cpi > 100) cpi -= 100; // guard lower
+      keyball_set_cpi(cpi);
+      return false;
+    }
     // Setting view controls
     case STG_TOG:
       keyball_oled_mode_toggle();

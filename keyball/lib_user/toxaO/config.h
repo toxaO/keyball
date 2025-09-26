@@ -55,12 +55,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 200
 
 //default
-#undef  KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 2800
+// 命名更新: CPI -> Mouse Speed (MoSp)
+#undef  KEYBALL_MOUSE_SPEED_DEFAULT
+#define KEYBALL_MOUSE_SPEED_DEFAULT 2800
 
 // スクロールステップの初期値（ST）: 4 を既定にする
-#undef  KEYBALL_SCROLL_STEP_DEFAULT
-#define KEYBALL_SCROLL_STEP_DEFAULT 4
+// 命名更新: Scroll Step -> Scroll Speed (ScSp)
+#undef  KEYBALL_SCROLL_SPEED_DEFAULT
+#define KEYBALL_SCROLL_SPEED_DEFAULT 4
 
 // tap dance
 #define TAPPING_TERM 175

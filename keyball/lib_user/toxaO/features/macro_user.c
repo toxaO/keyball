@@ -34,10 +34,10 @@ typedef struct {
   uint16_t down_ms;
 } flick_state_t;
 
+// TG_PA_GU: タップ=TG(_Pad)、ホールド=LGUI押下（離して解除）
 static deferred_token tg_pa_token = INVALID_DEFERRED_TOKEN;
-static bool tg_pa_gui_registered = false;
-static bool tg_pa_active = false;
-static uint16_t tg_pa_press_time = 0;
+static bool           tg_pa_gui_registered = false;
+static uint16_t       tg_pa_press_time = 0;
 
 static uint32_t tg_pa_hold_cb(uint32_t trigger_time, void *cb_arg) {
   register_code(KC_LGUI);
@@ -79,14 +79,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   /* swipe_mode = keycode; */
   mod_state = get_mods();
 
-  if (tg_pa_active && keycode != TG_PA_GU && record->event.pressed && tg_pa_token != INVALID_DEFERRED_TOKEN) {
-    cancel_deferred_exec(tg_pa_token);
-    tg_pa_token = INVALID_DEFERRED_TOKEN;
-    if (!tg_pa_gui_registered) {
-      register_code(KC_LGUI);
-      tg_pa_gui_registered = true;
-    }
-  }
 
   switch (keycode) {
 
@@ -95,7 +87,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     //------------------------------------------------------------
     case TG_PA_GU:
       if (record->event.pressed) {
-        tg_pa_active = true;
+        // 押下時: TAPPING_TERM 経過で LGUI を押下する遅延をセット
         tg_pa_gui_registered = false;
         tg_pa_press_time = timer_read();
         if (tg_pa_token != INVALID_DEFERRED_TOKEN) {
@@ -103,20 +95,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         tg_pa_token = defer_exec(TAPPING_TERM, tg_pa_hold_cb, NULL);
       } else {
-        tg_pa_active = false;
+        // 離した時: タップ or ホールドを確定
         if (tg_pa_token != INVALID_DEFERRED_TOKEN && timer_elapsed(tg_pa_press_time) >= TAPPING_TERM) {
+          // 実時間はホールド相当だが、遅延CBが未実行の場合の救済
           cancel_deferred_exec(tg_pa_token);
           tg_pa_token = INVALID_DEFERRED_TOKEN;
           if (!tg_pa_gui_registered) {
             register_code(KC_LGUI);
             tg_pa_gui_registered = true;
           }
-        }
-        if (tg_pa_token != INVALID_DEFERRED_TOKEN) {
+          unregister_code(KC_LGUI);
+          tg_pa_gui_registered = false;
+        } else if (tg_pa_token != INVALID_DEFERRED_TOKEN) {
+          // TAPPING_TERM 未満のタップ -> TG(_Pad)
           cancel_deferred_exec(tg_pa_token);
           tg_pa_token = INVALID_DEFERRED_TOKEN;
-          layer_on(_Pad);
+          layer_invert(_Pad);
         } else if (tg_pa_gui_registered) {
+          // ホールド扱い中 -> LGUI を解除
           unregister_code(KC_LGUI);
           tg_pa_gui_registered = false;
         }

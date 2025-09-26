@@ -7,7 +7,7 @@
 設定モードの入/切は `STG_TOG`。ページ移動は `STG_NP`/`STG_PP`（または設定モード中の Shift+←/→）です。選択行は ↑/↓、値の増減は ←/→ で行います。`KBC_SAVE` で保存、`KBC_RST` で初期化します。
 
 - Mouse（ポインタ）
-  - cpi: 解像度（CPI）。
+  - MoSp: マウススピード（CPIベース）。
   - Glo: 低速域ゲイン（%）。OLED操作は5%刻み（内部は近似）。
   - Th1/Th2: 低速/高速のしきい値。
 - AML（Auto Mouse Layer）
@@ -16,7 +16,7 @@
   - TH: 閾値（既定100）
   - TG_L: 追従先レイヤ（0..31）
 - Scroll（スクロール）
-  - ST: ステップ（体感速度段）
+  - ScSp: スクロールスピード（体感速度段）
   - Dz: デッドゾーン（小入力の無視）
   - Iv: 反転（0/1）
   - Md: プリセット（nor/fin/mac 相当）
@@ -56,6 +56,8 @@ Vial の customKeycodes にも掲載される主要キー：
 - KBC_*: `KBC_RST`（初期化）, `KBC_SAVE`（保存）
 - STG_*: `STG_TOG`（設定ON/OFF）, `STG_NP` / `STG_PP`（設定ページ移動）
 - スクロール: `SCRL_TO`（トグル）, `SCRL_MO`（押下中）
+  - スピード調整: `SCSP_DEC` / `SCSP_INC`（ScSp−/＋）
+- マウス速度: `MOSP_DEC` / `MOSP_INC`（MoSp−/＋）
 - スクロールスナップ: `SSNP_VRT` / `SSNP_HOR` / `SSNP_FRE`
 - スワイプ実行: `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW` / `SW_ARR` / `SW_EX1` / `SW_EX2`
 
@@ -66,4 +68,3 @@ Vial で編集する場合
 
 - 詳細なAPIや内部仕様は `keyball/lib/keyball/README.md` を参照してください。
 - ユーザーカスタムやサンプルは `keyball/lib_user/` を参照してください。
-

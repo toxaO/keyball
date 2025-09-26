@@ -44,12 +44,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
 // Configurations
 
-#ifndef KEYBALL_CPI_DEFAULT
-#define KEYBALL_CPI_DEFAULT 2800
+// naming update: CPI -> Mouse Speed (MoSp), Scroll Step -> Scroll Speed (ScSp)
+#ifndef KEYBALL_MOUSE_SPEED_DEFAULT
+#define KEYBALL_MOUSE_SPEED_DEFAULT 2800
 #endif
 
-#ifndef KEYBALL_SCROLL_STEP_DEFAULT
-#define KEYBALL_SCROLL_STEP_DEFAULT 4
+#ifndef KEYBALL_SCROLL_SPEED_DEFAULT
+#define KEYBALL_SCROLL_SPEED_DEFAULT 4
 #endif
 
 // 入力がしばらく無い時に余りを捨てる（ms）
@@ -103,10 +104,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // --- Per-OS slot defaults --------------------------------------------------
 // Applied to every kbpf OS profile (0..7) when kbpf_defaults() runs.
 #ifndef KBPF_DEFAULT_CPI
-#    define KBPF_DEFAULT_CPI KEYBALL_CPI_DEFAULT
+#    define KBPF_DEFAULT_CPI KEYBALL_MOUSE_SPEED_DEFAULT
 #endif
 #ifndef KBPF_DEFAULT_SCROLL_STEP
-#    define KBPF_DEFAULT_SCROLL_STEP KEYBALL_SCROLL_STEP_DEFAULT
+#    define KBPF_DEFAULT_SCROLL_STEP KEYBALL_SCROLL_SPEED_DEFAULT
 #endif
 #ifndef KBPF_DEFAULT_SCROLL_INVERT
 #    define KBPF_DEFAULT_SCROLL_INVERT ((KEYBALL_SCROLL_INVERT) ? 1 : 0)
@@ -349,6 +350,14 @@ enum keyball_keycodes {
   // Extension swipe keys (Kb 18..19): for user-expansion examples  [番号を詰めた]
   SW_EX1  = QK_KB_18,
   SW_EX2  = QK_KB_19,
+
+  // Speed adjustments (Kb 20..23)
+  // Scroll Speed (ScSp): 1..7, center=4
+  SCSP_DEC = QK_KB_20, // Scroll speed -
+  SCSP_INC = QK_KB_21, // Scroll speed +
+  // Mouse Speed (MoSp): CPI ± step (100)
+  MOSP_DEC = QK_KB_22, // Mouse speed - (CPI down)
+  MOSP_INC = QK_KB_23, // Mouse speed + (CPI up)
 
   KEYBALL_SAFE_RANGE,
 

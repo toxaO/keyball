@@ -6,7 +6,7 @@
 <a id="english"></a>
 ## Special Keycodes
 
-Only a minimal set of keyboard-level keycodes remain. All detailed parameter adjustments (CPI, scroll step, AML, swipe, scroll snap, RGB) are done in the OLED setting view.
+Only a minimal set of keyboard-level keycodes remain. All detailed parameter adjustments (Mouse Speed/CPI, Scroll Speed, AML, swipe, scroll snap, RGB) are done in the OLED setting view. For quick tweaks, dedicated speed keys are provided.
 
 ### Setting / Scroll
 | Keycode    | Value on Remap  | Hex      | Description                               |
@@ -19,6 +19,10 @@ Only a minimal set of keyboard-level keycodes remain. All detailed parameter adj
 | `SSNP_VRT` | `Kb 5`          | `0x7e05` | Set scroll snap mode to vertical          |
 | `SSNP_HOR` | `Kb 6`          | `0x7e06` | Set scroll snap mode to horizontal        |
 | `SSNP_FRE` | `Kb 7`          | `0x7e07` | Disable scroll snap mode (free)           |
+| `SCSP_DEC` | `Kb 20`         | `0x7e14` | Decrease Scroll Speed (ScSp −)            |
+| `SCSP_INC` | `Kb 21`         | `0x7e15` | Increase Scroll Speed (ScSp +)            |
+| `MOSP_DEC` | `Kb 22`         | `0x7e16` | Decrease Mouse Speed (CPI −)              |
+| `MOSP_INC` | `Kb 23`         | `0x7e17` | Increase Mouse Speed (CPI +)              |
 
 ### Swipe Actions
 The following keys start a swipe session on press and end it on release. Actual
@@ -36,7 +40,7 @@ actions per direction are implemented in user code via hooks
 <a id="japanese"></a>
 ## 特殊キーコード
 
-キーボードレベルのキーコードは最小限のみです。CPI/スクロール段階/AML/スワイプ/スクロールスナップ/RGB などの詳細調整は、OLED の設定ページで行います。
+キーボードレベルのキーコードは最小限のみです。Mouse Speed（CPI）/ Scroll Speed / AML / スワイプ / スクロールスナップ / RGB などの詳細調整は、OLED の設定ページで行います。素早い調整用に速度増減キーを用意しました。
 
 ### 設定 / スクロール
 | キーコード | Remap上での表記 | 値       | 説明                                      |
@@ -49,6 +53,10 @@ actions per direction are implemented in user code via hooks
 | `SSNP_VRT` | `Kb 5`          | `0x7e05` | スクロールスナップを垂直に設定            |
 | `SSNP_HOR` | `Kb 6`          | `0x7e06` | スクロールスナップを水平に設定            |
 | `SSNP_FRE` | `Kb 7`          | `0x7e07` | スクロールスナップを解除（自由）          |
+| `SCSP_DEC` | `Kb 20`         | `0x7e14` | スクロールスピードを下げる（ScSp−）       |
+| `SCSP_INC` | `Kb 21`         | `0x7e15` | スクロールスピードを上げる（ScSp＋）      |
+| `MOSP_DEC` | `Kb 22`         | `0x7e16` | マウススピードを下げる（CPI−）            |
+| `MOSP_INC` | `Kb 23`         | `0x7e17` | マウススピードを上げる（CPI＋）           |
 
 ### スワイプ実行
 以下のキーは押下でスワイプ開始、解放で終了します。実際の方向別アクションは

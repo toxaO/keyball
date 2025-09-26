@@ -460,7 +460,7 @@ void keyball_oled_render_setting(void) {
                 oled_writef(row++, "mouse"); // row 1
                 oled_writef(row++, " conf"); // row 2
                 row_skip(row, 1);            // row 3
-                oled_writef(row++, "cpi:");  // row 4
+                oled_writef(row++, "MoSp:");  // row 4 (Mouse Speed)
                 oled_writef_sel(row++, sel == 0, "%u", (unsigned)keyball_get_cpi()); // row 5
                 row_skip(row, 1);            // row 6
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
@@ -555,8 +555,8 @@ void keyball_oled_render_setting(void) {
             uint8_t os = keyball_os_idx();
             uint8_t inv = kbpf.scroll_invert[os] ? 1 : 0;
             uint8_t preset = kbpf.scroll_preset[os];
-            // ST（スクロールステップ）
-            oled_writef_sel(row++, sel == 0, "ST:%1u", (unsigned)keyball_get_scroll_div());
+            // ScSp（スクロールスピード）
+            oled_writef_sel(row++, sel == 0, "ScSp:%1u", (unsigned)keyball_get_scroll_div());
             // Scroll deadzone
             oled_writef_sel(row++, sel == 1, "Dz:%1u", (unsigned)kbpf.scroll_deadzone);
             // inverse
@@ -885,14 +885,14 @@ void oled_render_info_mods(void) {
 }
 
 void oled_render_info_cpi(void) {
-    oled_write_ln("cpi:", false);
+    oled_write_ln("MoSp:", false);
     char b[8];
     snprintf(b, sizeof b, " %u", (unsigned)keyball_get_cpi());
     oled_write_P(b, false);
 }
 
 void oled_render_info_scroll_step(void) {
-    oled_write_P("scr:", false);
+    oled_write_P("ScSp:", false);
     char b[8];
     snprintf(b, sizeof b, "%u", (unsigned)keyball_get_scroll_div());
     oled_write_P(b, false);

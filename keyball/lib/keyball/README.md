@@ -176,7 +176,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 
 ### Scroll API / スクロールAPI
 - `keyball_set_scroll_mode`, `keyball_get_scroll_mode`
-- `keyball_set_scroll_div`, `keyball_get_scroll_div`
+- `keyball_set_scroll_div`, `keyball_get_scroll_div`（ScSp: スクロールスピード）
 - Variables `g_scroll_deadzone`, `g_scroll_hysteresis`
 
 ### Pointer API / ポインタAPI
@@ -270,7 +270,7 @@ please make pull requests to share it us.
 先の読み捨てにより、垂直方向のスクロールがワンテンポ遅れ、体験を大幅に損なうことが明らかになった。
 この解決のためモード: 初期は垂直のみ、後に自由スクロールする、を導入した。
 
-### Scroll Step (ST) / スクロールステップ
+### Scroll Speed (ScSp) / スクロールスピード
 
 Keyballのセンサーは感度がとても高い。
 そのため生の値をスクロール量としてしまうとスクロール操作がとても難しくなった。
@@ -287,7 +287,7 @@ Keyballのセンサーは感度がとても高い。
 $$ 2 ^ {(n - 1)} $$
 
 $n$ の初期値は 4 で 1/8 になることを意味する。
-この値は config.h で `KEYBALL_SCROLL_STEP_DEFAULT` マクロを定義することで変更できる。
+この値は config.h で `KEYBALL_SCROLL_SPEED_DEFAULT` マクロを定義することで変更できる。
 これを0にすることは考慮していないので設定しないこと。
 
 ### Scroll Inhivitor
