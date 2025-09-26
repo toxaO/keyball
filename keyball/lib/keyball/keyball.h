@@ -237,7 +237,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 低速域ゲイン（0.25 ≒ 64/256）、高速域ゲイン（1.00 ≒ 256/256）
 #ifndef KEYBALL_MOVE_GAIN_LO_FP
 // 低速域ゲイン（固定小数点1/256）。少し抑えて蓄積寄りに。
-#define KEYBALL_MOVE_GAIN_LO_FP 112 // 112/256 = 0.4375
+#define KEYBALL_MOVE_GAIN_LO_FP 154 // 154/256 ≒ 0.60（少し抑える）
 #endif
 #ifndef KEYBALL_MOVE_GAIN_HI_FP
 #define KEYBALL_MOVE_GAIN_HI_FP 256 // 1.00（変更なし）
@@ -246,10 +246,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 速度の近似は max(|x|,|y|) を使用（軽い・十分）
 #ifndef KEYBALL_MOVE_TH1
 // 速度しきい値（mag = max(|x|,|y|)）
-#define KEYBALL_MOVE_TH1 4 // ここまでは低速域ゲイン
+#define KEYBALL_MOVE_TH1 2 // ここまでは低速域ゲイン
 #endif
 #ifndef KEYBALL_MOVE_TH2
-#define KEYBALL_MOVE_TH2 16 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
+#define KEYBALL_MOVE_TH2 8 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
 #endif
 
 #ifndef KEYBALL_MOVE_IDLE_RESET_MS
@@ -567,4 +567,4 @@ extern keyball_profiles_t kbpf;
 // それぞれ未使用の場合は KC_NO を指定してください。
 void tap_code16_os(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure);
 
- 
+

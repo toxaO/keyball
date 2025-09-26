@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIX_ROWS         (4 * 2)  // split keyboard
 #define MATRIX_COLS         6
 #define MATRIX_ROW_PINS     { GP29, GP28, GP27, GP26 }
-#define MATRIX_COL_PINS     { GP4, GP5, GP6, GP7, GP8, GP9}
+#define MATRIX_COL_PINS     { GP4, GP5, GP6, GP7, GP8, GP9 }
 #define MATRIX_MASKED
 #define DEBOUNCE            5
 #define DIODE_DIRECTION     COL2ROW
@@ -33,12 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 //#define SPLIT_USB_DETECT
 //#define SPLIT_USB_TIMEOUT       500
-#define SPLIT_LAYER_STATE_ENABLE
-
-#define SPLIT_TRANSACTION_IDS_KB KEYBALL_GET_INFO
 
 // RGB LED settings
-#define WS2812_DI_PIN       GP0
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_LED_COUNT      46
 #    define RGBLED_SPLIT    { 24, 22 }  // right layout: 24 + 22
@@ -59,9 +55,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_MATRIX_SPLIT    { 24, 24 }
-#endif
-
-// Auto Mouse Layer を有効化
-#ifndef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
 #endif

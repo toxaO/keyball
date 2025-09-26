@@ -1,5 +1,4 @@
 // keyball39
-// mymap2.0
 /*
 This is the c configuration file for the keymap
 
@@ -40,7 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_LAYERS
 #    define RGBLIGHT_LAYERS_RETAIN_VAL
 #    define RGBLIGHT_MAX_LAYERS 32
-
 #endif
 
 // scroll snap
@@ -71,3 +69,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // レイヤー数増加させたい時はundefして16bitを追加
 #undef LAYER_STATE_8BIT
 #define LAYER_STATE_16BIT
+
+// --- Vial/VIA 共有設定 ----------------------------------------------------
+
+#ifndef DYNAMIC_KEYMAP_LAYER_COUNT
+#    define DYNAMIC_KEYMAP_LAYER_COUNT 16
+#endif
+
+#ifndef EECONFIG_KB_DATA_SIZE
+#    define EECONFIG_KB_DATA_SIZE 128
+#endif
+
+#ifdef VIAL_ENABLE
+#    ifndef VIA_EEPROM_CUSTOM_CONFIG_SIZE
+#        define VIA_EEPROM_CUSTOM_CONFIG_SIZE 128
+#    endif
+
+#    ifndef VIA_FIRMWARE_VERSION
+#        define VIA_FIRMWARE_VERSION 0x00010002
+#    endif
+
+#    define VIAL_COMBO_ENABLE
+#    undef TAPPING_TERM_PER_KEY
+#endif

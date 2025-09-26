@@ -33,13 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 //#define SPLIT_USB_DETECT
 //#define SPLIT_USB_TIMEOUT       500
-#define SPLIT_LAYER_STATE_ENABLE
 
-
-#define SPLIT_TRANSACTION_IDS_KB KEYBALL_GET_INFO
 
 // RGB LED settings
-#define WS2812_DI_PIN       GP0
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_LED_COUNT      60
 #    define RGBLED_SPLIT    { 30, 30 }  // (30 + 29)
@@ -62,7 +58,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGB_MATRIX_SPLIT    { 30, 30 }
 #endif
 
-// Auto Mouse Layer を有効化
-#ifndef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
-#endif
+// Auto Mouse Layer 設定は共通設定で有効化

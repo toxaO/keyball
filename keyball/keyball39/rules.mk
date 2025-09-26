@@ -44,3 +44,9 @@ SRC += lib/keyball/keyball_kbpf.c
 SPACE_CADET_ENABLE = no
 GRAVE_ESC_ENABLE = no
 MAGIC_ENABLE = no
+
+# Vial unlock combo (config.h では非推奨のためビルド時に付与)
+ifeq ($(strip $(VIAL_ENABLE)), yes)
+OPT_DEFS += -DVIAL_UNLOCK_COMBO_ROWS={0,0}
+OPT_DEFS += -DVIAL_UNLOCK_COMBO_COLS={0,1}
+endif
