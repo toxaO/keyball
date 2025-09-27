@@ -5,3 +5,7 @@
 
 // Vial 用: キーボード UID（固有値）
 #define VIAL_KEYBOARD_UID {0x0B, 0x75, 0x3C, 0x87, 0x03, 0x50, 0x99, 0xA9}
+
+// Vial 用: アンロックコンボ（VIA互換のための設定）
+#define VIAL_UNLOCK_COMBO_ROWS {0, 0}
+#define VIAL_UNLOCK_COMBO_COLS {0, 1}

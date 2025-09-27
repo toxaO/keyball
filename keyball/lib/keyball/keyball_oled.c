@@ -849,38 +849,42 @@ void oled_render_info_keycode(void) {
 }
 
 void oled_render_info_mods(void) {
+    // Mods: scga を文字で表示（有効時は s/c/g/a、無効時は '-'）。
+    // 先頭のガイド行 "scgaC" は表示しない。CapsLockはここには含めない。
     oled_write_P("Mods:", false);
-    oled_write_P("scgaC", false);
-
-    char active[6];
+    char active[5];
     uint8_t mods = get_mods();
-    led_t leds = host_keyboard_led_state();
-    active[0] = (mods & MOD_MASK_SHIFT) ? '+' : '-';
-    active[1] = (mods & MOD_MASK_CTRL)  ? '+' : '-';
-    active[2] = (mods & MOD_MASK_GUI)   ? '+' : '-';
-    active[3] = (mods & MOD_MASK_ALT)   ? '+' : '-';
-    active[4] = leds.caps_lock          ? '+' : '-';
-    active[5] = '\0';
+    active[0] = (mods & MOD_MASK_SHIFT) ? 's' : '-';
+    active[1] = (mods & MOD_MASK_CTRL)  ? 'c' : '-';
+    active[2] = (mods & MOD_MASK_GUI)   ? 'g' : '-';
+    active[3] = (mods & MOD_MASK_ALT)   ? 'a' : '-';
+    active[4] = '\0';
     oled_write_P(active, false);
-
+}
+void oled_render_info__mods_oneshot(void) {
+    // OSM: 同様に scga の4文字で表示
     uint8_t osm = get_oneshot_mods();
     uint8_t osl = get_oneshot_locked_mods();
     char oneshot[5];
-    oneshot[0] = (osm & MOD_MASK_SHIFT) ? '+' : '-';
-    oneshot[1] = (osm & MOD_MASK_CTRL)  ? '+' : '-';
-    oneshot[2] = (osm & MOD_MASK_GUI)   ? '+' : '-';
-    oneshot[3] = (osm & MOD_MASK_ALT)   ? '+' : '-';
+    oneshot[0] = (osm & MOD_MASK_SHIFT) ? 's' : '-';
+    oneshot[1] = (osm & MOD_MASK_CTRL)  ? 'c' : '-';
+    oneshot[2] = (osm & MOD_MASK_GUI)   ? 'g' : '-';
+    oneshot[3] = (osm & MOD_MASK_ALT)   ? 'a' : '-';
     oneshot[4] = '\0';
-    oled_write_P(" OSM:", false);
-    oled_write_P(oneshot, false);
-
-    char locked[5];
-    locked[0] = (osl & MOD_MASK_SHIFT) ? '+' : '-';
-    locked[1] = (osl & MOD_MASK_CTRL)  ? '+' : '-';
-    locked[2] = (osl & MOD_MASK_GUI)   ? '+' : '-';
-    locked[3] = (osl & MOD_MASK_ALT)   ? '+' : '-';
-    locked[4] = '\0';
-    oled_write_P(" LCK:", false);
+    oled_write_ln(" OSM:", false);
+    oled_write_ln(oneshot, false);
+}
+void oled_render_info_mods_lock(void) {
+    // LCK: scga に加えて末尾に CapsLock を 'C' で追加表示
+    led_t leds = host_keyboard_led_state();
+    char locked[6];
+    locked[0] = (osl & MOD_MASK_SHIFT) ? 's' : '-';
+    locked[1] = (osl & MOD_MASK_CTRL)  ? 'c' : '-';
+    locked[2] = (osl & MOD_MASK_GUI)   ? 'g' : '-';
+    locked[3] = (osl & MOD_MASK_ALT)   ? 'a' : '-';
+    locked[4] = leds.caps_lock         ? 'C' : '-';
+    locked[5] = '\0';
+    oled_write_P("LCK: ", false);
     oled_write_P(locked, false);
 }
 

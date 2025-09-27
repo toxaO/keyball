@@ -49,12 +49,15 @@ void oledkit_render_info_user(void) {
 
     oled_write_ln("", false);
 
-    // preset 順番は好きに入れ替えてください
+    // preset
+    // 順番は好きに入れ替えてください
     // oled_render_info_layer(); // 現在のレイヤー表示
     // oled_render_info_layer_default(); // 現在のデフォルトレイヤー
     // oled_render_info_ball(); // トラックボールの現在値
     // oled_render_info_keycode(); // 送信キーコード
-    oled_render_info_mods(); // modifier keyの状態 順番にShift, Ctrl, Gui, alt, Caps
+    oled_render_info_mods(); // modifier keyの状態 順番にShift, Ctrl, Gui, alt
+    oled_render_info_mods_oneshot(); // one shot modifier keyの状態 順番にShift, Ctrl, Gui, alt
+    oled_render_info_mods_lock(); // modifier keyのlock状態 順番にShift, Ctrl, Gui, alt, Caps
     // oled_render_info_cpi(); // ポインターの速度
     // oled_render_info_scroll_step(); // スクロール速度
     // oled_render_info_swipe_tag(); // スワイプ状態
