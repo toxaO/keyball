@@ -1,7 +1,26 @@
+// keyball39
+// mymap2.0
 #pragma once
 
 #include "quantum.h"
 #include "lib/keyball/keyball.h"  // キーボードレベルのキーコード（MULTI_*, *_SW など）
+
+//------------------------------------------------------------
+// Layer
+//------------------------------------------------------------
+enum layer_names {
+    _Def = 0,
+    _Sym,
+    _Cur,
+    _Pad,
+    _NumP,
+    _Mou,
+    _Scr,
+};
+
+#define _Sym_SPC   LT(_Sym, KC_SPC)
+#define _Mou_SCLN  LT(_Mou, KC_SCLN)
+#define _Cur_ENT   LT(_Cur, KC_ENT)
 
 //------------------------------------------------------------
 // カスタムキーコードの分担とSAFE_RANGEの使い方
@@ -17,8 +36,13 @@
 // Custom Keycode
 //------------------------------------------------------------
 enum custom_keycodes {
+    EISU_S_N = KEYBALL_SAFE_RANGE, // == 例:QK_KB_20であれば、以下はそこから順番のキーコードになる。
+    KANA_C_N,
+    ESC_LNG2,
+    TG_PA_GU,
+
     // フリック用カスタムキーコード
-    FLICK_A = KEYBALL_SAFE_RANGE, // == 例:QK_KB_20であれば、以下はそこから順番のキーコードになる。
+    FLICK_A,
     FLICK_D,
     FLICK_G,
     FLICK_J,
@@ -27,6 +51,20 @@ enum custom_keycodes {
     FLICK_S,
     FLICK_V,
 };
+
+//------------------------------------------------------------
+// mod tap
+//------------------------------------------------------------
+#define MINUS_G    MT(MOD_LGUI, KC_MINUS)
+#define KANA_C     MT(MOD_LCTL, KC_LNG1)
+#define EISU_S     MT(MOD_LSFT, KC_LNG2)
+#define CLN_C      MT(MOD_LCTL, CLN)
+#define MINUS_S    MT(MOD_LSFT, KC_MINUS)
+#define NumP_A     MT(MOD_LALT, KC_NO)
+#define BSPC_G     MT(MOD_LGUI, KC_BSPC)
+#define COMM_G     GUI_T(KC_COMM)
+#define DOT_A      ALT_T(KC_DOT)
+#define SLSH_S     SFT_T(KC_SLSH)
 
 //------------------------------------------------------------
 // mod + kc *JIS
@@ -116,6 +154,22 @@ enum custom_keycodes {
 #define m_MIS_CON  LCTL(KC_UP)
 #define m_L_DESK   LCTL(KC_LEFT)
 #define m_R_DESK   LCTL(KC_RIGHT)
+// magnet
+#define MGN_L      C(A(KC_LEFT))
+#define MGN_R      C(A(KC_RIGHT))
+#define MGN_U      C(A(KC_UP))
+#define MGN_D      C(A(KC_DOWN))
+#define MGN_RU     C(A(KC_I))
+#define MGN_LU     C(A(KC_U))
+#define MGN_RD     C(A(KC_K))
+#define MGN_LD     C(A(KC_J))
+#define MGN_LW     C(A(KC_T))
+#define MGN_LN     C(A(KC_G))
+#define MGN_RW     C(A(KC_E))
+#define MGN_RN     C(A(KC_D))
+#define MGN_CN     C(A(KC_R))
+#define MGN_MAX    C(A(KC_ENT))
+#define MGN_REC    C(A(KC_BSPC))
 
 //----------------------------------------
 // win
