@@ -556,7 +556,7 @@ void keyball_oled_render_setting(void) {
             uint8_t inv = kbpf.scroll_invert[os] ? 1 : 0;
             uint8_t preset = kbpf.scroll_preset[os];
             // ScSp（スクロールスピード）
-            oled_writef_sel(row++, sel == 0, "ScSp:%1u", (unsigned)keyball_get_scroll_div());
+            oled_writef_sel(row++, sel == 0, "Sp:%1u", (unsigned)keyball_get_scroll_div());
             // Scroll deadzone
             oled_writef_sel(row++, sel == 1, "Dz:%1u", (unsigned)kbpf.scroll_deadzone);
             // inverse
@@ -861,10 +861,9 @@ void oled_render_info_mods(void) {
     active[4] = '\0';
     oled_write_P(active, false);
 }
-void oled_render_info__mods_oneshot(void) {
+void oled_render_info_mods_oneshot(void) {
     // OSM: 同様に scga の4文字で表示
     uint8_t osm = get_oneshot_mods();
-    uint8_t osl = get_oneshot_locked_mods();
     char oneshot[5];
     oneshot[0] = (osm & MOD_MASK_SHIFT) ? 's' : '-';
     oneshot[1] = (osm & MOD_MASK_CTRL)  ? 'c' : '-';
@@ -877,6 +876,7 @@ void oled_render_info__mods_oneshot(void) {
 void oled_render_info_mods_lock(void) {
     // LCK: scga に加えて末尾に CapsLock を 'C' で追加表示
     led_t leds = host_keyboard_led_state();
+    uint8_t osl = get_oneshot_locked_mods();
     char locked[6];
     locked[0] = (osl & MOD_MASK_SHIFT) ? 's' : '-';
     locked[1] = (osl & MOD_MASK_CTRL)  ? 'c' : '-';

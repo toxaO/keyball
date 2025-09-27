@@ -164,7 +164,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define KBPF_DEFAULT_SCROLL_HYSTERESIS 0
 #endif
 #ifndef KBPF_DEFAULT_MOVE_DEADZONE
-#    define KBPF_DEFAULT_MOVE_DEADZONE 1
+#    define KBPF_DEFAULT_MOVE_DEADZONE 0
 #endif
 #ifndef KBPF_DEFAULT_AML_ENABLE
 #    define KBPF_DEFAULT_AML_ENABLE 0

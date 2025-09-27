@@ -1,0 +1,103 @@
+{
+  "name": "Keyball61",
+  "vendorId": "0x5957",
+  "productId": "0x0100",
+  "matrix": { "rows": 10, "cols": 8 },
+  "lighting": "qmk_rgblight",
+  "layouts" : {
+    "keymap": [
+  [ { "x": 3 }, "0,4", { "x": 8.5 }, "5,4" ],
+  [ { "y": -0.875, "x": 4 }, "0,5", { "x": 6.5 }, "5,5" ],
+  [ { "y": -0.875, "x": 2 }, "0,2", { "x": 2 }, "0,6", { "x": 4.5 }, "5,6", { "x": 2 }, "5,2" ],
+  [ { "y": -0.65, "c": "#aaaaaa" }, "0,0", { "c": "#cccccc" }, "0,1", { "x": 12.5 }, "5,1", { "c": "#aaaaaa" }, "5,0" ],
+  [ { "y": -0.6000000000000001, "x": 3, "c": "#cccccc" }, "1,4", { "x": 8.5 }, "6,4" ],
+  [ { "y": -0.875, "x": 4 }, "1,5", { "x": 6.5 }, "6,5" ],
+  [ { "y": -0.875, "x": 2 }, "1,2", { "x": 2 }, "1,6", { "x": 4.5 }, "6,6", { "x": 2 }, "6,2" ],
+  [ { "y": -0.6499999999999999, "c": "#aaaaaa" }, "1,0", { "c": "#cccccc" }, "1,1", { "x": 12.5 }, "6,1", { "c": "#aaaaaa" }, "6,0" ],
+  [ { "y": -0.6000000000000001, "x": 3, "c": "#cccccc" }, "2,4", { "x": 8.5 }, "7,4" ],
+  [ { "y": -0.875, "x": 4 }, "2,5", { "x": 6.5 }, "7,5" ],
+  [ { "y": -0.875, "x": 2 }, "2,2", { "x": 2 }, "2,6", { "x": 4.5 }, "7,6", { "x": 2 }, "7,2" ],
+  [ { "y": -0.6499999999999999, "c": "#aaaaaa" }, "2,0", { "c": "#cccccc" }, "2,1", { "x": 12.5 }, "7,1", { "c": "#aaaaaa" }, "7,0" ],
+  [ { "y": -0.6000000000000001, "x": 3, "c": "#cccccc" }, "3,4", { "x": 8.5 }, "8,4" ],
+  [ { "y": -0.875, "x": 4 }, "3,5", { "x": 6.5 }, "8,5" ],
+  [ { "y": -0.875, "x": 2 }, "3,2", { "x": 2 }, "3,6", { "x": 4.5 }, "8,6", { "x": 2 }, "8,2" ],
+  [ { "y": -0.8500000000000001, "x": 6, "c": "#aaaaaa" }, "3,7", { "x": 2.5 }, "8,7" ],
+  [ { "y": -0.7999999999999998 }, "3,0", { "c": "#cccccc" }, "3,1", { "x": 12.5 }, "8,1", { "c": "#aaaaaa" }, "8,0" ],
+  [ { "y": -0.5999999999999996, "x": 12.5 }, "9,4" ],
+  [ { "y": -0.75, "x": 13.5 }, "9,2" ],
+  [ { "y": -0.75, "x": 11.2 }, "9,5" ],
+  [
+    {
+      "y": -0.9000000000000004
+    },
+    "4,0",
+    "4,1",
+    {
+      "x": 12.5
+    },
+    "9,1",
+    "9,0"
+  ],
+  [
+    {
+      "r": 10,
+      "rx": 5.35,
+      "ry": 5.5,
+      "y": -1
+    },
+    "4,6"
+  ],
+  [
+    {
+      "r": 20,
+      "rx": 6.4,
+      "ry": 5.7,
+      "y": -0.9900000000000002,
+      "x": -0.03000000000000025
+    },
+    "4,7"
+  ],
+  [
+    {
+      "r": -20,
+      "rx": 10.15,
+      "y": -1,
+      "x": -1.0199999999999996
+    },
+    "9,7"
+  ],
+  [
+    {
+      "r": -10,
+      "rx": 11.15,
+      "ry": 5.5,
+      "y": -0.9800000000000004,
+      "x": -1
+    },
+    "9,6"
+  ]
+    ]
+  },
+  "customKeycodes": [
+    { "name": "KBC_RST",  "title": "Reset Keyball configuration",                 "shortName": "KBC\nRST" },
+    { "name": "KBC_SAVE", "title": "Persist Keyball configuration to EEPROM",     "shortName": "KBC\nSAVE" },
+    { "name": "STG_TOG",  "title": "Toggle OLED setting view",                    "shortName": "STG\nTOG" },
+    { "name": "SCRL_TO",  "title": "Toggle scroll mode",                          "shortName": "SCRL\nTO" },
+    { "name": "SCRL_MO",  "title": "Enable scroll mode while pressed",            "shortName": "SCRL\nMO" },
+    { "name": "SSNP_VRT", "title": "Set scroll snap mode: vertical",              "shortName": "SSNP\nVRT" },
+    { "name": "SSNP_HOR", "title": "Set scroll snap mode: horizontal",            "shortName": "SSNP\nHOR" },
+    { "name": "SSNP_FRE", "title": "Set scroll snap mode: free (disable)",        "shortName": "SSNP\nFRE" },
+    { "name": "APP_SW",   "title": "App switch swipe (press=begin, release=end)", "shortName": "APP\nSW" },
+    { "name": "VOL_SW",   "title": "Volume/media swipe",                           "shortName": "VOL\nSW" },
+    { "name": "BRO_SW",   "title": "Browser/history swipe",                        "shortName": "BRO\nSW" },
+    { "name": "TAB_SW",   "title": "Tab switch swipe",                             "shortName": "TAB\nSW" },
+    { "name": "WIN_SW",   "title": "Window/desktop swipe",                         "shortName": "WIN\nSW" },
+    { "name": "MULTI_A",  "title": "Multi action A (user-hooked; default F1)",    "shortName": "MULTI\nA" },
+    { "name": "MULTI_B",  "title": "Multi action B (user-hooked; default F2)",    "shortName": "MULTI\nB" },
+    { "name": "MULTI_C",  "title": "Multi action C (user-hooked; default F3)",    "shortName": "MULTI\nC" },
+    { "name": "MULTI_D",  "title": "Multi action D (user-hooked; default F4)",    "shortName": "MULTI\nD" },
+    { "name": "SW_ARR",   "title": "Arrow proxy swipe (press to begin)",          "shortName": "SW\nARR" },
+    { "name": "SW_EX1",   "title": "Extension swipe 1 (tap=F10; U/R/D/L=F11/12/13/14)", "shortName": "SW\nEX1" },
+    { "name": "SW_EX2",   "title": "Extension swipe 2 (tap=F15; U/R/D/L=F16/17/18/19)", "shortName": "SW\nEX2" }
+  ]
+}

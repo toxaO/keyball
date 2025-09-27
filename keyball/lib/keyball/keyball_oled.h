@@ -44,6 +44,8 @@ void oled_render_info_layer_default(void);
 void oled_render_info_ball(void);
 void oled_render_info_keycode(void);
 void oled_render_info_mods(void);
+void oled_render_info_mods_oneshot(void);
+void oled_render_info_mods_lock(void);
 void oled_render_info_cpi(void);
 void oled_render_info_scroll_step(void);
 void oled_render_info_swipe_tag(void);
