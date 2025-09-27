@@ -48,7 +48,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 }
 ```
 
-### OLED setting mode / OLED設定モード（旧デバッグ）
+### OLED setting mode / OLED設定モード
 `STG_TOG` で設定ビューを表示します。ページ送りは `KC_LEFT`（前）/`KC_RIGHT`（次）、
 値の変更は `Shift+KC_LEFT`（減少）/`Shift+KC_RIGHT`（増加）で操作します。
 Shift+←/→ でもページを移動できます（設定モード中）。

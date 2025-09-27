@@ -24,7 +24,7 @@ void keyball_on_multi_a(kb_swipe_tag_t tag) {
     case KBS_TAG_VOL: tap_code(KC_MNXT); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_LEFT); }
-        else                        { tap_code16(MGN_L); }
+        else                        { tap_code16(RCTL(LCTL(KC_L))); }
         break;
     default: tap_code16(KC_F1); break;
     }
@@ -45,7 +45,7 @@ void keyball_on_multi_b(kb_swipe_tag_t tag) {
     case KBS_TAG_VOL: tap_code(KC_MPRV); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_RIGHT); }
-        else                        { tap_code16(MGN_R); }
+        else                        { tap_code16(RCTL(LCTL(KC_R))); }
         break;
     default: tap_code16(KC_F2); break;
     }
@@ -63,7 +63,7 @@ void keyball_on_multi_c(kb_swipe_tag_t tag) {
     case KBS_TAG_VOL: tap_code(KC_VOLU); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_UP); }
-        else                        { tap_code16(MGN_U); }
+        else                        { tap_code16(RCTL(LCTL(KC_U))); }
         break;
     default: tap_code16(KC_F3); break;
     }
@@ -78,7 +78,7 @@ void keyball_on_multi_d(kb_swipe_tag_t tag) {
     case KBS_TAG_VOL: tap_code(KC_VOLD); break;
     case KBS_TAG_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_DOWN); }
-        else                        { tap_code16(MGN_D); }
+        else                        { tap_code16(RCTL(LCTL(KC_D))); }
         break;
     default: tap_code16(KC_F4); break;
     }

@@ -29,21 +29,13 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t *record) {
     case BRO_SW:
     case TAB_SW:
     case WIN_SW:
+    case SW_ARR:
       return true; // マウスキーとして扱う
     default:
       return false;
   }
 }
 #endif
-
-// // 自前の絶対数を返す関数。 Functions that return absolute numbers.
-// int16_t my_abs(int16_t num) {
-//   if (num < 0) {
-//     num = -num;
-//   }
-//   return num;
-// }
-
 
 void tap_code16_with_oneshot(uint16_t keycode) {
   uint8_t osm = get_oneshot_mods();
@@ -58,9 +50,3 @@ void tap_code16_with_oneshot(uint16_t keycode) {
     clear_oneshot_mods();
   }
 }
-
-// OS依存送出は KB レベルの tap_code16_os() を利用してください。
-
-// void reset_eeprom(void) {
-//   eeconfig_init();
-// }

@@ -13,9 +13,9 @@ extern bool canceller;  // 既存のあなたの変数を流用
 #define KBS_TAG_FLICK_J   104
 #define KBS_TAG_FLICK_M   105
 #define KBS_TAG_FLICK_P   106
-#define KBS_TAG_FLICK_S   107
-#define KBS_TAG_FLICK_V   108
+#define KBS_TAG_FLICK_T   107
+#define KBS_TAG_FLICK_W   108
 
 static inline bool kb_is_flick_tag(kb_swipe_tag_t tag) {
-    return ((tag >= KBS_TAG_FLICK_A && tag <= KBS_TAG_FLICK_V) || tag == KBS_TAG_PAD_A);
+    return ((tag >= KBS_TAG_FLICK_A && tag <= KBS_TAG_FLICK_W) || tag == KBS_TAG_PAD_A);
 }

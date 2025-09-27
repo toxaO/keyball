@@ -126,13 +126,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     static flick_state_t st;
                     return handle_flick_key(KBS_TAG_FLICK_P, KC_P, record, &st);
                   }
-    case FLICK_S: {
+    case FLICK_T: {
                     static flick_state_t st;
-                    return handle_flick_key(KBS_TAG_FLICK_S, KC_S, record, &st);
+                    return handle_flick_key(KBS_TAG_FLICK_T, KC_T, record, &st);
                   }
-    case FLICK_V: {
+    case FLICK_W: {
                     static flick_state_t st;
-                    return handle_flick_key(KBS_TAG_FLICK_V, KC_V, record, &st);
+                    return handle_flick_key(KBS_TAG_FLICK_W, KC_W, record, &st);
                   }
 
     //------------------------------------------------------------
