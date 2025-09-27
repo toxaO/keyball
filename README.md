@@ -11,29 +11,35 @@
 ## 対応ボード（RP2040系）
 - RP2040 へ載せ替えが必要です。ATmega32U4系promicro(普通のkeyballで使用しているボード)のままでは使用できません）
 - 必要ボード: 下記いずれか
-  - AliExpressの本品: https://ja.aliexpress.com/item/1005005980167753.html?channel=twinner
+  - [AliExpressの本品](https://ja.aliexpress.com/item/1005005980167753.html?channel=twinner "promicro rp2040 商品リンク")
   - RP2040 ProMicro 互換（4MBで可）
 
 ## 対応手順
 - 対応のボードのシルク（端子の記載）をよく確認の元、お手持ちのkeyballの仕様に合うようにコンスルーかピンヘッダを使用して取り付けてください。
+- ※一度コンスルー（ピンヘッダ）をはんだ付けしてしまうと取り外すのが大変なので、取り付け向きに関してはよく確認してください。※
 - 確認しているボードでは、リセットスイッチが下側（取り付けると隠れてしまう側）に来るように取り付けることになります。
-- 取り付ける前に、RP2040へファームを書き込んでください。取り付けた後は、keyballのリセットスイッチ（タクトスイッチ）を素早く2回押すことで、PCに書き込み可能モード（BOOTSEL）が現れます。
-- またはQK_BOOTを使用しても良いです。
-- 画像の面が上を向くようにしてください。
+- 新品のrp2040ボードは、PCに接続するとストレージとして認識されるので、そこにファームウェアのファイル(.uf2ファイル)をコピーしてください。
+- rp2040ボードのリセットボタンを押しながら接続することでも、ストレージとして認識されます。
+- 取り付ける前に、RP2040へファームを書き込んでください。一度ファームウェアを書き込み基板に取り付けた後は、keyballのリセットスイッチ（タクトスイッチ）を素早く2回押すことで、PCに書き込み可能モード（ストレージとしての認識）になります。
+- またはキーコード(QK_BOOT)を使用しても良いです。
+- ※取り付ける向きは画像の面が上を向くようにしてください。（リセットボタンが隠れます）※
 
 <img src="images/rp2040promicro.jpeg" alt="rp2040promicro" width="150"/>
 
 ## !!ファームの使用の前に!!
 ### karabiner-elementsの導入の推奨（macユーザ向け）
-- このファームをmacで使用する場合、karabiner-elementsを使用して、right-controlをFnに変更することを強く推奨します。
-- vialでRALT(KC_C)などを割り当てた場合、macではLGUI(KC_C)、その他ではLCTL(KC_C)として動作するようになっています。
-- また、ビルドできる方はキーマップにF1などを割り当てることで、macではRALT(KC_F1)->Fn(KC_F1)として動作するようになります。その他のOSではKC_F1として動作します。
+- このファームをmacで使用する場合、[karabiner-elements](https://karabiner-elements.pqrs.org/ "karabiner-elements")を使用して、right-controlをFnに変更することを強く推奨します。
+- QMKではmacのキーボードに存在するFnキーに対応するキーコードがありません。そのためこのファームでは右コントロールキーをFnキーとして認識するようにkarabinerで変換することを前提として一部のキーを設定しています。詳細に関してはlib_user/user/keycode_user.hやlib_user/user/feature/macro_user.cを参照してください。（基本的なKC_系に関しては手を加えていないので、気にしなくて大丈夫です）
+- vial上ではRALT(KC_F*)、ビルドできる方はキーマップにキーコードF1を割り当てると、macではRCTL(KC_F1)からkarabinerの変換を得てFn(KC_F1)として動作するようになります。その他のOSではF1はKC_F1として動作します。
 ### mac mouse fixの導入の推奨（macユーザ向け）
-- mac mouse fixも導入することを推奨します。
+- [mac mouse fix](https://macmousefix.com/ja/ "mac mouse fix")も導入することを推奨します。
+- スクロール動作が滑らかになり、MS_BTN4やMS_BTN5に機能を登録することでズームなどを実現できます。
+### macとその他のOSに対するショートカットキーに関して
+- vialでRALT(KC_C)などを割り当てた場合、macではLGUI(KC_C)、その他ではLCTL(KC_C)として動作するようになっています。（典型的なキーコードのみの対応となっています）
 
 ## このファームで利用できる主な機能
 ### Vial 対応（キーマップの動的編集が可能）
-- vial web app(https://vial.rocks/)かデスクトップアプリをご利用ください(https://get.vial.today/manual/)
+- [vial web app](https://vial.rocks/ "vial web")か[vial デスクトップアプリ](https://get.vial.today/manual/ "vial 公式")をご利用ください
 
 ### スワイプ（マウスジェスチャ）操作の対応
 - SW_系のキーを押しながら、上下左右にスワイプすることで、アプリ切替や音量調整などが可能。
@@ -62,8 +68,8 @@
 | `FLICK_J`  | 擬似フリックJ  |j       |k         |なし        |なし      |c         |
 | `FLICK_M`  | 擬似フリックM  |m       |l         |なし        |なし      |c         |
 | `FLICK_P`  | 擬似フリックP  |p       |q         |なし        |r         |s         |
-| `FLICK_T`  | 擬似フリックt  |t       |u         |なし        |なし      |v         |
-| `FLICK_W`  | 擬似フリックw  |w       |x         |なし        |y         |z         |
+| `FLICK_T`  | 擬似フリックT  |t       |u         |なし        |なし      |v         |
+| `FLICK_W`  | 擬似フリックW  |w       |x         |なし        |y         |z         |
 
 ### マルチキー入力
 - どのスワイプキーを押しているかによって押した際の機能が変わります。
@@ -91,10 +97,11 @@
 | `MOSP_INC`  | マウスポインタ速度増加  |
 
 ### OLED表示
-- lib_user/user/user/oled_user.cで表示内容を変更できます。
+- lib_user/user/user/oled_user.cで通常画面の表示内容を変更できます。
 
 | 関数                              | 説明                                                        |
 |:----------------------------------|:------------------------------------------------------------|
+|oled_render_info_layer()           |  現在のレイヤー                                               |
 |oled_render_info_layer_default()   |  現在のデフォルトレイヤー                                   |
 |oled_render_info_ball()            |  トラックボールの現在値                                     |
 |oled_render_info_keycode()         |  送信キーコード                                             |
@@ -108,22 +115,22 @@
 
 ### OLED 上での設定
 - SET_TOGキーを押すと、OLEDが設定モードに切り替わります。（再度押すと通常画面に戻ります。）
-- 上下でカーソルの移動。左右でページ移動。Shift+左右で値の増減が可能です。
+- 上下キーでカーソルの移動。左右キーでページ移動。Shift+左右キーで値の増減が可能です。
 - 設定はKBC_SAVEキーで保存されます。KBC_RSTキーで初期化されます。
-- ご自分でビルドされる方は、lib/keyball/keyball.hで設定されているマクロをkeyball/.../keymap/user/config.hで上書きすることで、初期値を変更できます。
+- ご自分でビルドされる方は、lib/keyball/keyball.hで設定されているマクロをkeyball/.../keymap/user/config.hで上書きすることで初期値を変更できます。
 
 ### mouse config
 - MoSp: (Mouse speed)ポインタの速度
 - Glo: (Gain low speed)低速域のゲイン。低速域ではポインタの速度がここで指定した割合になります。
-- Th1/Th2: (Threshold1 / 2)低速域のしきい値。Th1以下ではGlo、Th1～Th2では線形補間されたゲイン、Th2以上ではMoSpの速度になります。
+- Th1/Th2: (Threshold1/2)低速域のしきい値。Th1以下ではMoSpの(Glo)%、Th1～Th2では線形補間されたゲイン、Th2以上ではMoSpの速度になります。
 - DZ: (DEAD ZONE)この値以下のボールの動作は無視されます。
 
 ### AML config
-- en: (enable) AUTO MOUSE LAYERの有効/無効
-- TO: AUTO MOUSE LAYERのタイムアウト時間(ms)。500ms単位で増減。9500より大きく設定しようとすると、HOLDとして60秒間の設定となります。
+- en: (enable) オートマウスレイヤーの有効/無効
+- TO: (Time Out)設定の時間(ms)が経過するまでマウスレイヤーに留まります。500ms単位で増減。9500より大きく設定しようとすると、HOLDとして60秒間の設定となります。
 - AMLはマウスキー以外のボタンを押すことで解除されます。（マウスキー：MS_BTN1やスワイプキー。util_user.cで追加設定できます。）
-- TH: AUTO MOUSE LAYERの閾値。これを超えるとAMLが有効になります。
-- TG_L: (Target Layer)AMLが有効になったときに切り替わるレイヤー。
+- TH: AUTO MOUSE LAYERの閾値。ポインタの移動量がこれを超えるとAMLが有効になります。
+- TG_L: (Target Layer)AMLが有効になったときの切り替え先レイヤー番号。
 
 ### Scroll config
 - Sp: (Scroll Speed)スクロールのステップ。1～7で設定可能。
@@ -131,7 +138,7 @@
 - Inv: (Invert)スクロールの反転。
 - ScLy: (Scroll Layer)任意のレイヤーでスクロールモードをを有効にする。
 - LNo: (Layer number)スクロールモードを有効にするレイヤー番号。
-- Mode: (Preset Mode)プリセットモード。m:macモード。f:高精度モード。n:標準モード。macでは高精度モードを使用できません。
+- Mode: (Mode)モード。m:macモード。f:高精度モード。n:標準モード。macでは高精度モードを使用できません。
 - H_Ga: (Horizontal Gain)スクロール最終ゲインの水平成分。垂直成分に対する割合(%)。左右方向のスクロールを遅くしたい場合に調整します。
 
 ### SSNP config
@@ -140,17 +147,17 @@
 - Rst: フリースクロールでいる時間。
 
 ### Swipe config
-- St: (Swipe Threshold) スワイプと判定する閾値
+- St: (Swipe Threshold) スワイプと判定する移動量の閾値
 - Dz: (Dead Zone) この値以下のボールの動作は無視されます。
-- Rt: (Reset Time) スワイプ動作のリセット時間(ms)。この時間内に閾値を超える動作がなければ、スワイプ動作はリセットされます。
+- Rt: (Reset Time) スワイプ動作のリセット時間(ms)。この時間内に閾値を超える動作がなければ、スワイプ動作用の移動量はリセットされます。
 - Frz: (Freeze) スワイプ中にポインタを固定するかどうか。
 
 ### RGB config
-- light on/off
+- light on/off（offの時は以下の設定を変更できません）
 - HUE (色相)。
 - SAT (彩度)。
 - VAL (明度)。
-- Mode アニメーションモード。
+- Mode アニメーションモード。(一部モードではHUE, SAT, VALは変更できません)
 
 ### layer config
 - def: (Default Layer) デフォルトレイヤーとするレイヤー番号。
