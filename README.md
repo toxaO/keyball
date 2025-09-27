@@ -1,8 +1,10 @@
 # Keyball（本ファーム概要）
 
+<img src="images/oled_setting.jpeg" alt="keyball39" hight="200"/>"
+
 ## 概要
 このリポジトリは Keyball シリーズ用ファームウェア（QMK+vialベース）です。
-keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として個人的に作成したものです。
+[keyball公式](https://github.com/Yowkees/keyball "Yowkees/keyball")を元に、RP2040系として個人的に作成したものです。
 トラブル等は公式には問い合わせず、こちらのリポジトリのissueへお願いします。
 機能としては、vial対応、スワイプ（マウスジェスチャ）、擬似フリック入力、OLEDでの挙動調整などを追加しています。
 
@@ -18,7 +20,7 @@ keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として�
 - 取り付ける前に、RP2040へファームを書き込んでください。取り付けた後は、keyballのリセットスイッチ（タクトスイッチ）を素早く2回押すことで、PCに書き込み可能モード（BOOTSEL）が現れます。
 - またはQK_BOOTを使用しても良いです。
 - 画像の麺が上を向くようにしてください。
-<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" hight="300"/>
+<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" hight="150"/>
 
 ## !!ファームの使用の前に!!
 ### karabiner-elementsの導入の推奨（macユーザ向け）
@@ -34,6 +36,7 @@ keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として�
 
 ### スワイプ（マウスジェスチャ）操作の対応
 - SW_系のキーを押しながら、上下左右にスワイプすることで、アプリ切替や音量調整などが可能。
+- swipe_user.cの実装を変更することで、機能を追加できます。
 | キーコード | 説明                       |タップ                                |左             |下                          |上                       |右            |
 |:-----------|:---------------------------|:-------------------------------------|:--------------|:---------------------------|:------------------------|:-------------|
 | `APP_SW`   | アプリ切替スワイプ         |タスクビュー<br>ミッションコントロール| 右デスクトップ|タスクビュー<br>アプリビュー|copilot<br>スポットライト|左デスクトップ|
@@ -42,6 +45,8 @@ keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として�
 | `TAB_SW`   | タブ切替スワイプ           | 新規タブ                             |前のタブ       |タブを閉じる                |最後に閉じたタブ         |次のタブ      |
 | `WIN_SW`   | ウィンドウ位置操作         |ウィンドウを最大化                    |左半分に       |下半分に                    |上半分に                 |右半分に      |
 | `SW_ARR`   | 矢印キー                   |動作なし                              |左キー         |下キー                      |上キー                   |右キー        |
+| `SW_EX1`   | 各自拡張用                 |F13                                   |F15            |F16                         |F14                      |F17           |
+| `SW_EX1`   | 各自拡張用                 |F17                                   |F21            |F20                         |F18                      |F19           |
 
 ### 擬似フリック入力
 - Flick_系のキーを押しながら、上下左右にスワイプまたはMULTI_{A, B, C}を押下することで、方向に応じた文字入力が可能。
@@ -59,17 +64,48 @@ keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として�
 
 ### マルチキー入力
     - どのスワイプキーを押しているかによって押した際の機能が変わります。
+    - multi_user.cの実装を変更することで、機能を追加できます。
 | キーコード | 説明           |スワイプタグなし  |スワイプタグあり                            |
 |:-----------|:---------------|:-----------------|:-------------------------------------------|
 | `MULTI_A`  | マルチキーA　  |undo              |左スワイプ                                  |
 | `MULTI_B`  | マルチキーB　  |redo              |右スワイプ                                  |
 | `MULTI_C`  | マルチキーC　  |動作なし          |上スワイプ<br>ダブルタップで下スワイプ      |
 | `MULTI_D`  | マルチキーD　  |動作なし          |動作なし                                    |
-| `MULTI_E`  | マルチキーE　  |動作なし          |動作なし                                    |
+
+### 設定用カスタムキー
+| キーコード  | 説明                    |
+|:------------|:------------------------|
+| `KBC_RST`   | 設定リセット            |
+| `KBC_SAVE`  | 設定保存                |
+| `STG_TOG`   | OLEDの設定画面を開く    |
+| `SSNP_VRT`  | 垂直スクロールスナップ  |
+| `SSNP_HOR`  | 水平スクロールスナップ  |
+| `SSNP_FRE`  | スクロールスナップフリー|
+| `SCSP_DEC`  | スクロール速度減少      |
+| `SCSP_INC`  | スクロール速度増加      |
+| `MOSP_DEC`  | マウスポインタ速度減少  |
+| `MOSP_INC`  | マウスポインタ速度増加  |
+
+### OLED表示
+- lib_user/user/user/oled_user.cで表示内容を変更できます。
+| 関数                              | 説明                                                        |
+|:----------------------------------|:------------------------------------------------------------|
+|oled_render_info_layer_default()   |  現在のデフォルトレイヤー                                   |
+|oled_render_info_ball()            |  トラックボールの現在値                                     |
+|oled_render_info_keycode()         |  送信キーコード                                             |
+|oled_render_info_mods()            |  modifier keyの状態 順番にShift, Ctrl, Gui, alt             |
+|oled_render_info_mods_oneshot()    |  one shot modifier keyの状態 順番にShift, Ctrl, Gui, alt    |
+|oled_render_info_mods_lock()       |  modifier keyのlock状態 順番にShift, Ctrl, Gui, alt, Caps   |
+|oled_render_info_cpi()             |  ポインターの速度                                           |
+|oled_render_info_scroll_step()     |  スクロール速度                                             |
+|oled_render_info_swipe_tag()       |  スワイプ状態                                               |
+|oled_render_info_key_pos()         |  押したキーの位置                                           |
 
 ### OLED 上での設定
 - SET_TOGキーを押すと、OLEDが設定モードに切り替わります。（再度押すと通常画面に戻ります。）
 - 上下でカーソルの移動。左右でページ移動。Shift+左右で値の増減が可能です。
+- 設定はKBC_SAVEキーで保存されます。KBC_RSTキーで初期化されます。
+- ご自分でビルドされる方は、lib/keyball/keyball.hで設定されているマクロをkeyball/.../keymap/user/config.hで上書きすることで、初期値を変更できます。
 
 ### mouse config
 - MoSp: (Mouse speed)ポインタの速度
