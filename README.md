@@ -18,7 +18,7 @@ keyball公式(https://github.com/Yowkees/keyball)を元に、RP2040系として�
 - 取り付ける前に、RP2040へファームを書き込んでください。取り付けた後は、keyballのリセットスイッチ（タクトスイッチ）を素早く2回押すことで、PCに書き込み可能モード（BOOTSEL）が現れます。
 - またはQK_BOOTを使用しても良いです。
 - 画像の麺が上を向くようにしてください。
-<src="images/rp2040promicro.jpeg" alt="rp2040promicro" hight="300"/>
+<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" hight="300"/>
 
 ## !!ファームの使用の前に!!
 ### karabiner-elementsの導入の推奨（macユーザ向け）
