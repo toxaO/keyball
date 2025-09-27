@@ -1,6 +1,6 @@
 # Keyball（本ファーム概要）
 
-<img src="images/oled_setting.jpeg" alt="keyball39" width="400"/>"
+<img src="images/oled_setting.jpeg" alt="keyball39" width="800"/>
 
 ## 概要
 このリポジトリは Keyball シリーズ用ファームウェア（QMK+vialベース）です。
@@ -20,7 +20,7 @@
 - 取り付ける前に、RP2040へファームを書き込んでください。取り付けた後は、keyballのリセットスイッチ（タクトスイッチ）を素早く2回押すことで、PCに書き込み可能モード（BOOTSEL）が現れます。
 - またはQK_BOOTを使用しても良いです。
 - 画像の麺が上を向くようにしてください。
-<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" width="50"/>
+<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" width="150"/>
 
 ## !!ファームの使用の前に!!
 ### karabiner-elementsの導入の推奨（macユーザ向け）
