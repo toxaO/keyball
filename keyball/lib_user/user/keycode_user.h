@@ -24,8 +24,8 @@ enum custom_keycodes {
     FLICK_J,
     FLICK_M,
     FLICK_P,
-    FLICK_S,
-    FLICK_V,
+    FLICK_T,
+    FLICK_W,
 };
 
 //------------------------------------------------------------

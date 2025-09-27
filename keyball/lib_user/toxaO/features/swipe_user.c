@@ -196,21 +196,21 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_FLICK_S:
+    case KBS_TAG_FLICK_T:
         // {tap=S, up=None, right=U, left=T, down=None}
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_T); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_U); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_U); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_V); break;
         default: break;
         }
         break;
 
-    case KBS_TAG_FLICK_V:
+    case KBS_TAG_FLICK_W:
         // {tap=V, up=Y, right=W, left=Z, down=None}
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_Z); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_W); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_X); break;
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_Y); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_Z); break;
         default: break;
         }
         break;

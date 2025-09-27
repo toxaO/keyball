@@ -22,7 +22,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         switch (dir) {
         case KB_SWIPE_UP:
             if (canceller) { tap_code16_with_oneshot(KC_ESC); canceller = false; }
-            else           { tap_code16_os(w_Ueli, G(KC_SPACE), G(KC_SPACE), KC_NO, KC_NO); canceller = true; }
+            else           { tap_code16_os(A(KC_SPACE), G(KC_SPACE), G(KC_SPACE), KC_NO, KC_NO); canceller = true; }
             break;
         case KB_SWIPE_DOWN:
             if (canceller) { tap_code16_with_oneshot(KC_ESC); canceller = false; }
@@ -80,27 +80,19 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         switch (dir) {
         case KB_SWIPE_UP:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_UP); }
-            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_UP))); }
-            // 個人的セッティング
-            else                        { tap_code16_with_oneshot(MGN_U); }
+            else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_UP))); }
             break;
         case KB_SWIPE_DOWN:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_DOWN); }
-            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_DOWN))); }
-            // 個人的セッティング
-            else                        { tap_code16_with_oneshot(MGN_D); }
+            else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_DOWN))); }
             break;
         case KB_SWIPE_LEFT:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_LEFT); }
-            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_LEFT))); }
-            // 個人的セッティング
-            else                        { tap_code16_with_oneshot(MGN_L); }
+            else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_LEFT))); }
             break;
         case KB_SWIPE_RIGHT:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_RIGHT); }
-            // else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_RIGHT))); }
-            // 個人的セッティング
-            else                        { tap_code16_with_oneshot(MGN_R); }
+            else                        { tap_code16_with_oneshot(RCTL(LCTL(KC_RIGHT))); }
             break;
         default: break;
         }
@@ -119,7 +111,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
     // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
     // デフォルト動作はユーザーレベルで定義してください（本ファイルで上書き可能）。
-    /*
     case KBS_TAG_EX1:
         switch (dir) {
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F11); break;
@@ -138,7 +129,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         default: break;
         }
         break;
-    */
 
     // FLICK_* 系：ベースキーごとの方向マッピング
     case KBS_TAG_FLICK_A:
@@ -194,26 +184,27 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         // {tap=P, up=None, right=R, left=Q, down=None}
         switch (dir) {
         case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_Q); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_R); break;
+        case KB_SWIPE_UP  : tap_code16_with_oneshot(KC_R); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_S); break;
         default: break;
         }
         break;
 
-    case KBS_TAG_FLICK_S:
+    case KBS_TAG_FLICK_T:
         // {tap=S, up=None, right=U, left=T, down=None}
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_T); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_U); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_U); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_V); break;
         default: break;
         }
         break;
 
-    case KBS_TAG_FLICK_V:
+    case KBS_TAG_FLICK_W:
         // {tap=V, up=Y, right=W, left=Z, down=None}
         switch (dir) {
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_Z); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_W); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_X); break;
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_Y); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_Z); break;
         default: break;
         }
         break;
@@ -231,8 +222,9 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
         }
     }
 }
-
+//------------------------------------------------------------
 // タップ時の動作はここで指定する。
+//------------------------------------------------------------
 void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
     switch (tag) {
     case KBS_TAG_APP:
@@ -248,15 +240,12 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
         break;
     case KBS_TAG_WIN:
-        tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+        tap_code16_os(G(KC_Z), RALT(C(KC_F)), KC_NO, KC_NO, KC_NO);
         break;
     case KBS_TAG_ARR:
         // タップ時は何もしない
-        // tap_code(KC_NO);
+        tap_code(KC_NO);
 
-        // 個人的セッティング
-        tap_code16_with_oneshot(KC_ESC);
-        tap_code16_with_oneshot(KC_LNG2);
         break;
     /*
     // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
@@ -280,7 +269,15 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
 uint16_t keyball_swipe_get_cooldown_ms(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     switch (tag) {
     // 例1: PAD_A は全方向 300ms
-    case KBS_TAG_PAD_A:
+    case KBS_TAG_FLICK_A:
+    case KBS_TAG_FLICK_D:
+    case KBS_TAG_FLICK_G:
+    case KBS_TAG_FLICK_J:
+    case KBS_TAG_FLICK_M:
+    case KBS_TAG_FLICK_P:
+    case KBS_TAG_FLICK_T:
+    case KBS_TAG_FLICK_W:
+    case KBS_TAG_BRO:
         return 300;
 
     // 例2: VOL は左右のみ 500ms、上下は 0ms（連続発火OK）
