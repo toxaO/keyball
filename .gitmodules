@@ -5,3 +5,4 @@
 [submodule "vial-qmk"]
 	path = vial-qmk
 	url = https://github.com/toxaO/vial-qmk.git
+	branch = keyball
