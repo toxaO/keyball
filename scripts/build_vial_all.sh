@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 #
 # Vial 用ビルド成果物を build/ に集約するスクリプト
+
+# sh 等から呼ばれた場合でも bash で再実行する
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

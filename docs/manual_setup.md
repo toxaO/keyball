@@ -1,0 +1,57 @@
+# Keyball 開発環境 手動セットアップ手順
+
+## 想定読者
+- QMK/Vial のビルドをこれまで自分で行ってこなかったユーザー
+- 配布スクリプトが動かなかった場合に、自力で問題を切り分けたいユーザー
+
+## 前提条件
+- `git` で本リポジトリをクローン済みであること（`keyball/` と `qmk_firmware/` と `vial-qmk/` が同じ階層に並んでいること）。
+- 以下のコマンドがインストールされていること。
+  - 共通: `git`, `make`, `python3`, `arm-none-eabi-gcc`, `arm-none-eabi-binutils`
+  - Ubuntu/WSL: `sudo apt install build-essential python3 python3-venv python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi`
+  - macOS(Homebrew): `brew install git make python3 arm-none-eabi-gcc`
+  - Windows(MSYS2 UCRT64/MINGW64): `pacman -S --needed git make mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-arm-none-eabi-gcc mingw-w64-ucrt-x86_64-arm-none-eabi-binutils`
+- WSL を使用する場合は、リポジトリを `/home` など Linux 側のファイルシステムに置くこと（`/mnt/c` 直下ではシンボリックリンク作成に失敗する場合があります）。
+
+## シンボリックリンクの作成
+QMK/Vial から本リポジトリの `keyball/` を参照できるよう、以下のリンクを作成します。
+
+```sh
+ln -s ../../keyball qmk_firmware/keyboards/keyball
+ln -s ../../keyball vial-qmk/keyboards/keyball
+```
+
+既に `keyboards/keyball` が存在する場合は削除してから再作成してください。
+
+## QMK (任意)
+`qmk` CLI を利用したビルドを行いたい場合のみ、仮想環境などを用意します。Vial のみをビルドする場合はこの節をスキップ可能です。
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pip qmk
+QMK_HOME_ABS="$(cd qmk_firmware && pwd)"
+qmk setup -H "$QMK_HOME_ABS" -y
+```
+
+## Vial のビルド
+以下のコマンドで Vial 用ファームウェアをビルドできます。
+
+```sh
+make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:toxaO
+make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:user_left
+# (必要なキーボード/キーマップの組み合わせを指定)
+```
+
+ビルド成果物は通常 `vial-qmk/.build/` 以下に生成されます。`.uf2` ファイルを取り出して `build/` へコピーするなどして利用してください。
+
+## トラブルシュート
+- `command not found: python3` → OS ごとに上記の導入コマンドで Python3 をインストールしてください。
+- `arm-none-eabi-gcc: not found` → GNU Arm Embedded Toolchain の導入が必要です。MSYS2 では `pacman`、Ubuntu では `apt` から導入可能です。
+- `ln: failed to create symbolic link` → Windows ファイルシステム上で実行している場合は WSL 側（ext4）に移動して実行してください。
+- `make: *** No rule to make target` → キーボード名・キーマップ名のタイプミスを確認してください。
+
+## 他の選択肢
+- セットアップを自動化したい場合は `scripts/setup_and_build.sh` を利用すると、仮想環境の作成やシンボリックリンクの準備までをワンコマンドで実行できます（ビルドは含まれません）。その後のビルドには `scripts/build_vial_all.sh` などを併用してください。
+- 一部ターゲットのみテストしたい場合は `scripts/build_vial_test_39_user_right.sh` を利用すると、`keyball/keyball39:user_right` のみを素早くビルドできます。
+- 完全再現性を重視する場合は Docker イメージによるセットアップも提供しています。詳細は `docs/docker_setup.md` を参照してください。

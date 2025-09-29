@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Keyball 用 セットアップ + ビルド 一発スクリプト（超丁寧コメント付き）
+# Keyball 用 セットアップスクリプト（超丁寧コメント付き）
 #
 # 対象OS:
 #   - Windows: MSYS2(MINGW64) シェル想定（Start Menu から MSYS2 MinGW 64-bit を起動）
@@ -11,8 +11,7 @@
 #   1) 依存コマンドの有無を確認（無ければ各OSごとの導入コマンドを案内）
 #   2) Python 仮想環境(.venv) + qmk CLI の導入
 #   3) qmk_firmware / vial-qmk 側に keyboards/keyball のシンボリックリンクを作成
-#   4) QMK 側で mymap をビルド（39/44/61）
-#   5) Vial 側で mymap をビルド（例: 39）
+#   4) （ビルドは行わず）環境準備までで終了
 #
 # 注意:
 #   - 本リポジトリ直下で実行してください（keyball/ と qmk_firmware/ と vial-qmk/ が並んでいる前提）。
@@ -102,39 +101,5 @@ link_into_tree() {
 link_into_tree "$QMK_DIR"
 link_into_tree "$VIAL_DIR"
 
-# --- QMK 側ビルド --------------------------------------------------------------
-# qmk CLI でコンパイル。-kb=キーボード, -km=キーマップ を指定
-QMK_BUILDS=(
-  "keyball/keyball39:mymap"
-  "keyball/keyball44:mymap"
-  "keyball/keyball61:mymap"
-)
-
-for pair in "${QMK_BUILDS[@]}"; do
-  KB="${pair%%:*}"
-  KM="${pair##*:}"
-  say "[QMK] build -> kb=$KB km=$KM"
-  # qmk clean: 中間生成物を掃除（-q静かに -nドライラン無効 -y全自動）
-  qmk clean -q -n -y || true
-  # qmk compile: 指定kb/kmをビルド
-  qmk compile -kb "$KB" -km "$KM"
-done
-
-say "QMK build done. artifacts → $QMK_DIR/.build/"
-
-# --- Vial 側ビルド -------------------------------------------------------------
-# 公式の推奨手順に合わせて make を直接使用。
-#   -C vial-qmk   : このディレクトリでMakeを実行
-#   SKIP_GIT=yes  : インターネット接続前提のバージョン取得をスキップ（ローカルのみで完結）
-#   VIAL_ENABLE=yes: Vial 機能を有効化
-#   最後の引数     : QMKのターゲット名（keyboard:keymap）
-
-say "[Vial] build -> keyball/keyball39:mymap (SKIP_GIT=yes VIAL_ENABLE=yes)"
-make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:mymap
-
-# 追加で他ターゲットを作る場合の例（必要ならコメント解除）
-# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:mymap
-# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball61:mymap
-
-say "Vial build done. artifacts → $VIAL_DIR/.build/"
-say "All done! 生成された .uf2 を各 .build/ ディレクトリで確認してください。"
+say "Setup done! キーボード実装へのリンクと qmk CLI の準備を完了しました。"
+say "ビルドが必要な場合は scripts/build_vial_all.sh など各種ビルド手段を利用してください。"
