@@ -6,11 +6,22 @@ on:
       kb:
         description: "Keyboard (例: keyball/keyball44, keyball/keyball39)"
         required: true
+        type: choice
         default: "keyball/keyball44"
+        options:
+          - "keyball/keyball39"
+          - "keyball/keyball44"
+          - "keyball/keyball61"
       km:
-        description: "Keymap"
+        description: "Keymap (keyball/keyballXX/keymaps/ 配下の名称)"
         required: true
-        default: "mymap"
+        type: choice
+        default: "user_dual"
+        options:
+          - "user_dual"
+          - "user_left"
+          - "user_right"
+          - "toxaO"
       impl:
         description: "Build implementation (qmk or vial)"
         required: true
