@@ -243,13 +243,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_MOVE_GAIN_HI_FP 256 // 1.00（変更なし）
 #endif
 
-// 速度の近似は max(|x|,|y|) を使用（軽い・十分）
+// 速度の近似は max(|x|,|y|) + min(|x|,|y|)/2 を使用（軽い・十分）
 #ifndef KEYBALL_MOVE_TH1
-// 速度しきい値（mag = max(|x|,|y|)）
+// 速度しきい値（mag = max(|x|,|y|) + min(|x|,|y|)/2）
 #define KEYBALL_MOVE_TH1 2 // ここまでは低速域ゲイン
 #endif
 #ifndef KEYBALL_MOVE_TH2
 #define KEYBALL_MOVE_TH2 8 // 緩やかにGAIN_LO→GAIN_HIへ線形補間
+#endif
+
+// 軸ごとのゲイン補正（固定小数点1/256）
+#ifndef KEYBALL_MOVE_AXIS_GAIN_X_FP
+#define KEYBALL_MOVE_AXIS_GAIN_X_FP KMF_DEN
+#endif
+#ifndef KEYBALL_MOVE_AXIS_GAIN_Y_FP
+#define KEYBALL_MOVE_AXIS_GAIN_Y_FP ((KMF_DEN * 5) / 4) // ≒1.25倍で縦方向を底上げ
 #endif
 
 #ifndef KEYBALL_MOVE_IDLE_RESET_MS
@@ -566,5 +574,3 @@ extern keyball_profiles_t kbpf;
 // host OS を検出して、対応するキーコードを tap_code16() で送出します。
 // それぞれ未使用の場合は KC_NO を指定してください。
 void tap_code16_os(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure);
-
-

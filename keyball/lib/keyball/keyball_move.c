@@ -19,19 +19,23 @@ void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
 #if KEYBALL_MOVE_SHAPING_ENABLE
     // 32bit蓄積（商/余り用）
     static int32_t acc_x = 0, acc_y = 0;
-    static uint8_t last_sx = 0, last_sy = 0;
+    static int16_t last_sx = 0, last_sy = 0;
     static uint32_t last_ts = 0;
 
     int16_t sx = (int16_t)report->x;
     int16_t sy = (int16_t)report->y;
 
-    // 小さなノイズを抑えるためのデッドゾーン（kbpf.move_deadzone）
-    {
-      uint8_t dz = kbpf.move_deadzone; // 0..32 程度
-      int16_t ax = (sx < 0 ? -sx : sx);
-      int16_t ay = (sy < 0 ? -sy : sy);
-      if (ax <= (int16_t)dz) sx = 0;
-      if (ay <= (int16_t)dz) sy = 0;
+    // 小さなノイズを抑えるための円形デッドゾーン（kbpf.move_deadzone）
+    if (kbpf.move_deadzone) {
+      int32_t ax = (int32_t)(sx < 0 ? -sx : sx);
+      int32_t ay = (int32_t)(sy < 0 ? -sy : sy);
+      int32_t dz = (int32_t)kbpf.move_deadzone;
+      int32_t radius_sq = dz * dz;
+      int32_t mag_sq = ax * ax + ay * ay;
+      if (mag_sq <= radius_sq) {
+        sx = 0;
+        sy = 0;
+      }
     }
 
     // アイドル・方向反転で蓄積を捨てる（跳ね防止）
@@ -39,15 +43,24 @@ void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
     if (TIMER_DIFF_32(now, last_ts) > KEYBALL_MOVE_IDLE_RESET_MS) {
       acc_x = acc_y = 0;
     }
-    if ((int8_t)sx && (int8_t)last_sx && ((sx ^ last_sx) < 0)) acc_x = 0;
-    if ((int8_t)sy && (int8_t)last_sy && ((sy ^ last_sy) < 0)) acc_y = 0;
-    last_sx = (uint8_t)sx; last_sy = (uint8_t)sy;
+    if (sx && last_sx && ((sx ^ last_sx) < 0)) acc_x = 0;
+    if (sy && last_sy && ((sy ^ last_sy) < 0)) acc_y = 0;
+    last_sx = sx; last_sy = sy;
     last_ts = now;
 
     // 速度近似（高コストなsqrt回避）
-    int16_t ax = (sx < 0 ? -sx : sx);
-    int16_t ay = (sy < 0 ? -sy : sy);
-    int16_t mag = (ax > ay) ? ax : ay;
+    int16_t ax = (sx < 0 ? (int16_t)-sx : sx);
+    int16_t ay = (sy < 0 ? (int16_t)-sy : sy);
+    int16_t mag = 0;
+    if (ax || ay) {
+      int16_t max_comp = (ax > ay) ? ax : ay;
+      int16_t min_comp = (ax > ay) ? ay : ax;
+      // 斜め方向でも滑らかになるように L1/L2 の妥協値を採用
+      mag = (int16_t)(max_comp + (min_comp >> 1));
+      if (mag < max_comp) {
+        mag = max_comp;
+      }
+    }
 
     // ゲイン算出（固定小数点）
     int32_t g_lo = g_move_gain_lo_fp;  // 例: 64
@@ -67,8 +80,18 @@ void keyball_on_apply_motion_to_mouse_move(report_mouse_t *report,
     }
 
     // 固定小数点で適用（商/余り）
-    acc_x += (int32_t)sx * gain_fp;
-    acc_y += (int32_t)sy * gain_fp;
+    int32_t gain_fp_x = gain_fp;
+    int32_t gain_fp_y = gain_fp;
+
+#ifdef KEYBALL_MOVE_AXIS_GAIN_X_FP
+    gain_fp_x = (gain_fp_x * KEYBALL_MOVE_AXIS_GAIN_X_FP + (KMF_DEN / 2)) / KMF_DEN;
+#endif
+#ifdef KEYBALL_MOVE_AXIS_GAIN_Y_FP
+    gain_fp_y = (gain_fp_y * KEYBALL_MOVE_AXIS_GAIN_Y_FP + (KMF_DEN / 2)) / KMF_DEN;
+#endif
+
+    acc_x += (int32_t)sx * gain_fp_x;
+    acc_y += (int32_t)sy * gain_fp_y;
 
     int16_t out_x = (int16_t)(acc_x / KMF_DEN);
     int16_t out_y = (int16_t)(acc_y / KMF_DEN);
