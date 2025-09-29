@@ -36,6 +36,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
       - name: Checkout QMK to tag (only for impl=qmk)
         if: inputs.impl == 'qmk'
         run: |
@@ -61,13 +66,13 @@ jobs:
       - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi python3-venv
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi
 
       - name: Setup qmk (venv)
         run: |
-          python3 -m venv .venv
+          python -m venv .venv
           . .venv/bin/activate
-          python3 -m pip install -U pip qmk
+          python -m pip install -U pip qmk
           # QMK側をHOMEに設定（vialでもqmkコマンドの準備は共通）
           qmk setup -H "$GITHUB_WORKSPACE/qmk_firmware" -y || true
 
@@ -95,6 +100,7 @@ jobs:
       - name: Build (impl=vial)
         if: inputs.impl == 'vial'
         run: |
+          . .venv/bin/activate
           make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes "${{ inputs.kb }}:${{ inputs.km }}"
 
       # 成果物の場所を可視化（デバッグ用）
