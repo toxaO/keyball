@@ -181,6 +181,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 
 ### Pointer API / ポインタAPI
 - Variables `g_move_gain_lo_fp`, `g_move_th1`
+- Macros `KEYBALL_MOVE_AXIS_GAIN_X_FP`, `KEYBALL_MOVE_AXIS_GAIN_Y_FP`
 - `keyball_on_apply_motion_to_mouse_move()` hook
 
 ### OLED API / OLED API
