@@ -13,6 +13,11 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VIAL_DIR="$REPO_ROOT/vial-qmk"
 BUILD_DIR="$REPO_ROOT/build"
 
+if [ -d "$REPO_ROOT/.venv" ]; then
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/.venv/bin/activate"
+fi
+
 keyboards=("keyball39" "keyball44" "keyball61")
 keymaps=("toxaO" "user_right" "user_left" "user_dual")
 

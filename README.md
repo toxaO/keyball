@@ -8,6 +8,28 @@
 トラブル等は公式には問い合わせず、こちらのリポジトリのissueへお願いします。<br>
 機能としては、vial対応、スワイプ（マウスジェスチャ）、擬似フリック入力、OLEDでの挙動調整などを追加しています。<br>
 
+## クイックスタート（Ubuntu 20.04 / WSL2）
+完全に新しい環境で検証する場合は、以下の順で進めると最短です。
+
+```sh
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+git clone --recurse-submodules https://github.com/toxaO/keyball.git
+cd keyball
+bash scripts/setup_and_build.sh  # 初回セットアップ（ビルドは行わない）
+make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:user
+```
+
+`scripts/setup_and_build.sh` は `make` / `pip` / `arm-none-eabi-gcc` に加えて Python 3.9 以上を利用します。上記の `sudo apt install ...` を実行してからセットアップスクリプトを走らせてください（未導入のまま実行すると不足パッケージの警告が表示されます）。既存の `.venv` が古い Python で作られている場合は、スクリプトが自動的に削除して再作成します。
+
+※ 仮想環境を手動で再作成したい場合は、リポジトリ直下で `rm -rf .venv && python3.10 -m venv .venv && source .venv/bin/activate && python -m pip install -U pip qmk` を実行し、`python -V` が 3.10 以上になっていることを確認してください。
+
+※ `git clone --recurse-submodules` を忘れた場合は、クローン後に `git submodule update --init --recursive` で補完してください。
+
 ## 対応ボード（RP2040系）
 - RP2040 へ載せ替えが必要です。ATmega32U4系promicro(普通のkeyballで使用しているボード)のままでは使用できません）
 - 必要ボード: 下記いずれか

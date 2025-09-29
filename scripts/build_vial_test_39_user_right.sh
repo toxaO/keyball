@@ -14,6 +14,11 @@ BUILD_DIR="$REPO_ROOT/build"
 TARGET="keyball/keyball39:user_right"
 ARTIFACT="keyball_keyball39_user_right.uf2"
 
+if [ -d "$REPO_ROOT/.venv" ]; then
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/.venv/bin/activate"
+fi
+
 mkdir -p "$BUILD_DIR"
 
 echo "[BUILD] $TARGET"

@@ -7,11 +7,39 @@
 ## 前提条件
 - `git` で本リポジトリをクローン済みであること（`keyball/` と `qmk_firmware/` と `vial-qmk/` が同じ階層に並んでいること）。
 - 以下のコマンドがインストールされていること。
-  - 共通: `git`, `make`, `python3`, `arm-none-eabi-gcc`, `arm-none-eabi-binutils`
-  - Ubuntu/WSL: `sudo apt install build-essential python3 python3-venv python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi`
+  - 共通: `git`, `make`, `python3 (3.9以上)`, `arm-none-eabi-gcc`, `arm-none-eabi-binutils`
+  - Ubuntu/WSL: `sudo apt install build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi`
   - macOS(Homebrew): `brew install git make python3 arm-none-eabi-gcc`
   - Windows(MSYS2 UCRT64/MINGW64): `pacman -S --needed git make mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-arm-none-eabi-gcc mingw-w64-ucrt-x86_64-arm-none-eabi-binutils`
 - WSL を使用する場合は、リポジトリを `/home` など Linux 側のファイルシステムに置くこと（`/mnt/c` 直下ではシンボリックリンク作成に失敗する場合があります）。
+
+Ubuntu 20.04 の最小インストールでは `universe` リポジトリや Python の追加 PPA が無効化されています。`python3-pip` や `gcc-arm-none-eabi`、`python3.10` 系が見つからない場合は、次のコマンドで `universe` を有効にし、続けて `deadsnakes` PPA を追加してから再度 `apt install` を試してください。
+
+```sh
+sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+```
+
+### 新規 Ubuntu 20.04 環境での事前準備例
+最低限のセットアップを完全な初期状態から実施する場合は、次の順で進めると安全です。
+
+```sh
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+git clone --recurse-submodules https://github.com/toxaO/keyball.git
+cd keyball
+git submodule status  # サブモジュールが正しく取得されているか確認
+```
+
+`python3.10 --version` でバージョンが確認できない場合は、インストールが完了していない可能性があります。
+
+既に `git clone` を実行済みでサブモジュールを取り込んでいない場合は、リポジトリ直下で `git submodule update --init --recursive` を実行してください。
 
 ## シンボリックリンクの作成
 QMK/Vial から本リポジトリの `keyball/` を参照できるよう、以下のリンクを作成します。
@@ -27,12 +55,15 @@ ln -s ../../keyball vial-qmk/keyboards/keyball
 `qmk` CLI を利用したビルドを行いたい場合のみ、仮想環境などを用意します。Vial のみをビルドする場合はこの節をスキップ可能です。
 
 ```sh
-python3 -m venv .venv
+# Python 3.9 以上であれば他バージョンでも可（例: python3.11）
+python3.10 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install -U pip qmk
+python -m pip install -U pip qmk
 QMK_HOME_ABS="$(cd qmk_firmware && pwd)"
 qmk setup -H "$QMK_HOME_ABS" -y
 ```
+
+既存の `.venv` が Python 3.8 以前で作られている場合は、一度削除してから上記コマンドで作り直してください。再作成後に `python -V` を実行し、3.9 以上になっていることを確認すると安心です。
 
 ## Vial のビルド
 以下のコマンドで Vial 用ファームウェアをビルドできます。

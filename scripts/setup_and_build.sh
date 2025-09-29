@@ -25,6 +25,8 @@ VIAL_DIR="vial-qmk"         # Vial用のQMKツリー（このリポ内の同名�
 KEYBALL_DIR="keyball"       # 本リポのキーボード実装
 VENV_DIR=".venv"            # qmk CLI を入れる仮想環境
 
+PYTHON_CMD=""               # 利用する python コマンド（3.9以上を探す）
+
 say() { printf "\033[1;34m[INFO]\033[0m %s\n" "$*"; }
 err() { printf "\033[1;31m[ERR ]\033[0m %s\n" "$*"; }
 
@@ -49,7 +51,7 @@ say "Detected OS: $OSKIND"
 [ -d "$KEYBALL_DIR" ] || { err "$KEYBALL_DIR が見つかりません"; exit 1; }
 
 # --- 依存コマンドの有無を確認（入っていなければ導入コマンドを案内）-------------
-need_cmds=("git" "make" "python3" "pip" "arm-none-eabi-gcc")
+need_cmds=("git" "make" "arm-none-eabi-gcc")
 missing=()
 for c in "${need_cmds[@]}"; do
   if ! command -v "$c" >/dev/null 2>&1; then missing+=("$c"); fi
@@ -61,7 +63,11 @@ if [ ${#missing[@]} -gt 0 ]; then
   if [ "$OSKIND" = "mac" ]; then
     echo "  brew install git make python3 arm-none-eabi-gcc"
   elif [ "$OSKIND" = "linux" ]; then
-    echo "  sudo apt-get update && sudo apt-get install -y git make python3 python3-pip gcc-arm-none-eabi binutils-arm-none-eabi"
+    echo "  sudo apt install -y software-properties-common"
+    echo "  sudo add-apt-repository universe"
+    echo "  sudo add-apt-repository ppa:deadsnakes/ppa"
+    echo "  sudo apt update"
+    echo "  sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi"
   elif [ "$OSKIND" = "msys2" ]; then
     echo "  pacman -S --needed git make python-pip"
     echo "  pacman -S --needed mingw-w64-ucrt-x86_64-arm-none-eabi-gcc mingw-w64-ucrt-x86_64-arm-none-eabi-binutils"
@@ -72,14 +78,57 @@ if [ ${#missing[@]} -gt 0 ]; then
   exit 1
 fi
 
+# --- Python コマンドの選択 ---------------------------------------------------
+choose_python() {
+  local candidates
+  if [ -n "${PYTHON:-}" ] && command -v "$PYTHON" >/dev/null 2>&1; then
+    candidates=("$PYTHON")
+  else
+    candidates=(python3.12 python3.11 python3.10 python3.9 python3)
+  fi
+
+  for cmd in "${candidates[@]}"; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      if "$cmd" -c 'import sys; exit(0 if sys.version_info >= (3, 9) else 1)'; then
+        PYTHON_CMD="$cmd"
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+if ! choose_python; then
+  err "Python 3.9 以上が見つかりません。python3.10 などを導入してから再度実行してください"
+  echo "例:"
+  if [ "$OSKIND" = "linux" ]; then
+    echo "  sudo apt install -y software-properties-common"
+    echo "  sudo add-apt-repository ppa:deadsnakes/ppa"
+    echo "  sudo apt update"
+    echo "  sudo apt install -y python3.10 python3.10-venv python3.10-distutils"
+  elif [ "$OSKIND" = "mac" ]; then
+    echo "  brew install python@3.11"
+  fi
+  exit 1
+fi
+
+say "Use python interpreter: $PYTHON_CMD"
+
 # --- Python 仮想環境 + qmk CLI ------------------------------------------------
+if [ -d "$VENV_DIR" ]; then
+  if ! "$VENV_DIR/bin/python" -c 'import sys; exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+    say "Re-create Python venv with $PYTHON_CMD (previous version < 3.9)"
+    rm -rf "$VENV_DIR"
+  fi
+fi
+
 if [ ! -d "$VENV_DIR" ]; then
   say "Create Python venv: $VENV_DIR"
-  python3 -m venv "$VENV_DIR"
+  "$PYTHON_CMD" -m venv "$VENV_DIR"
 fi
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
-python3 -m pip install -U pip qmk
+python -m pip install -U pip qmk
 
 # qmk CLI に QMK_HOME を通知（-H で既存の qmk_firmware を HOME とする）
 QMK_HOME_ABS="$(cd "$QMK_DIR" && pwd)"
