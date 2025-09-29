@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Keyball 用 セットアップスクリプト（超丁寧コメント付き）
+# Keyball 用 セットアップ + ビルド 一発スクリプト（超丁寧コメント付き）
 #
 # 対象OS:
 #   - Windows: MSYS2(MINGW64) シェル想定（Start Menu から MSYS2 MinGW 64-bit を起動）
@@ -11,7 +11,8 @@
 #   1) 依存コマンドの有無を確認（無ければ各OSごとの導入コマンドを案内）
 #   2) Python 仮想環境(.venv) + qmk CLI の導入
 #   3) qmk_firmware / vial-qmk 側に keyboards/keyball のシンボリックリンクを作成
-#   4) （ビルドは行わず）環境準備までで終了
+#   4) QMK 側で mymap をビルド（39/44/61）
+#   5) Vial 側で mymap をビルド（例: 39）
 #
 # 注意:
 #   - 本リポジトリ直下で実行してください（keyball/ と qmk_firmware/ と vial-qmk/ が並んでいる前提）。
@@ -24,8 +25,6 @@ QMK_DIR="qmk_firmware"     # 公式QMKの固定ツリー（このリポ内の同
 VIAL_DIR="vial-qmk"         # Vial用のQMKツリー（このリポ内の同名ディレクトリ）
 KEYBALL_DIR="keyball"       # 本リポのキーボード実装
 VENV_DIR=".venv"            # qmk CLI を入れる仮想環境
-
-PYTHON_CMD=""               # 利用する python コマンド（3.9以上を探す）
 
 say() { printf "\033[1;34m[INFO]\033[0m %s\n" "$*"; }
 err() { printf "\033[1;31m[ERR ]\033[0m %s\n" "$*"; }
@@ -51,7 +50,7 @@ say "Detected OS: $OSKIND"
 [ -d "$KEYBALL_DIR" ] || { err "$KEYBALL_DIR が見つかりません"; exit 1; }
 
 # --- 依存コマンドの有無を確認（入っていなければ導入コマンドを案内）-------------
-need_cmds=("git" "make" "arm-none-eabi-gcc")
+need_cmds=("git" "make" "python3" "pip" "arm-none-eabi-gcc")
 missing=()
 for c in "${need_cmds[@]}"; do
   if ! command -v "$c" >/dev/null 2>&1; then missing+=("$c"); fi
@@ -63,11 +62,7 @@ if [ ${#missing[@]} -gt 0 ]; then
   if [ "$OSKIND" = "mac" ]; then
     echo "  brew install git make python3 arm-none-eabi-gcc"
   elif [ "$OSKIND" = "linux" ]; then
-    echo "  sudo apt install -y software-properties-common"
-    echo "  sudo add-apt-repository universe"
-    echo "  sudo add-apt-repository ppa:deadsnakes/ppa"
-    echo "  sudo apt update"
-    echo "  sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi"
+    echo "  sudo apt-get update && sudo apt-get install -y git make python3 python3-pip gcc-arm-none-eabi binutils-arm-none-eabi"
   elif [ "$OSKIND" = "msys2" ]; then
     echo "  pacman -S --needed git make python-pip"
     echo "  pacman -S --needed mingw-w64-ucrt-x86_64-arm-none-eabi-gcc mingw-w64-ucrt-x86_64-arm-none-eabi-binutils"
@@ -78,57 +73,14 @@ if [ ${#missing[@]} -gt 0 ]; then
   exit 1
 fi
 
-# --- Python コマンドの選択 ---------------------------------------------------
-choose_python() {
-  local candidates
-  if [ -n "${PYTHON:-}" ] && command -v "$PYTHON" >/dev/null 2>&1; then
-    candidates=("$PYTHON")
-  else
-    candidates=(python3.12 python3.11 python3.10 python3.9 python3)
-  fi
-
-  for cmd in "${candidates[@]}"; do
-    if command -v "$cmd" >/dev/null 2>&1; then
-      if "$cmd" -c 'import sys; exit(0 if sys.version_info >= (3, 9) else 1)'; then
-        PYTHON_CMD="$cmd"
-        return 0
-      fi
-    fi
-  done
-  return 1
-}
-
-if ! choose_python; then
-  err "Python 3.9 以上が見つかりません。python3.10 などを導入してから再度実行してください"
-  echo "例:"
-  if [ "$OSKIND" = "linux" ]; then
-    echo "  sudo apt install -y software-properties-common"
-    echo "  sudo add-apt-repository ppa:deadsnakes/ppa"
-    echo "  sudo apt update"
-    echo "  sudo apt install -y python3.10 python3.10-venv python3.10-distutils"
-  elif [ "$OSKIND" = "mac" ]; then
-    echo "  brew install python@3.11"
-  fi
-  exit 1
-fi
-
-say "Use python interpreter: $PYTHON_CMD"
-
 # --- Python 仮想環境 + qmk CLI ------------------------------------------------
-if [ -d "$VENV_DIR" ]; then
-  if ! "$VENV_DIR/bin/python" -c 'import sys; exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
-    say "Re-create Python venv with $PYTHON_CMD (previous version < 3.9)"
-    rm -rf "$VENV_DIR"
-  fi
-fi
-
 if [ ! -d "$VENV_DIR" ]; then
   say "Create Python venv: $VENV_DIR"
-  "$PYTHON_CMD" -m venv "$VENV_DIR"
+  python3 -m venv "$VENV_DIR"
 fi
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
-python -m pip install -U pip qmk
+python3 -m pip install -U pip qmk
 
 # qmk CLI に QMK_HOME を通知（-H で既存の qmk_firmware を HOME とする）
 QMK_HOME_ABS="$(cd "$QMK_DIR" && pwd)"
@@ -150,5 +102,39 @@ link_into_tree() {
 link_into_tree "$QMK_DIR"
 link_into_tree "$VIAL_DIR"
 
-say "Setup done! キーボード実装へのリンクと qmk CLI の準備を完了しました。"
-say "ビルドが必要な場合は scripts/build_vial_all.sh など各種ビルド手段を利用してください。"
+# --- QMK 側ビルド --------------------------------------------------------------
+# qmk CLI でコンパイル。-kb=キーボード, -km=キーマップ を指定
+QMK_BUILDS=(
+  "keyball/keyball39:mymap"
+  "keyball/keyball44:mymap"
+  "keyball/keyball61:mymap"
+)
+
+for pair in "${QMK_BUILDS[@]}"; do
+  KB="${pair%%:*}"
+  KM="${pair##*:}"
+  say "[QMK] build -> kb=$KB km=$KM"
+  # qmk clean: 中間生成物を掃除（-q静かに -nドライラン無効 -y全自動）
+  qmk clean -q -n -y || true
+  # qmk compile: 指定kb/kmをビルド
+  qmk compile -kb "$KB" -km "$KM"
+done
+
+say "QMK build done. artifacts → $QMK_DIR/.build/"
+
+# --- Vial 側ビルド -------------------------------------------------------------
+# 公式の推奨手順に合わせて make を直接使用。
+#   -C vial-qmk   : このディレクトリでMakeを実行
+#   SKIP_GIT=yes  : インターネット接続前提のバージョン取得をスキップ（ローカルのみで完結）
+#   VIAL_ENABLE=yes: Vial 機能を有効化
+#   最後の引数     : QMKのターゲット名（keyboard:keymap）
+
+say "[Vial] build -> keyball/keyball39:mymap (SKIP_GIT=yes VIAL_ENABLE=yes)"
+make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:mymap
+
+# 追加で他ターゲットを作る場合の例（必要ならコメント解除）
+# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:mymap
+# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball61:mymap
+
+say "Vial build done. artifacts → $VIAL_DIR/.build/"
+say "All done! 生成された .uf2 を各 .build/ ディレクトリで確認してください。"
