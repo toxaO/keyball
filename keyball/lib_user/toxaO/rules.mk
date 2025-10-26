@@ -30,6 +30,7 @@ SRC += lib_user/toxaO/features/swipe_user.c
 SRC += lib_user/toxaO/features/multi_user.c
 SRC += lib_user/toxaO/features/util_user.c
 SRC += lib_user/toxaO/features/weak_defaults.c
+SRC += lib_user/toxaO/features/led_user.c
 
 # Vial互換のために動的キーマップ/RAWを明示有効化
 DYNAMIC_KEYMAP_ENABLE = yes

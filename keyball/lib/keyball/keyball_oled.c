@@ -12,6 +12,14 @@
 #    include "rgblight.h"
 #endif
 
+__attribute__((weak)) void keyball_led_monitor_init(void) {}
+__attribute__((weak)) void keyball_led_monitor_on(void) {}
+__attribute__((weak)) void keyball_led_monitor_off(void) {}
+__attribute__((weak)) void keyball_led_monitor_step(int8_t delta) {
+    (void)delta;
+}
+__attribute__((weak)) uint8_t keyball_led_monitor_get_index(void) { return 0; }
+
 // 外部定数（定義は keyball.c）
 extern const uint16_t CPI_MAX;
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
@@ -26,7 +34,7 @@ static uint8_t        g_oled_page = 0;
 static bool           g_oled_vertical = false; // 右手マスター用の縦向き表示フラグ
 
 // デバッグUI: ページごとの選択インデックス
-#define KB_UI_PAGES 10
+#define KB_UI_PAGES 11
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
@@ -44,13 +52,14 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
 #else
             return 0;
 #endif
-        case 8: return 1; // Default layer: def
-        case 9: return 0; // Send monitor (no selector)
+        case 8: return 0; // LED monitor (値はS+左右で操作)
+        case 9: return 1; // Default layer: def
+        case 10: return 0; // Send monitor (no selector)
     }
     return 0;
 }
-
-#define KB_OLED_PAGE_COUNT      10
+#define KB_OLED_PAGE_LED_MONITOR 8
+#define KB_OLED_PAGE_COUNT      11
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -63,9 +72,36 @@ static inline bool ui_op_ready(void) {
     return true;
 }
 
+static void oled_page_leave(uint8_t page) {
+#ifdef RGBLIGHT_ENABLE
+    if (g_oled_mode == KB_OLED_MODE_SETTING && page == KB_OLED_PAGE_LED_MONITOR) {
+        keyball_led_monitor_off();
+    }
+#else
+    (void)page;
+#endif
+}
+
+static void oled_page_enter(uint8_t page) {
+#ifdef RGBLIGHT_ENABLE
+    if (g_oled_mode == KB_OLED_MODE_SETTING && page == KB_OLED_PAGE_LED_MONITOR) {
+        keyball_led_monitor_on();
+    }
+#else
+    (void)page;
+#endif
+}
+
 void keyball_oled_set_mode(kb_oled_mode_t m) {
+    kb_oled_mode_t prev = g_oled_mode;
+    if (prev == KB_OLED_MODE_SETTING && m != KB_OLED_MODE_SETTING) {
+        oled_page_leave(g_oled_page);
+    }
     g_oled_mode = m;
     g_dbg_en    = (m == KB_OLED_MODE_DEBUG);
+    if (prev != KB_OLED_MODE_SETTING && m == KB_OLED_MODE_SETTING) {
+        oled_page_enter(g_oled_page);
+    }
     oled_clear();
 }
 
@@ -78,20 +114,26 @@ kb_oled_mode_t keyball_oled_get_mode(void) { return g_oled_mode; }
 
 void keyball_oled_next_page(void) {
     if (!ui_op_ready()) return;
+    uint8_t prev = g_oled_page;
+    oled_page_leave(prev);
     g_oled_page = (g_oled_page + 1) % KB_OLED_PAGE_COUNT;
     // 選択位置を0に初期化
     if (g_ui_sel_idx[g_oled_page] >= ui_items_on_page(g_oled_page)) {
         g_ui_sel_idx[g_oled_page] = 0;
     }
+    oled_page_enter(g_oled_page);
     oled_clear();
 }
 
 void keyball_oled_prev_page(void) {
     if (!ui_op_ready()) return;
+    uint8_t prev = g_oled_page;
+    oled_page_leave(prev);
     g_oled_page = (g_oled_page + KB_OLED_PAGE_COUNT - 1) % KB_OLED_PAGE_COUNT;
     if (g_ui_sel_idx[g_oled_page] >= ui_items_on_page(g_oled_page)) {
         g_ui_sel_idx[g_oled_page] = 0;
     }
+    oled_page_enter(g_oled_page);
     oled_clear();
 }
 
@@ -395,7 +437,14 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             } break;
 #endif
 
-            case 8: { // Default layer conf
+            case 8: { // LED monitor
+#ifdef RGBLIGHT_ENABLE
+                keyball_led_monitor_step((int8_t)dir);
+                return true;
+#endif
+            } break;
+
+            case 9: { // Default layer conf
                 if (sel == 0) {
                     int32_t v = (int32_t)kbpf.default_layer + dir;
                     if (v < 0) v = 0;
@@ -735,7 +784,26 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 8: { // 9: Default layer conf
+        case 8: { // 9: LED monitor
+            uint8_t row = 0;
+            uint8_t idx = keyball_led_monitor_get_index();
+            oled_writef(row++, "LED");
+            oled_writef(row++, " moni");
+            row_skip(row, 1);
+            oled_writef(row++, "No.");
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%03u", (unsigned)idx);
+                oled_writef(row++, "%s", buf);
+            }
+            row_skip(row, 1);
+            oled_writef(row++, "S+LR");
+            oled_writef(row++, " +/-");
+            row_skip(row, 7);
+            oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+        } break;
+
+        case 9: { // 10: Default layer conf
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
             oled_writef(row++, "layer");
@@ -751,7 +819,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 9: { // 10: Send monitor
+        case 10: { // 11: Send monitor
             uint8_t row = 0;
             // ヘッダ
             oled_writef(row++, "Send");
