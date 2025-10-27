@@ -22,6 +22,15 @@
 #    include "transactions.h"
 #endif
 
+#ifdef HAPTIC_ENABLE
+bool get_haptic_enabled_key(uint16_t keycode, keyrecord_t *record) {
+  (void)keycode;
+  (void)record;
+  // マウスクリックでの自動ハプティックは無効化
+  return false;
+}
+#endif
+
 #include "keyball.h"
 #include "drivers/sensors/pmw33xx_common.h"
 #if defined(POINTING_DEVICE_DRIVER_pmw3360) || defined(POINTING_DEVICE_DRIVER_pmw3389)

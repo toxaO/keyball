@@ -10,6 +10,9 @@ NKRO_ENABLE = no            # Enable N-Key Rollover
 BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 AUDIO_ENABLE = no           # Audio output
 
+HAPTIC_ENABLE = yes
+HAPTIC_DRIVER = drv2605l
+
 # Keyball39 is split keyboard.
 SERIAL_DRIVER = vendor
 

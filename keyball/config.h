@@ -1,5 +1,31 @@
 // keyball/config.h
 #define WS2812_DI_PIN GP0
+
+#ifndef I2C_DRIVER
+#    define I2C_DRIVER I2CD1
+#endif
+#ifndef I2C1_SDA_PIN
+#    define I2C1_SDA_PIN GP2
+#endif
+#ifndef I2C1_SCL_PIN
+#    define I2C1_SCL_PIN GP3
+#endif
+
+#ifndef DRV2605L_FB_ERM_LRA
+#    define DRV2605L_FB_ERM_LRA 0
+#endif
+#ifndef DRV2605L_FB_BRAKEFACTOR
+#    define DRV2605L_FB_BRAKEFACTOR 3
+#endif
+#ifndef DRV2605L_FB_LOOPGAIN
+#    define DRV2605L_FB_LOOPGAIN 1
+#endif
+#ifndef DRV2605L_RATED_VOLTAGE
+#    define DRV2605L_RATED_VOLTAGE 3
+#endif
+#ifndef DRV2605L_V_PEAK
+#    define DRV2605L_V_PEAK 5
+#endif
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_RAINBOW_SWIRL
 #endif
@@ -24,6 +50,10 @@
 
 #ifndef SPLIT_LAYER_STATE_ENABLE
 #    define SPLIT_LAYER_STATE_ENABLE
+#endif
+
+#ifndef SPLIT_HAPTIC_ENABLE
+#    define SPLIT_HAPTIC_ENABLE
 #endif
 
 #ifndef SPLIT_TRANSACTION_IDS_KB

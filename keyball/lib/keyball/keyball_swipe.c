@@ -5,6 +5,16 @@
 
 #include "keyball.h"
 #include "keyball_swipe.h"
+#ifdef HAPTIC_ENABLE
+#    include "haptic.h"
+static inline void keyball_swipe_haptic_feedback(void) {
+  if (haptic_get_enable()) {
+    haptic_play();
+  }
+}
+#else
+static inline void keyball_swipe_haptic_feedback(void) {}
+#endif
 
 static inline int16_t kb_abs16(int16_t v) { return (v < 0) ? -v : v; }
 static inline void kb_sat_add_pos32(int32_t *acc, int32_t delta) {
@@ -125,15 +135,20 @@ static void kb_sw_try_fire(kb_swipe_dir_t dir,
       break;
     }
 
-    if (keyball_on_swipe_fire) {
+    // swipe発火時の処理（ユーザーフック + ハプティック）
 #ifdef SPLIT_KEYBOARD
-      if (is_keyboard_master()) {
+    if (is_keyboard_master()) {
+      if (keyball_on_swipe_fire) {
         keyball_on_swipe_fire(g_sw.tag, dir);
       }
-#else
-      keyball_on_swipe_fire(g_sw.tag, dir);
-#endif
+      keyball_swipe_haptic_feedback();
     }
+#else
+    if (keyball_on_swipe_fire) {
+      keyball_on_swipe_fire(g_sw.tag, dir);
+    }
+    keyball_swipe_haptic_feedback();
+#endif
     g_sw.fired_any = true;
     g_sw.last_dir  = dir;
     *plast = now;
@@ -205,6 +220,7 @@ void keyball_swipe_fire_once(kb_swipe_dir_t dir) {
   if (keyball_on_swipe_fire) {
     keyball_on_swipe_fire(g_sw.tag, dir);
   }
+  keyball_swipe_haptic_feedback();
   g_sw.fired_any = true;
   g_sw.last_dir  = dir;
   *plast = timer_read32();
