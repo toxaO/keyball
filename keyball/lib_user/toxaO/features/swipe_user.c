@@ -3,6 +3,7 @@
 #include "../features/util_user.h"
 #include "print.h"
 #include "os_detection.h"
+#include "timer.h"
 
 #include "swipe_user.h"
 #include "lib/keyball/keyball.h"
@@ -21,6 +22,9 @@ static inline void swipe_user_haptic_pulse(void) {}
 
 // tap_code16_osはuser_utilで定義
 // tap_code16_with_oneshot(win, mac, os, linux, unsure)でキーコード指定可能
+
+static bool bro_double_wait = false;
+static uint16_t bro_double_timer = 0;
 
 void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     dprintf("SWIPE FIRE tag=%u dir=%u\n", (unsigned)tag, (unsigned)dir);
@@ -250,7 +254,18 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         tap_code16_with_oneshot(KC_MPLY);
         break;
     case KBS_TAG_BRO:
-        tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+        {
+            uint16_t now = timer_read();
+            if (bro_double_wait && timer_elapsed(bro_double_timer) <= TAPPING_TERM) {
+                tap_code16_os(C(KC_R), G(KC_R), G(KC_R), C(KC_R), C(KC_R));
+                bro_double_wait = false;
+                bro_double_timer = 0;
+            } else {
+                tap_code16_os(C(KC_L), G(KC_L), G(KC_L), KC_NO, KC_NO);
+                bro_double_wait = true;
+                bro_double_timer = now;
+            }
+        }
         break;
     case KBS_TAG_TAB:
         tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
