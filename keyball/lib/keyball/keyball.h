@@ -23,6 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball_oled.h"
 #include "keyball_scroll.h"
 #include "keyball_swipe.h"
+#ifdef HAPTIC_ENABLE
+#    include "haptic.h"
+#endif
 
 // カスタムキーコードの運用（KBレベル/ユーザーレベルと SAFE_RANGE）
 // ----------------------------------------------------------------------
@@ -155,6 +158,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #ifndef KBPF_DEFAULT_SWIPE_RESET_MS
 #    define KBPF_DEFAULT_SWIPE_RESET_MS 30
+#endif
+#ifndef KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#    ifdef HAPTIC_ENABLE
+#        define KBPF_DEFAULT_SWIPE_HAPTIC_MODE HAPTIC_DEFAULT_MODE
+#    else
+#        define KBPF_DEFAULT_SWIPE_HAPTIC_MODE 0
+#    endif
 #endif
 #ifndef KBPF_DEFAULT_SCROLL_DEADZONE
 #    define KBPF_DEFAULT_SCROLL_DEADZONE 0
@@ -531,10 +541,11 @@ typedef struct __attribute__((packed)) {
   // 0: {120,1}, 1: {1,1}, 2: {120,120}
   uint8_t scroll_preset[8];
   // スワイプ設定
-  uint16_t swipe_step;       // 発火しきい値
-  uint8_t  swipe_deadzone;   // デッドゾーン
-  uint8_t  swipe_freeze;     // bit0: freeze (1=FREEZE ON)
-  uint8_t  swipe_reset_ms;   // スワイプ蓄積リセット遅延(ms)
+  uint16_t swipe_step;        // 発火しきい値
+  uint8_t  swipe_deadzone;    // デッドゾーン
+  uint8_t  swipe_freeze;      // bit0: freeze (1=FREEZE ON)
+  uint8_t  swipe_reset_ms;    // スワイプ蓄積リセット遅延(ms)
+  uint8_t  swipe_haptic_mode; // スワイプ時のハプティックモード
   // 互換保持のため残置（現行ロジックでは未使用）
   uint8_t scroll_deadzone;   // スクロール用デッドゾーン
   uint8_t scroll_hysteresis; // スクロール反転ヒステリシス
@@ -565,7 +576,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 14 // v14: scroll layer config を追加（互換なし）
+#define KBPF_VER_CUR 15 // v15: swipe haptic mode を追加（互換なし）
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)

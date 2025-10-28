@@ -11,6 +11,10 @@
 #ifdef RGBLIGHT_ENABLE
 #    include "rgblight.h"
 #endif
+#ifdef HAPTIC_ENABLE
+#    include "haptic.h"
+#    include "drivers/haptic/drv2605l.h"
+#endif
 
 __attribute__((weak)) void keyball_led_monitor_init(void) {}
 __attribute__((weak)) void keyball_led_monitor_on(void) {}
@@ -28,13 +32,22 @@ extern const uint16_t AML_TIMEOUT_MAX;
 extern const uint16_t AML_TIMEOUT_QU;
 #endif
 
+#ifdef HAPTIC_ENABLE
+#    define KB_UI_PAGES 12
+#    define KB_OLED_PAGE_COUNT 12
+#    define KB_OLED_PAGE_HAPTIC 11
+#else
+#    define KB_UI_PAGES 11
+#    define KB_OLED_PAGE_COUNT 11
+#endif
+#define KB_OLED_PAGE_LED_MONITOR 8
+
 static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
 static bool           g_dbg_en   = true;
 static uint8_t        g_oled_page = 0;
 static bool           g_oled_vertical = false; // 右手マスター用の縦向き表示フラグ
 
 // デバッグUI: ページごとの選択インデックス
-#define KB_UI_PAGES 11
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
 static inline uint8_t ui_items_on_page(uint8_t p) {
@@ -52,14 +65,15 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
 #else
             return 0;
 #endif
+#ifdef HAPTIC_ENABLE
+        case KB_OLED_PAGE_HAPTIC: return 3; // Haptic: en/mode/test
+#endif
         case 8: return 0; // LED monitor (値はS+左右で操作)
         case 9: return 1; // Default layer: def
         case 10: return 0; // Send monitor (no selector)
     }
     return 0;
 }
-#define KB_OLED_PAGE_LED_MONITOR 8
-#define KB_OLED_PAGE_COUNT      11
 #define KB_OLED_UI_DEBOUNCE_MS  100
 
 static uint32_t g_oled_ui_ts = 0;
@@ -437,6 +451,33 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             } break;
 #endif
 
+#ifdef HAPTIC_ENABLE
+            case KB_OLED_PAGE_HAPTIC: { // Haptic conf
+                if (sel == 0) {
+                    bool enabled = haptic_get_enable();
+                    if (dir > 0 && !enabled) {
+                        haptic_enable();
+                    } else if (dir < 0 && enabled) {
+                        haptic_disable();
+                    }
+                } else if (sel == 1) {
+                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode + dir;
+                    if (mode < 1) mode = 1;
+                    if (mode >= (int32_t)DRV2605L_EFFECT_COUNT) mode = (int32_t)DRV2605L_EFFECT_COUNT - 1;
+                    uint8_t new_mode = (uint8_t)mode;
+                    if (kbpf.swipe_haptic_mode != new_mode) {
+                        kbpf.swipe_haptic_mode = new_mode;
+                        haptic_set_mode(new_mode);
+                    }
+                    if (haptic_get_enable()) {
+                        haptic_play();
+                    }
+                } else if (sel == 2) {
+                    haptic_play();
+                }
+            } break;
+#endif
+
             case 8: { // LED monitor
 #ifdef RGBLIGHT_ENABLE
                 keyball_led_monitor_step((int8_t)dir);
@@ -783,6 +824,30 @@ void keyball_oled_render_setting(void) {
 #endif
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
+
+#ifdef HAPTIC_ENABLE
+        case KB_OLED_PAGE_HAPTIC: { // Haptic config
+            uint8_t sel = g_ui_sel_idx[page];
+            uint8_t row = 0;
+            oled_writef(row++, "Hptc");
+            oled_writef(row++, " conf");
+            row_skip(row, 1);
+            oled_writef(row++, "En:");
+            oled_writef_sel(row++, sel == 0, "%s", haptic_get_enable() ? "on" : "off");
+            row_skip(row, 1);
+            oled_writef(row++, "Mode");
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%3u", (unsigned)kbpf.swipe_haptic_mode);
+                oled_writef_sel(row++, sel == 1, "%s", buf);
+            }
+            row_skip(row, 1);
+            oled_writef(row++, "Test");
+            oled_writef_sel(row++, sel == 2, "Play");
+            row_skip(row, 1);
+            oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+        } break;
+#endif
 
         case 8: { // 9: LED monitor
             uint8_t row = 0;

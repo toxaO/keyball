@@ -23,6 +23,7 @@
 #endif
 
 #ifdef HAPTIC_ENABLE
+#    include "haptic.h"
 bool get_haptic_enabled_key(uint16_t keycode, keyrecord_t *record) {
   (void)keycode;
   (void)record;
@@ -278,6 +279,10 @@ void keyboard_post_init_kb(void) {
   kbpf_defaults();        // まず既定値
   kbpf_read();            // EEPROMから上書き
                           // kbpf_after_load_fixup(); // 旧版からの移行処理
+
+#ifdef HAPTIC_ENABLE
+  haptic_set_mode(kbpf.swipe_haptic_mode);
+#endif
 
   keyball_set_cpi(keyball_get_cpi());
   keyball_set_scroll_div(keyball_get_scroll_div());

@@ -7,6 +7,9 @@
 #include "keyball_swipe.h"
 #include "keyball_multi.h"
 #include "timer.h"
+#ifdef HAPTIC_ENABLE
+#    include "haptic.h"
+#endif
 #if defined(DYNAMIC_KEYMAP_ENABLE)
 #    include "dynamic_keymap.h"
 #endif
@@ -164,6 +167,9 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_swipe_set_reset_ms(kbpf.swipe_reset_ms);
       keyball_swipe_set_freeze(kbpf.swipe_freeze);
       keyball_swipe_end();
+#ifdef HAPTIC_ENABLE
+      haptic_set_mode(kbpf.swipe_haptic_mode);
+#endif
       kbpf_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
       set_auto_mouse_enable(kbpf.aml_enable ? true : false);
@@ -203,6 +209,9 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       // 現在の色とモードも保存（noeepromでないAPIを使う）
       rgblight_sethsv(rgblight_get_hue(), rgblight_get_sat(), rgblight_get_val());
       rgblight_mode(rgblight_get_mode());
+#endif
+#ifdef HAPTIC_ENABLE
+      kbpf.swipe_haptic_mode = haptic_get_mode();
 #endif
 
       kbpf_write(); // OSごとの全データ+グローバルを一括保存

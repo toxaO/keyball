@@ -6,6 +6,9 @@
 
 #include "keyball.h"
 #include "keyball_kbpf.h"
+#ifdef HAPTIC_ENABLE
+#    include "drivers/haptic/drv2605l.h"
+#endif
 
 // clamp helper borrowed from keyball.c so this module can remain standalone
 #define _CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
@@ -56,12 +59,13 @@ static inline uint8_t clamp_step(uint8_t v) {
 
 // Set swipe-related defaults for a given profile structure.
 static void kbpf_set_swipe_defaults(keyball_profiles_t *p){
-  p->swipe_step        = KBPF_DEFAULT_SWIPE_STEP;
-  p->swipe_deadzone    = KBPF_DEFAULT_SWIPE_DEADZONE;
-  p->swipe_freeze      = KBPF_DEFAULT_SWIPE_FREEZE ? 1u : 0u;
-  p->swipe_reset_ms    = KBPF_DEFAULT_SWIPE_RESET_MS;
-  p->scroll_deadzone   = KBPF_DEFAULT_SCROLL_DEADZONE;
-  p->scroll_hysteresis = KBPF_DEFAULT_SCROLL_HYSTERESIS;
+  p->swipe_step         = KBPF_DEFAULT_SWIPE_STEP;
+  p->swipe_deadzone     = KBPF_DEFAULT_SWIPE_DEADZONE;
+  p->swipe_freeze       = KBPF_DEFAULT_SWIPE_FREEZE ? 1u : 0u;
+  p->swipe_reset_ms     = KBPF_DEFAULT_SWIPE_RESET_MS;
+  p->swipe_haptic_mode  = KBPF_DEFAULT_SWIPE_HAPTIC_MODE;
+  p->scroll_deadzone    = KBPF_DEFAULT_SCROLL_DEADZONE;
+  p->scroll_hysteresis  = KBPF_DEFAULT_SCROLL_HYSTERESIS;
 }
 
 //-------------------------------------------------------------------------
@@ -155,6 +159,17 @@ static void kbpf_validate(void) {
   if (kbpf.swipe_deadzone > 32)                      kbpf.swipe_deadzone = KBPF_DEFAULT_SWIPE_DEADZONE;
   kbpf.swipe_freeze &= 0x01;
   if (kbpf.swipe_reset_ms > 250) kbpf.swipe_reset_ms = KBPF_DEFAULT_SWIPE_RESET_MS;
+#ifdef HAPTIC_ENABLE
+  if (kbpf.swipe_haptic_mode < 1u || kbpf.swipe_haptic_mode >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    uint8_t fallback = KBPF_DEFAULT_SWIPE_HAPTIC_MODE;
+    if (fallback < 1u || fallback >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      fallback = DRV2605L_DEFAULT_MODE;
+    }
+    kbpf.swipe_haptic_mode = fallback;
+  }
+#else
+  kbpf.swipe_haptic_mode = 0u;
+#endif
   if (kbpf.scroll_deadzone > 32)    kbpf.scroll_deadzone   = KBPF_DEFAULT_SCROLL_DEADZONE;
   if (kbpf.scroll_hysteresis > 32)  kbpf.scroll_hysteresis = KBPF_DEFAULT_SCROLL_HYSTERESIS;
   // Move deadzone clamp
