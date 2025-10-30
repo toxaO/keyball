@@ -6,6 +6,7 @@
 
 #include "keyball_oled.h"
 #include "keyball.h"
+#include "keyball_swipe.h"
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef RGBLIGHT_ENABLE
@@ -66,7 +67,7 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
             return 0;
 #endif
 #ifdef HAPTIC_ENABLE
-        case KB_OLED_PAGE_HAPTIC: return 3; // Haptic: en/mode/test
+        case KB_OLED_PAGE_HAPTIC: return 5; // Haptic: en/mode1/mode2/idle/test
 #endif
         case 8: return 0; // LED monitor (値はS+左右で操作)
         case 9: return 1; // Default layer: def
@@ -470,10 +471,28 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                         haptic_set_mode(new_mode);
                     }
                     if (haptic_get_enable()) {
-                        haptic_play();
+                        keyball_swipe_haptic_reset_sequence();
+                        keyball_swipe_haptic_pulse();
                     }
                 } else if (sel == 2) {
-                    haptic_play();
+                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode_repeat + dir;
+                    if (mode < 1) mode = 1;
+                    if (mode >= (int32_t)DRV2605L_EFFECT_COUNT) mode = (int32_t)DRV2605L_EFFECT_COUNT - 1;
+                    uint8_t new_mode = (uint8_t)mode;
+                    if (kbpf.swipe_haptic_mode_repeat != new_mode) {
+                        kbpf.swipe_haptic_mode_repeat = new_mode;
+                    }
+                    if (haptic_get_enable()) {
+                        keyball_swipe_haptic_prepare_repeat();
+                        keyball_swipe_haptic_pulse();
+                    }
+                } else if (sel == 3) {
+                    int32_t idle = (int32_t)kbpf.swipe_haptic_idle_ms + dir * 100;
+                    if (idle < 0) idle = 0;
+                    if (idle > 10000) idle = 10000;
+                    kbpf.swipe_haptic_idle_ms = (uint16_t)idle;
+                } else if (sel == 4) {
+                    keyball_swipe_haptic_pulse();
                 }
             } break;
 #endif
@@ -835,15 +854,33 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, "En:");
             oled_writef_sel(row++, sel == 0, "%s", haptic_get_enable() ? "on" : "off");
             row_skip(row, 1);
-            oled_writef(row++, "Mode");
+            oled_writef(row++, "Mode1");
             {
                 char buf[8];
                 snprintf(buf, sizeof(buf), "%3u", (unsigned)kbpf.swipe_haptic_mode);
                 oled_writef_sel(row++, sel == 1, "%s", buf);
             }
             row_skip(row, 1);
+            oled_writef(row++, "Mode2");
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%3u", (unsigned)kbpf.swipe_haptic_mode_repeat);
+                oled_writef_sel(row++, sel == 2, "%s", buf);
+            }
+            row_skip(row, 1);
+            oled_writef(row++, "Idle");
+            {
+                char buf[8];
+                if (kbpf.swipe_haptic_idle_ms == 0) {
+                    snprintf(buf, sizeof(buf), " --");
+                } else {
+                    snprintf(buf, sizeof(buf), "%4ums", (unsigned)kbpf.swipe_haptic_idle_ms);
+                }
+                oled_writef_sel(row++, sel == 3, "%s", buf);
+            }
+            row_skip(row, 1);
             oled_writef(row++, "Test");
-            oled_writef_sel(row++, sel == 2, "Play");
+            oled_writef_sel(row++, sel == 4, "Play");
             row_skip(row, 1);
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;

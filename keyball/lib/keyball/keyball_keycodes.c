@@ -169,6 +169,7 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       keyball_swipe_end();
 #ifdef HAPTIC_ENABLE
       haptic_set_mode(kbpf.swipe_haptic_mode);
+      keyball_swipe_haptic_reset_sequence();
 #endif
       kbpf_write();
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE

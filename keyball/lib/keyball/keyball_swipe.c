@@ -7,10 +7,65 @@
 #include "keyball_swipe.h"
 #ifdef HAPTIC_ENABLE
 #    include "haptic.h"
-static inline void keyball_swipe_haptic_feedback(void) {
-  if (haptic_get_enable()) {
-    haptic_play();
+#    ifdef HAPTIC_DRV2605L
+#        include "drivers/haptic/drv2605l.h"
+#    endif
+#    if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+extern uint8_t split_haptic_play;
+#    endif
+static uint32_t s_swipe_haptic_last_ms = 0;
+static bool     s_swipe_haptic_next_primary = true;
+
+void keyball_swipe_haptic_pulse(void) {
+  if (!haptic_get_enable()) {
+    s_swipe_haptic_last_ms      = 0;
+    s_swipe_haptic_next_primary = true;
+    return;
   }
+
+  uint32_t now = timer_read32();
+  uint16_t idle_ms = kbpf.swipe_haptic_idle_ms;
+  if (s_swipe_haptic_last_ms == 0) {
+    s_swipe_haptic_next_primary = true;
+  } else if (timer_elapsed32(s_swipe_haptic_last_ms) >= idle_ms) {
+    s_swipe_haptic_next_primary = true;
+  }
+
+#if defined(HAPTIC_DRV2605L)
+  uint8_t primary = kbpf.swipe_haptic_mode;
+  if (primary < 1u || primary >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    primary = DRV2605L_DEFAULT_MODE;
+  }
+  uint8_t repeat = kbpf.swipe_haptic_mode_repeat;
+  if (repeat < 1u || repeat >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    repeat = primary;
+  }
+  uint8_t effect = s_swipe_haptic_next_primary ? primary : repeat;
+  drv2605l_pulse(effect);
+#    if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+  split_haptic_play = effect;
+#    endif
+#else
+  // フォールバック: 別ドライバでは通常のハプティック再生
+  haptic_play();
+#endif
+
+  s_swipe_haptic_last_ms      = now;
+  s_swipe_haptic_next_primary = false;
+}
+
+void keyball_swipe_haptic_reset_sequence(void) {
+  s_swipe_haptic_last_ms      = 0;
+  s_swipe_haptic_next_primary = true;
+}
+
+void keyball_swipe_haptic_prepare_repeat(void) {
+  s_swipe_haptic_next_primary = false;
+  s_swipe_haptic_last_ms      = timer_read32();
+}
+
+static inline void keyball_swipe_haptic_feedback(void) {
+  keyball_swipe_haptic_pulse();
 }
 #else
 static inline void keyball_swipe_haptic_feedback(void) {}

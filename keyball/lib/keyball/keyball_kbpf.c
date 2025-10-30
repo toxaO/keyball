@@ -64,6 +64,8 @@ static void kbpf_set_swipe_defaults(keyball_profiles_t *p){
   p->swipe_freeze       = KBPF_DEFAULT_SWIPE_FREEZE ? 1u : 0u;
   p->swipe_reset_ms     = KBPF_DEFAULT_SWIPE_RESET_MS;
   p->swipe_haptic_mode  = KBPF_DEFAULT_SWIPE_HAPTIC_MODE;
+  p->swipe_haptic_mode_repeat = KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT;
+  p->swipe_haptic_idle_ms     = KBPF_DEFAULT_SWIPE_HAPTIC_IDLE_MS;
   p->scroll_deadzone    = KBPF_DEFAULT_SCROLL_DEADZONE;
   p->scroll_hysteresis  = KBPF_DEFAULT_SCROLL_HYSTERESIS;
 }
@@ -160,15 +162,25 @@ static void kbpf_validate(void) {
   kbpf.swipe_freeze &= 0x01;
   if (kbpf.swipe_reset_ms > 250) kbpf.swipe_reset_ms = KBPF_DEFAULT_SWIPE_RESET_MS;
 #ifdef HAPTIC_ENABLE
-  if (kbpf.swipe_haptic_mode < 1u || kbpf.swipe_haptic_mode >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+  {
     uint8_t fallback = KBPF_DEFAULT_SWIPE_HAPTIC_MODE;
     if (fallback < 1u || fallback >= (uint8_t)DRV2605L_EFFECT_COUNT) {
       fallback = DRV2605L_DEFAULT_MODE;
     }
-    kbpf.swipe_haptic_mode = fallback;
+    if (kbpf.swipe_haptic_mode < 1u || kbpf.swipe_haptic_mode >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.swipe_haptic_mode = fallback;
+    }
+    if (kbpf.swipe_haptic_mode_repeat < 1u || kbpf.swipe_haptic_mode_repeat >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.swipe_haptic_mode_repeat = kbpf.swipe_haptic_mode;
+    }
+  }
+  if (kbpf.swipe_haptic_idle_ms > 10000u) {
+    kbpf.swipe_haptic_idle_ms = KBPF_DEFAULT_SWIPE_HAPTIC_IDLE_MS;
   }
 #else
-  kbpf.swipe_haptic_mode = 0u;
+  kbpf.swipe_haptic_mode        = 0u;
+  kbpf.swipe_haptic_mode_repeat = 0u;
+  kbpf.swipe_haptic_idle_ms     = 0u;
 #endif
   if (kbpf.scroll_deadzone > 32)    kbpf.scroll_deadzone   = KBPF_DEFAULT_SCROLL_DEADZONE;
   if (kbpf.scroll_hysteresis > 32)  kbpf.scroll_hysteresis = KBPF_DEFAULT_SCROLL_HYSTERESIS;

@@ -7,16 +7,7 @@
 
 #include "swipe_user.h"
 #include "lib/keyball/keyball.h"
-#ifdef HAPTIC_ENABLE
-#    include "haptic.h"
-static inline void swipe_user_haptic_pulse(void) {
-    if (haptic_get_enable()) {
-        haptic_play();
-    }
-}
-#else
-static inline void swipe_user_haptic_pulse(void) {}
-#endif
+#include "lib/keyball/keyball_swipe.h"
 
 // Swipeの動作はこのファイルで指定します。
 
@@ -66,7 +57,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         break;
 
     case KBS_TAG_TAB:
-        swipe_user_haptic_pulse();
         switch (dir) {
         case KB_SWIPE_UP:
             dprintf("TAB_SW UP (OS=%d)\n", host_os);

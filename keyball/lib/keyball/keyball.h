@@ -166,6 +166,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #        define KBPF_DEFAULT_SWIPE_HAPTIC_MODE 0
 #    endif
 #endif
+#ifndef KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT
+#    define KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#endif
+#ifndef KBPF_DEFAULT_SWIPE_HAPTIC_IDLE_MS
+#    define KBPF_DEFAULT_SWIPE_HAPTIC_IDLE_MS 1000
+#endif
 #ifndef KBPF_DEFAULT_SCROLL_DEADZONE
 #    define KBPF_DEFAULT_SCROLL_DEADZONE 0
 #endif
@@ -546,6 +552,8 @@ typedef struct __attribute__((packed)) {
   uint8_t  swipe_freeze;      // bit0: freeze (1=FREEZE ON)
   uint8_t  swipe_reset_ms;    // スワイプ蓄積リセット遅延(ms)
   uint8_t  swipe_haptic_mode; // スワイプ時のハプティックモード
+  uint8_t  swipe_haptic_mode_repeat; // 連続スワイプ時のハプティックモード
+  uint16_t swipe_haptic_idle_ms;     // 初回へ戻すまでの待ち時間(ms)
   // 互換保持のため残置（現行ロジックでは未使用）
   uint8_t scroll_deadzone;   // スクロール用デッドゾーン
   uint8_t scroll_hysteresis; // スクロール反転ヒステリシス
@@ -576,7 +584,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 15 // v15: swipe haptic mode を追加（互換なし）
+#define KBPF_VER_CUR 16 // v16: swipe haptic 2段階設定を追加（互換なし）
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)

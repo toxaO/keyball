@@ -33,6 +33,7 @@ bool get_haptic_enabled_key(uint16_t keycode, keyrecord_t *record) {
 #endif
 
 #include "keyball.h"
+#include "keyball_swipe.h"
 #include "drivers/sensors/pmw33xx_common.h"
 #if defined(POINTING_DEVICE_DRIVER_pmw3360) || defined(POINTING_DEVICE_DRIVER_pmw3389)
 bool pmw33xx_check_signature(uint8_t sensor);
@@ -282,6 +283,7 @@ void keyboard_post_init_kb(void) {
 
 #ifdef HAPTIC_ENABLE
   haptic_set_mode(kbpf.swipe_haptic_mode);
+  keyball_swipe_haptic_reset_sequence();
 #endif
 
   keyball_set_cpi(keyball_get_cpi());

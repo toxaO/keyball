@@ -78,3 +78,9 @@ void keyball_swipe_get_accum(uint32_t *r, uint32_t *l, uint32_t *d, uint32_t *u)
 
 // 外部から1ステップ分の発火を指示（スワイプ有効時のみ有効）
 void keyball_swipe_fire_once(kb_swipe_dir_t dir);
+
+#ifdef HAPTIC_ENABLE
+void keyball_swipe_haptic_pulse(void);
+void keyball_swipe_haptic_reset_sequence(void);
+void keyball_swipe_haptic_prepare_repeat(void);
+#endif
