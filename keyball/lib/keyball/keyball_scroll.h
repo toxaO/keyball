@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
+#include "quantum.h"
 #include "report.h"
 
 typedef enum {
@@ -24,5 +25,5 @@ void keyball_on_apply_motion_to_mouse_scroll(report_mouse_t *report,
 void keyball_scroll_get_dbg(int16_t *sx, int16_t *sy, int16_t *h, int16_t *v);
 void keyball_scroll_get_dbg_inner(int32_t *ah, int32_t *av, int8_t *t);
 
-void keyball_apply_scroll_layer_state(uint32_t state);
+void keyball_apply_scroll_layer_state(layer_state_t state);
 void keyball_refresh_scroll_layer(void);

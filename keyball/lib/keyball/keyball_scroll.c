@@ -6,6 +6,34 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if defined(POINTING_DEVICE_AUTO_MOUSE_ENABLE) && defined(HAPTIC_ENABLE)
+static void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {
+#    ifdef SPLIT_KEYBOARD
+  if (!is_keyboard_master()) {
+    return;
+  }
+#    endif
+
+  static bool last_active = false;
+  uint8_t target_layer = get_auto_mouse_layer();
+  bool is_active = layer_state_cmp(state, target_layer);
+  if (is_active == last_active) {
+    return;
+  }
+  last_active = is_active;
+
+  if (!haptic_get_enable()) {
+    return;
+  }
+
+  haptic_play();
+}
+#else
+static inline void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {
+  (void)state;
+}
+#endif
+
 #define _CONSTRAIN(amt, low, high)                                             \
   ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 #define CONSTRAIN_HV(val)                                                      \
@@ -52,7 +80,11 @@ void keyball_scroll_get_dbg_inner(int32_t *ah, int32_t *av, int8_t *t) {
     *t = g_dbg_t;
 }
 
-void keyball_apply_scroll_layer_state(uint32_t state) {
+void keyball_apply_scroll_layer_state(layer_state_t state) {
+#if defined(POINTING_DEVICE_AUTO_MOUSE_ENABLE) && defined(HAPTIC_ENABLE)
+  keyball_handle_auto_mouse_layer_haptics(state);
+#endif
+
   if (!kbpf.scroll_layer_enable) {
     keyball_set_scroll_mode(false);
     return;
