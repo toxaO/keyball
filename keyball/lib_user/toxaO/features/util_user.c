@@ -32,6 +32,8 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t *record) {
     case BRO_SW:
     case TAB_SW:
     case WIN_SW:
+    case ARR_SW:
+    case UTIL_SW:
       return true; // マウスキーとして扱う
     default:
       return false;

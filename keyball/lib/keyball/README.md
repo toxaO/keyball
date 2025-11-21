@@ -72,7 +72,7 @@ Shift+←/→ でもページを移動できます（設定モード中）。
 
 ### 1) キー配置（キーボードレベル）
 - スワイプ実行キーはすべてキーボードレベル（QK_KB_*）です。
-  - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW`
+  - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW` / `UTIL_SW` / `ARR_SW` / `SW_EX1` / `SW_EX2`
 - キーマップへ上記のいずれかを割り当てます（押下で開始、解放で終了）。
 
 ### 2) 下位レイヤ干渉の抑制（任意）
@@ -115,8 +115,12 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
   switch (tag) {
   case KBS_TAG_BRO:
     switch (dir) {
-    case KB_SWIPE_UP:    tap_code16_os(C(KC_C), G(KC_C), G(KC_C), KC_NO, KC_NO); break;
-    case KB_SWIPE_DOWN:  tap_code16_os(C(KC_V), G(KC_V), G(KC_V), KC_NO, KC_NO); break;
+    case KB_SWIPE_UP:
+      tap_code16_os(C(S(KC_EQUAL)), G(S(KC_EQUAL)), G(S(KC_EQUAL)), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
+      break;
+    case KB_SWIPE_DOWN:
+      tap_code16_os(C(KC_MINUS), G(KC_MINUS), G(KC_MINUS), C(KC_MINUS), C(KC_MINUS));
+      break;
     case KB_SWIPE_LEFT:  tap_code16_os(KC_WBAK, G(KC_LEFT),  G(KC_LEFT),  KC_NO, KC_NO); break;
     case KB_SWIPE_RIGHT: tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO); break;
     default: break;

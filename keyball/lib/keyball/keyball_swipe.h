@@ -22,7 +22,8 @@ enum {
     KBS_TAG_BRO,
     KBS_TAG_TAB,
     KBS_TAG_WIN,
-    KBS_TAG_ARR, // Arrow proxy (SW_ARR)
+    KBS_TAG_UTIL,
+    KBS_TAG_ARR, // Arrow proxy (ARR_SW)
     KBS_TAG_EX1, // Extension swipe key #1 (SW_EX1)
     KBS_TAG_EX2, // Extension swipe key #2 (SW_EX2)
 };

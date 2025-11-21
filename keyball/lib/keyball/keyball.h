@@ -373,6 +373,7 @@ enum keyball_keycodes {
   BRO_SW  = QK_KB_10,
   TAB_SW  = QK_KB_11,
   WIN_SW  = QK_KB_12,
+  UTIL_SW = QK_KB_24,
 
   // Multi action keys (Kb 13..16): A,B,C,D correspond to LEFT,RIGHT,UP,DOWN  [番号を詰めた]
   MULTI_A = QK_KB_13,
@@ -381,7 +382,7 @@ enum keyball_keycodes {
   MULTI_D = QK_KB_16,
 
   // Arrow proxy swipe key (Kb 17)  [番号を詰めた]
-  SW_ARR  = QK_KB_17,
+  ARR_SW  = QK_KB_17,
 
   // Extension swipe keys (Kb 18..19): for user-expansion examples  [番号を詰めた]
   SW_EX1  = QK_KB_18,

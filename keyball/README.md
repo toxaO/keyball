@@ -41,7 +41,7 @@
 - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW`
   - 方向（Up/Down/Left/Right）に応じてユーザー実装のフックにより動作します。
   - 例: App切り替え、音量、ブラウザ履歴、タブ、Windowsのウィンドウスナップ 等。
-- `SW_ARR`（矢印疑似）：押下中に矢印方向を1回発火させる用途など。
+- `ARR_SW`（矢印疑似）：押下中に矢印方向を1回発火させる用途など。
 
 マルチキー（ユーザーフックで任意動作）
 - `MULTI_A` / `MULTI_B` / `MULTI_C` / `MULTI_D`
@@ -59,7 +59,7 @@ Vial の customKeycodes にも掲載される主要キー：
   - スピード調整: `SCSP_DEC` / `SCSP_INC`（ScSp−/＋）
 - マウス速度: `MOSP_DEC` / `MOSP_INC`（MoSp−/＋）
 - スクロールスナップ: `SSNP_VRT` / `SSNP_HOR` / `SSNP_FRE`
-- スワイプ実行: `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW` / `SW_ARR` / `SW_EX1` / `SW_EX2`
+- スワイプ実行: `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW` / `ARR_SW` / `SW_EX1` / `SW_EX2`
 
 Vial で編集する場合
 - Vial/QMKのVial対応ビルドを使えば、キーマップとこれらのキーコードをGUIから配置可能です。

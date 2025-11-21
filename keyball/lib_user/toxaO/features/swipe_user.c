@@ -48,8 +48,12 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
     case KBS_TAG_BRO:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_os(C(KC_C), G(KC_C), G(KC_C), KC_NO, KC_NO); break;
-        case KB_SWIPE_DOWN:  tap_code16_os(C(KC_V), G(KC_V), G(KC_V), KC_NO, KC_NO); break;
+        case KB_SWIPE_UP:
+            tap_code16_os(C(S(KC_EQUAL)), G(S(KC_EQUAL)), G(S(KC_EQUAL)), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
+            break;
+        case KB_SWIPE_DOWN:
+            tap_code16_os(C(KC_MINUS), G(KC_MINUS), G(KC_MINUS), C(KC_MINUS), C(KC_MINUS));
+            break;
         case KB_SWIPE_LEFT:  tap_code16_os(KC_WBAK, G(KC_LEFT),  G(KC_LEFT),  KC_NO, KC_NO); break;
         case KB_SWIPE_RIGHT: tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO); break;
         default: break;
@@ -105,6 +109,25 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
             else                        { tap_code16_with_oneshot(MGN_R); }
             break;
         default: break;
+        }
+        break;
+
+    case KBS_TAG_UTIL:
+        switch (dir) {
+        case KB_SWIPE_UP:
+            tap_code16_os(C(KC_C), G(KC_C), G(KC_C), C(KC_C), C(KC_C));
+            break;
+        case KB_SWIPE_DOWN:
+            tap_code16_os(C(KC_V), G(KC_V), G(KC_V), C(KC_V), C(KC_V));
+            break;
+        case KB_SWIPE_LEFT:
+            tap_code16_os(C(KC_Y), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Y));
+            break;
+        case KB_SWIPE_RIGHT:
+            tap_code16_os(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(S(KC_Z)), C(KC_Y));
+            break;
+        default:
+            break;
         }
         break;
 
@@ -262,6 +285,10 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         break;
     case KBS_TAG_WIN:
         tap_code16_os(G(KC_Z), A(C(KC_ENT)), A(C(KC_ENT)), KC_NO, KC_NO);
+        break;
+    case KBS_TAG_UTIL:
+        tap_code16_with_oneshot(KC_ESC);
+        tap_code16_with_oneshot(KC_LNG2);
         break;
     case KBS_TAG_ARR:
         // タップ時は何もしない

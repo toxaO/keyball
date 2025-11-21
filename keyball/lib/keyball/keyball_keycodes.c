@@ -263,12 +263,13 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       // g_swipe_keydown_msはタップ動作判定のため
       // swipe_beginでスワイプ状態タグ付け
       // タグさえ付けてしまえば、他のキーでも同様の動作可能
-    case APP_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_APP); return false;
-    case VOL_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_VOL); return false;
-    case BRO_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_BRO); return false;
-    case TAB_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_TAB); return false;
-    case WIN_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_WIN); return false;
-    case SW_ARR: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR); return false;
+    case APP_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_APP);  return false;
+    case VOL_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_VOL);  return false;
+    case BRO_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_BRO);  return false;
+    case TAB_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_TAB);  return false;
+    case WIN_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_WIN);  return false;
+    case UTIL_SW: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_UTIL); return false;
+    case ARR_SW:  g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_ARR);  return false;
     case SW_EX1: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX1); return false; // Extension swipe 1
     case SW_EX2: g_swipe_keydown_ms = timer_read(); keyball_swipe_begin(KBS_TAG_EX2); return false; // Extension swipe 2
 
@@ -342,7 +343,8 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
       case BRO_SW:
       case TAB_SW:
       case WIN_SW:
-      case SW_ARR: {
+      case UTIL_SW:
+      case ARR_SW: {
         bool fired = keyball_swipe_fired_since_begin();
         uint16_t elapsed = timer_elapsed(g_swipe_keydown_ms);
         keyball_swipe_end();
@@ -354,7 +356,8 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           else if (keycode == BRO_SW) tag = KBS_TAG_BRO;
           else if (keycode == TAB_SW) tag = KBS_TAG_TAB;
           else if (keycode == WIN_SW) tag = KBS_TAG_WIN;
-          else if (keycode == SW_ARR) tag = KBS_TAG_ARR;
+          else if (keycode == UTIL_SW) tag = KBS_TAG_UTIL;
+          else if (keycode == ARR_SW)  tag = KBS_TAG_ARR;
           else if (keycode == SW_EX1) tag = KBS_TAG_EX1;
           else if (keycode == SW_EX2) tag = KBS_TAG_EX2;
 
@@ -364,14 +367,15 @@ bool keyball_process_keycode(uint16_t keycode, keyrecord_t *record) {
           if (keyball_on_swipe_tap && tag != 0) {
             keyball_on_swipe_tap(tag);
           } else {
-            if      (keycode == APP_SW) tap_code16_os(LGUI(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
-            else if (keycode == VOL_SW) tap_code(KC_MPLY);
-            else if (keycode == BRO_SW) tap_code16_os(LCTL(KC_R), LGUI(KC_R), LGUI(KC_R), LCTL(KC_R), KC_NO);
-            else if (keycode == TAB_SW) tap_code16_os(LCTL(KC_T), LGUI(KC_T), LGUI(KC_T), LCTL(KC_T), KC_NO);
-            else if (keycode == WIN_SW) tap_code16_os(LGUI(KC_UP), LCTL(RCTL(KC_F)), LCTL(RCTL(KC_F)), KC_NO, KC_NO);
-            else if (keycode == SW_ARR) tap_code(KC_NO);
-            else if (keycode == SW_EX1) tap_code(KC_F13);
-            else if (keycode == SW_EX2) tap_code(KC_F18);
+            if      (keycode == APP_SW)  tap_code16_os(LGUI(KC_TAB), LCTL(KC_UP), LCTL(KC_UP), KC_NO, KC_NO);
+            else if (keycode == VOL_SW)  tap_code(KC_MPLY);
+            else if (keycode == BRO_SW)  tap_code16_os(LCTL(KC_R), LGUI(KC_R), LGUI(KC_R), LCTL(KC_R), KC_NO);
+            else if (keycode == TAB_SW)  tap_code16_os(LCTL(KC_T), LGUI(KC_T), LGUI(KC_T), LCTL(KC_T), KC_NO);
+            else if (keycode == WIN_SW)  tap_code16_os(LGUI(KC_UP), LCTL(RCTL(KC_F)), LCTL(RCTL(KC_F)), KC_NO, KC_NO);
+            else if (keycode == UTIL_SW) { tap_code16(KC_ESC); tap_code16(KC_LNG2); }
+            else if (keycode == ARR_SW)  tap_code(KC_NO);
+            else if (keycode == SW_EX1)  tap_code(KC_F13);
+            else if (keycode == SW_EX2)  tap_code(KC_F18);
           }
         }
         return false;
