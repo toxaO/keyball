@@ -117,6 +117,10 @@ void kbpf_defaults(void) {
   kbpf.aml_layer     = KBPF_DEFAULT_AML_LAYER;
   kbpf.aml_timeout   = KBPF_DEFAULT_AML_TIMEOUT;
   kbpf.aml_threshold = KBPF_DEFAULT_AML_THRESHOLD;
+  kbpf.aml_haptic_enter_enable = KBPF_DEFAULT_AML_HAPTIC_ENTER_ENABLE ? 1u : 0u;
+  kbpf.aml_haptic_exit_enable  = KBPF_DEFAULT_AML_HAPTIC_EXIT_ENABLE ? 1u : 0u;
+  kbpf.aml_haptic_enter_effect = KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT;
+  kbpf.aml_haptic_exit_effect  = KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT;
   // Scroll snap: 既定は Vertical
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
   kbpf.scrollsnap_mode   = KBPF_DEFAULT_SCROLLSNAP_MODE;
@@ -134,11 +138,31 @@ void kbpf_defaults(void) {
   kbpf.move_deadzone       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_MOVE_DEADZONE, 0, 32);
 }
 
-// Ensure loaded data is sane. 互換は持たず、異なる版はデフォルトに初期化。
+static bool kbpf_try_upgrade(uint16_t stored_version) {
+  switch (stored_version) {
+    case 16:
+      kbpf.aml_haptic_enter_enable = KBPF_DEFAULT_AML_HAPTIC_ENTER_ENABLE ? 1u : 0u;
+      kbpf.aml_haptic_exit_enable  = KBPF_DEFAULT_AML_HAPTIC_EXIT_ENABLE ? 1u : 0u;
+      kbpf.aml_haptic_enter_effect = KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT;
+      kbpf.aml_haptic_exit_effect  = KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT;
+      kbpf.version = KBPF_VER_CUR;
+      return true;
+    default:
+      return false;
+  }
+}
+
+// Ensure loaded data is sane. 互換は持たず、異なる版はアップグレード可能な場合のみ許容。
 static void kbpf_validate(void) {
-  if (kbpf.magic != KBPF_MAGIC || kbpf.version != KBPF_VER_CUR) {
+  if (kbpf.magic != KBPF_MAGIC) {
     kbpf_defaults();
     return;
+  }
+  if (kbpf.version != KBPF_VER_CUR) {
+    if (!kbpf_try_upgrade(kbpf.version)) {
+      kbpf_defaults();
+      return;
+    }
   }
   for (int i = 0; i < 8; ++i) {
     kbpf.cpi[i]           = clamp_cpi(kbpf.cpi[i] ? kbpf.cpi[i] : KBPF_DEFAULT_CPI);
@@ -191,8 +215,8 @@ static void kbpf_validate(void) {
   // layer は 0..31 程度（0xFFは未設定とみなす）
   if (kbpf.aml_layer != 0xFFu && kbpf.aml_layer > 31u) kbpf.aml_layer = KBPF_DEFAULT_AML_LAYER;
   // timeout: allow 100..9500 or special 60000 (HOLD)
-  if (kbpf.aml_timeout == 60000u) {
-    // keep
+  if (kbpf.aml_timeout >= 60000u) {
+    kbpf.aml_timeout = 60000u;
   } else {
     if (kbpf.aml_timeout < 100u) kbpf.aml_timeout = KBPF_DEFAULT_AML_TIMEOUT;
     if (kbpf.aml_timeout > 9500u) kbpf.aml_timeout = 9500u;
@@ -200,6 +224,34 @@ static void kbpf_validate(void) {
   // threshold clamp (1..100 reasonable)
   if (kbpf.aml_threshold < 50u)  kbpf.aml_threshold = KBPF_DEFAULT_AML_THRESHOLD;
   if (kbpf.aml_threshold > 1000u) kbpf.aml_threshold = 1000u;
+  kbpf.aml_haptic_enter_enable = kbpf.aml_haptic_enter_enable ? 1u : 0u;
+  kbpf.aml_haptic_exit_enable  = kbpf.aml_haptic_exit_enable ? 1u : 0u;
+#ifdef HAPTIC_ENABLE
+#    ifdef HAPTIC_DRV2605L
+  {
+    uint8_t fallback_enter = KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT;
+    if (fallback_enter < 1u || fallback_enter >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      fallback_enter = DRV2605L_DEFAULT_MODE;
+    }
+    uint8_t fallback_exit = KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT;
+    if (fallback_exit < 1u || fallback_exit >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      fallback_exit = fallback_enter;
+    }
+    if (kbpf.aml_haptic_enter_effect < 1u || kbpf.aml_haptic_enter_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.aml_haptic_enter_effect = fallback_enter;
+    }
+    if (kbpf.aml_haptic_exit_effect < 1u || kbpf.aml_haptic_exit_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.aml_haptic_exit_effect = fallback_exit;
+    }
+  }
+#    else
+  kbpf.aml_haptic_enter_effect = KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT;
+  kbpf.aml_haptic_exit_effect  = KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT;
+#    endif
+#else
+  kbpf.aml_haptic_enter_effect = 0u;
+  kbpf.aml_haptic_exit_effect  = 0u;
+#endif
   // Scroll snap
   if (kbpf.scrollsnap_mode > 2u) kbpf.scrollsnap_mode = KBPF_DEFAULT_SCROLLSNAP_MODE;
   // Scroll snap params

@@ -194,6 +194,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBPF_DEFAULT_AML_THRESHOLD
 #    define KBPF_DEFAULT_AML_THRESHOLD 100
 #endif
+#ifndef KBPF_DEFAULT_AML_HAPTIC_ENTER_ENABLE
+#    define KBPF_DEFAULT_AML_HAPTIC_ENTER_ENABLE 1
+#endif
+#ifndef KBPF_DEFAULT_AML_HAPTIC_EXIT_ENABLE
+#    define KBPF_DEFAULT_AML_HAPTIC_EXIT_ENABLE 1
+#endif
+#ifndef KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT
+#    define KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#endif
+#ifndef KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT
+#    define KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#endif
 #ifndef KBPF_DEFAULT_SCROLLSNAP_MODE
 #    define KBPF_DEFAULT_SCROLLSNAP_MODE KEYBALL_SCROLLSNAP_MODE_VERTICAL
 #endif
@@ -564,6 +576,10 @@ typedef struct __attribute__((packed)) {
   uint8_t  aml_layer;       // target layer index (0..31, 0xFF=unset)
   uint16_t aml_timeout;     // ms
   uint16_t aml_threshold;   // activation threshold (counts, 50..1000)
+  uint8_t  aml_haptic_enter_enable; // 0/1
+  uint8_t  aml_haptic_exit_enable;  // 0/1
+  uint8_t  aml_haptic_enter_effect; // DRV2605 effect id (1..n)
+  uint8_t  aml_haptic_exit_effect;  // DRV2605 effect id (1..n)
   // Scroll snap (global)
   uint8_t  scrollsnap_mode; // keyball_scrollsnap_mode_t
   // Scroll snap parameters (global)
@@ -584,7 +600,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 16 // v16: swipe haptic 2段階設定を追加（互換なし）
+#define KBPF_VER_CUR 17 // v17: AMLハプティック設定を追加（旧v16からは自動移行）
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)

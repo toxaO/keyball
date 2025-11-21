@@ -7,6 +7,28 @@
 #include <stdlib.h>
 
 #if defined(POINTING_DEVICE_AUTO_MOUSE_ENABLE) && defined(HAPTIC_ENABLE)
+#    ifdef HAPTIC_DRV2605L
+#        include "drivers/haptic/drv2605l.h"
+#        if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+extern uint8_t split_haptic_play;
+#        endif
+#    endif
+
+static void keyball_aml_haptic_trigger(uint8_t effect) {
+#    ifdef HAPTIC_DRV2605L
+  if (effect < 1u || effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    effect = DRV2605L_DEFAULT_MODE;
+  }
+  drv2605l_pulse(effect);
+#        if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+  split_haptic_play = effect;
+#        endif
+#    else
+  (void)effect;
+  haptic_play();
+#    endif
+}
+
 static void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {
 #    ifdef SPLIT_KEYBOARD
   if (!is_keyboard_master()) {
@@ -20,13 +42,20 @@ static void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {
   if (is_active == last_active) {
     return;
   }
-  last_active = is_active;
+  bool entering = is_active && !last_active;
+  bool exiting  = !is_active && last_active;
+  last_active   = is_active;
 
   if (!haptic_get_enable()) {
     return;
   }
 
-  haptic_play();
+  if (entering && kbpf.aml_haptic_enter_enable) {
+    keyball_aml_haptic_trigger(kbpf.aml_haptic_enter_effect);
+  }
+  if (exiting && kbpf.aml_haptic_exit_enable) {
+    keyball_aml_haptic_trigger(kbpf.aml_haptic_exit_effect);
+  }
 }
 #else
 static inline void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {

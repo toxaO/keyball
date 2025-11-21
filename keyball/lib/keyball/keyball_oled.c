@@ -33,15 +33,54 @@ extern const uint16_t AML_TIMEOUT_MAX;
 extern const uint16_t AML_TIMEOUT_QU;
 #endif
 
-#ifdef HAPTIC_ENABLE
+#define KB_PAGE_MOUSE 0
+#define KB_PAGE_AML   1
+
+#if defined(POINTING_DEVICE_AUTO_MOUSE_ENABLE) && defined(HAPTIC_ENABLE)
+#    define KB_PAGE_AML_HAPTIC 2
+#    define KB_PAGE_SCROLL_CONF 3
+#    define KB_PAGE_SCROLL_SNAP 4
+#    define KB_PAGE_SCROLL_MON 5
+#    define KB_PAGE_SWIPE_CONF 6
+#    define KB_PAGE_SWIPE_MON  7
+#    define KB_PAGE_RGB_CONF   8
+#    define KB_PAGE_LED_MON    9
+#    define KB_PAGE_DEFAULT_LAYER 10
+#    define KB_PAGE_SEND_MON   11
+#    define KB_PAGE_HAPTIC     12
+#    define KB_UI_PAGES 13
+#    define KB_OLED_PAGE_COUNT 13
+#elif defined(HAPTIC_ENABLE)
+#    define KB_PAGE_SCROLL_CONF 2
+#    define KB_PAGE_SCROLL_SNAP 3
+#    define KB_PAGE_SCROLL_MON 4
+#    define KB_PAGE_SWIPE_CONF 5
+#    define KB_PAGE_SWIPE_MON  6
+#    define KB_PAGE_RGB_CONF   7
+#    define KB_PAGE_LED_MON    8
+#    define KB_PAGE_DEFAULT_LAYER 9
+#    define KB_PAGE_SEND_MON   10
+#    define KB_PAGE_HAPTIC     11
 #    define KB_UI_PAGES 12
 #    define KB_OLED_PAGE_COUNT 12
-#    define KB_OLED_PAGE_HAPTIC 11
 #else
+#    define KB_PAGE_SCROLL_CONF 2
+#    define KB_PAGE_SCROLL_SNAP 3
+#    define KB_PAGE_SCROLL_MON 4
+#    define KB_PAGE_SWIPE_CONF 5
+#    define KB_PAGE_SWIPE_MON  6
+#    define KB_PAGE_RGB_CONF   7
+#    define KB_PAGE_LED_MON    8
+#    define KB_PAGE_DEFAULT_LAYER 9
+#    define KB_PAGE_SEND_MON   10
 #    define KB_UI_PAGES 11
 #    define KB_OLED_PAGE_COUNT 11
 #endif
-#define KB_OLED_PAGE_LED_MONITOR 8
+
+#define KB_OLED_PAGE_LED_MONITOR KB_PAGE_LED_MON
+#ifdef HAPTIC_ENABLE
+#    define KB_OLED_PAGE_HAPTIC KB_PAGE_HAPTIC
+#endif
 
 static kb_oled_mode_t g_oled_mode = KB_OLED_MODE_NORMAL;
 static bool           g_dbg_en   = true;
@@ -51,27 +90,62 @@ static bool           g_oled_vertical = false; // 右手マスター用の縦向
 // デバッグUI: ページごとの選択インデックス
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 
+#ifdef HAPTIC_ENABLE
+static uint8_t keyball_oled_clamp_aml_effect(int32_t v) {
+#    ifdef HAPTIC_DRV2605L
+    if (v < 1) v = 1;
+    if (v >= (int32_t)DRV2605L_EFFECT_COUNT) v = (int32_t)DRV2605L_EFFECT_COUNT - 1;
+#    else
+    if (v < 0) v = 0;
+    if (v > 255) v = 255;
+#    endif
+    return (uint8_t)v;
+}
+
+static void keyball_oled_play_aml_effect(uint8_t effect) {
+    if (!haptic_get_enable()) {
+        return;
+    }
+#    ifdef HAPTIC_DRV2605L
+    if (effect < 1u || effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+        effect = (uint8_t)(DRV2605L_EFFECT_COUNT - 1);
+    }
+    drv2605l_pulse(effect);
+#        if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+    extern uint8_t split_haptic_play;
+    split_haptic_play = effect;
+#        endif
+#    else
+    (void)effect;
+    haptic_play();
+#    endif
+}
+#endif
+
 static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
-        case 0: return 5; // CPI, Glo, Th1, Th2, Dz
-        case 1: return 4; // AML: en, TO, TH, TG_L
-        case 2: return 7; // Scroll: ST, Dz, Inv, S_On, S_Ly, PST, H_Ga
-        case 3: return 3; // SSNP: Mode, Thr, Rst を編集可能
-        case 4: return 0; // Monitor
-        case 5: return 4; // Swipe: St, Dz, Rt, Frz
-        case 6: return 0; // Monitor
-        case 7:
+        case KB_PAGE_MOUSE: return 5; // CPI, Glo, Th1, Th2, Dz
+        case KB_PAGE_AML:   return 4; // AML: en, TO, TH, TG_L
+#ifdef KB_PAGE_AML_HAPTIC
+        case KB_PAGE_AML_HAPTIC: return 4; // AML haptic: INv, INf, OUTv, OUTf
+#endif
+        case KB_PAGE_SCROLL_CONF: return 7; // Scroll: ST, Dz, Inv, S_On, S_Ly, PST, H_Ga
+        case KB_PAGE_SCROLL_SNAP: return 3; // SSNP
+        case KB_PAGE_SCROLL_MON:  return 0; // Monitor
+        case KB_PAGE_SWIPE_CONF:  return 4; // Swipe config
+        case KB_PAGE_SWIPE_MON:   return 0; // Swipe monitor
+        case KB_PAGE_RGB_CONF:
 #ifdef RGBLIGHT_ENABLE
             return 5; // RGB: on/off, H, S, V, Mode
 #else
             return 0;
 #endif
+        case KB_PAGE_LED_MON:     return 0; // LED monitor
+        case KB_PAGE_DEFAULT_LAYER: return 1; // Default layer selector
+        case KB_PAGE_SEND_MON:    return 0; // Send monitor
 #ifdef HAPTIC_ENABLE
-        case KB_OLED_PAGE_HAPTIC: return 5; // Haptic: en/mode1/mode2/idle/test
+        case KB_OLED_PAGE_HAPTIC: return 5; // Haptic global config
 #endif
-        case 8: return 0; // LED monitor (値はS+左右で操作)
-        case 9: return 1; // Default layer: def
-        case 10: return 0; // Send monitor (no selector)
     }
     return 0;
 }
@@ -231,7 +305,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
         int dir = (keycode == KC_RIGHT) ? +1 : -1; // S+R: 増加, S+L: 減少
 
         switch (page) {
-            case 0: { // Mouse conf
+            case KB_PAGE_MOUSE: {
                 uint8_t os = keyball_os_idx();
                 if (sel == 0) {
                     // CPI ±100
@@ -274,7 +348,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                 }
             } break;
 
-            case 1: { // AML
+            case KB_PAGE_AML: {
                 if (sel == 0) {
                     // en: 0/1
                     bool en = get_auto_mouse_enable();
@@ -320,7 +394,29 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                 }
             } break;
 
-            case 2: { // Scroll conf
+#ifdef KB_PAGE_AML_HAPTIC
+            case KB_PAGE_AML_HAPTIC: {
+                if (sel == 0) {
+                    bool en = kbpf.aml_haptic_enter_enable ? true : false;
+                    en = (dir > 0);
+                    kbpf.aml_haptic_enter_enable = en ? 1 : 0;
+                } else if (sel == 1) {
+                    int32_t effect = (int32_t)kbpf.aml_haptic_enter_effect + dir;
+                    kbpf.aml_haptic_enter_effect = keyball_oled_clamp_aml_effect(effect);
+                    keyball_oled_play_aml_effect(kbpf.aml_haptic_enter_effect);
+                } else if (sel == 2) {
+                    bool en = kbpf.aml_haptic_exit_enable ? true : false;
+                    en = (dir > 0);
+                    kbpf.aml_haptic_exit_enable = en ? 1 : 0;
+                } else if (sel == 3) {
+                    int32_t effect = (int32_t)kbpf.aml_haptic_exit_effect + dir;
+                    kbpf.aml_haptic_exit_effect = keyball_oled_clamp_aml_effect(effect);
+                    keyball_oled_play_aml_effect(kbpf.aml_haptic_exit_effect);
+                }
+            } break;
+#endif
+
+            case KB_PAGE_SCROLL_CONF: { // Scroll conf
                 uint8_t os = keyball_os_idx();
                 if (sel == 0) {
                     // ST: 1..7（内部でクランプ）
@@ -370,7 +466,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                 }
             } break;
 
-            case 3: { // Scroll Snap
+            case KB_PAGE_SCROLL_SNAP: {
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
                 uint8_t sel = g_ui_sel_idx[page];
                 if (sel == 0) {
@@ -394,7 +490,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
 #endif
             } break;
 
-            case 5: { // Swipe conf
+            case KB_PAGE_SWIPE_CONF: {
                 kb_swipe_params_t p = keyball_swipe_get_params();
                 if (sel == 0) {
                     int32_t v = (int32_t)p.step + dir * 10; // ±10
@@ -423,7 +519,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             } break;
 
 #ifdef RGBLIGHT_ENABLE
-            case 7: { // RGB conf
+            case KB_PAGE_RGB_CONF: {
                 if (sel == 0) {
                     if (dir > 0) {
                         rgblight_enable_noeeprom();
@@ -497,14 +593,14 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
             } break;
 #endif
 
-            case 8: { // LED monitor
+            case KB_PAGE_LED_MON: {
 #ifdef RGBLIGHT_ENABLE
                 keyball_led_monitor_step((int8_t)dir);
                 return true;
 #endif
             } break;
 
-            case 9: { // Default layer conf
+            case KB_PAGE_DEFAULT_LAYER: {
                 if (sel == 0) {
                     int32_t v = (int32_t)kbpf.default_layer + dir;
                     if (v < 0) v = 0;
@@ -563,7 +659,7 @@ void keyball_oled_render_setting(void) {
 
     uint8_t page = keyball_oled_get_page();
         switch (page) {
-            case 0: { // 1: Mouse Config（指定体裁）
+            case KB_PAGE_MOUSE: {
                 uint8_t sel = g_ui_sel_idx[page];
                 uint8_t row = 0;
                 oled_writef(row++, "mouse"); // row 1
@@ -610,16 +706,16 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, "%2u/%2u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count()); // row 16
         } break;
 
-        case 1: { // 2: Auto Mouse Layer（指定体裁）
+        case KB_PAGE_AML: { // Auto Mouse Layer
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
             oled_writef(row++, "AML");
             oled_writef(row++, " conf");
-            row_skip(row, 1); // row 12
+            row_skip(row, 1);
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
             oled_writef(row++, "en:");
             oled_writef_sel(row++, sel == 0, " %3u", get_auto_mouse_enable() ? 1u : 0u);
-            row_skip(row, 1); // row 12
+            row_skip(row, 1);
             oled_writef(row++, "TO:");
             {
                 uint32_t to = (uint32_t)get_auto_mouse_timeout();
@@ -629,33 +725,43 @@ void keyball_oled_render_setting(void) {
                     oled_writef_sel(row++, sel == 1, "%u", (unsigned)to);
                 }
             }
-            row_skip(row, 1); // row 12
+            row_skip(row, 1);
             oled_writef(row++, "TH:");
-            {
-                oled_writef_sel(row++, sel == 2, " %4u", (unsigned)kbpf.aml_threshold);
-            }
-            row_skip(row, 1); // row 12
-            oled_writef(row++, "TG_L:");
+            oled_writef_sel(row++, sel == 2, " %4u", (unsigned)kbpf.aml_threshold);
+            row_skip(row, 1);
+            oled_writef(row++, "TG:");
             oled_writef_sel(row++, sel == 3, " %3u", (unsigned)get_auto_mouse_layer());
-            row_skip(row, 1); // row 12
 #else
-            oled_writef(row++, "en:");
-            oled_writef_sel(row++, sel == 0, "0");
-            row_skip(row, 1); // row 12
-            oled_writef(row++, "TO:");
-            oled_writef_sel(row++, sel == 1, "0");
-            row_skip(row, 1); // row 12
-            oled_writef(row++, "TH:");
-            oled_writef_sel(row++, sel == 2, "0");
-            row_skip(row, 1); // row 12
-            oled_writef(row++, "TG_L:");
-            oled_writef_sel(row++, sel == 3, "0");
-            row_skip(row, 1); // row 12
+            oled_writef_sel(row++, sel == 0, "en:0");
+            oled_writef_sel(row++, sel == 1, "TO:0");
+            oled_writef_sel(row++, sel == 2, "TH:0");
+            oled_writef_sel(row++, sel == 3, "TG:0");
 #endif
+            row_skip(row, 1);
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 2: { // 3: Scroll Param（指定体裁）
+#ifdef KB_PAGE_AML_HAPTIC
+        case KB_PAGE_AML_HAPTIC: {
+            uint8_t sel = g_ui_sel_idx[page];
+            uint8_t row = 0;
+            oled_writef(row++, "AML");
+            oled_writef(row++, " haptic");
+            row_skip(row, 1);
+            oled_writef(row++, "INv:");
+            oled_writef_sel(row++, sel == 0, " %3u", kbpf.aml_haptic_enter_enable ? 1u : 0u);
+            oled_writef(row++, "INf:");
+            oled_writef_sel(row++, sel == 1, " %3u", (unsigned)kbpf.aml_haptic_enter_effect);
+            oled_writef(row++, "OUTv:");
+            oled_writef_sel(row++, sel == 2, " %3u", kbpf.aml_haptic_exit_enable ? 1u : 0u);
+            oled_writef(row++, "OUTf:");
+            oled_writef_sel(row++, sel == 3, " %3u", (unsigned)kbpf.aml_haptic_exit_effect);
+            row_skip(row, 1);
+            oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+        } break;
+#endif
+
+        case KB_PAGE_SCROLL_CONF: {
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
             oled_writef(row++, "Scrl");
@@ -689,7 +795,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 3: { // 4: Scroll Snap（指定体裁）
+        case KB_PAGE_SCROLL_SNAP: {
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
             oled_writef(row++, "SSNP");
@@ -723,7 +829,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 4: { // 5: Scroll Raw Monitor（指定体裁）
+        case KB_PAGE_SCROLL_MON: {
             uint8_t row = 0;
             oled_writef(row++, "Scrl");
             oled_writef(row++, " moni");
@@ -744,7 +850,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 5: { // 6: Swipe Config（指定体裁）
+        case KB_PAGE_SWIPE_CONF: {
             uint8_t sel = g_ui_sel_idx[page];
             kb_swipe_params_t p = keyball_swipe_get_params();
             uint8_t row = 0;
@@ -766,7 +872,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 6: { // 7: Swipe Monitor（指定体裁）
+        case KB_PAGE_SWIPE_MON: {
             uint32_t ar, al, ad, au;
             keyball_swipe_get_accum(&ar, &al, &ad, &au);
             uint8_t row = 0;
@@ -796,7 +902,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 7: { // 8: RGB Light
+        case KB_PAGE_RGB_CONF: {
 #ifdef RGBLIGHT_ENABLE
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
@@ -886,7 +992,7 @@ void keyball_oled_render_setting(void) {
         } break;
 #endif
 
-        case 8: { // 9: LED monitor
+        case KB_PAGE_LED_MON: {
             uint8_t row = 0;
             uint8_t idx = keyball_led_monitor_get_index();
             oled_writef(row++, "LED");
@@ -905,7 +1011,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 9: { // 10: Default layer conf
+        case KB_PAGE_DEFAULT_LAYER: {
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
             oled_writef(row++, "layer");
@@ -921,7 +1027,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 
-        case 10: { // 11: Send monitor
+        case KB_PAGE_SEND_MON: {
             uint8_t row = 0;
             // ヘッダ
             oled_writef(row++, "Send");
