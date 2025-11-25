@@ -6,6 +6,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#    include "pointing_device_auto_mouse.h"
+#endif
+
 #if defined(POINTING_DEVICE_AUTO_MOUSE_ENABLE) && defined(HAPTIC_ENABLE)
 #    ifdef HAPTIC_DRV2605L
 #        include "drivers/haptic/drv2605l.h"
@@ -37,8 +41,8 @@ static void keyball_handle_auto_mouse_layer_haptics(layer_state_t state) {
 #    endif
 
   static bool last_active = false;
-  uint8_t target_layer = get_auto_mouse_layer();
-  bool is_active = layer_state_cmp(state, target_layer);
+  (void)state;
+  bool is_active = (AUTO_MOUSE_ENABLED) && is_auto_mouse_active();
   if (is_active == last_active) {
     return;
   }
