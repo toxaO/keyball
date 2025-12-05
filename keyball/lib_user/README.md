@@ -11,7 +11,7 @@
 1) キーコード定義（QK_USER ベースを使用）
 ```
 // keyball/lib_user/keycode_user.h
-// 注意: スワイプ実行キー（APP_SW/VOL_SW/BRO_SW/TAB_SW/WIN_SW）は
+// 注意: スワイプ実行キー（SW_APP/SW_VOL/SW_BRO/SW_TAB/SW_WIN）は
 // いまは「キーボードレベル(QK_KB_*)」に移管されています。ここでは定義しません。
 enum custom_keycodes {
     MULTI_A = QK_USER, // 先頭に割当（例）
@@ -53,7 +53,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 ### 2.2 掲載方針（customKeycodes）
 - Vial の `customKeycodes` には「キーボードレベル（QK_KB_*）の機能」のみを掲載します。
-- 現状の掲載対象（例）: `KBC_RST`/`KBC_SAVE`、`STG_TOG`、`SCRL_TO`/`SCRL_MO`、`SSNP_*`（有効時）、スワイプ実行 `APP_SW`/`VOL_SW`/`BRO_SW`/`TAB_SW`/`WIN_SW` など。
+- 現状の掲載対象（例）: `KBC_RST`/`KBC_SAVE`、`STG_TOG`、`SCRL_TO`/`SCRL_MO`、`SSNP_*`（有効時）、スワイプ実行 `SW_APP`/`SW_VOL`/`SW_BRO`/`SW_TAB`/`SW_WIN` など。
 - ユーザーレベル（QK_USER_*）のキーは Vial のリストに掲載しません（配布初期状態の安定性重視）。
   - 必要に応じ、Vial の「Any」で 16 進値（`QK_USER_*` 範囲）を直接指定して割当可能です（表示は 16 進のまま）。
 
@@ -92,10 +92,10 @@ make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:mymap
 
 ## 5. スワイプ設定と実行の分担（重要な変更点）
 - スワイプ“設定”（しきい値/デッドゾーン/リセット/フリーズ）は、専用キーではなく「OLED の設定ページ」で調整します。保存は `KBC_SAVE`。
-- スワイプ“実行”（押下で開始・解放で終了）は「キーボードレベルのキー（`APP_SW`/`VOL_SW`/`BRO_SW`/`TAB_SW`/`WIN_SW`）」で行います。
+- スワイプ“実行”（押下で開始・解放で終了）は「キーボードレベルのキー（`SW_APP`/`SW_VOL`/`SW_BRO`/`SW_TAB`/`SW_WIN`）」で行います。
 - 方向別の送出は `keyball_on_swipe_fire()`（user実装）で記述します。タップ時のフォールバックは `keyball_on_swipe_tap()` で上書き可能です。
 
-補足: Mod-Tap等の干渉が気になる場合、`process_record_user()` 側で `APP_SW` などの押下をフックして `_SW_Block` を ON にし、解放は `keyball_on_swipe_end()` で OFF にする、という併用も可能です（キーボードレベルの処理は `true` を返して通す）。
+補足: Mod-Tap等の干渉が気になる場合、`process_record_user()` 側で `SW_APP` などの押下をフックして `_SW_Block` を ON にし、解放は `keyball_on_swipe_end()` で OFF にする、という併用も可能です（キーボードレベルの処理は `true` を返して通す）。
 
 ## 6. LED 個別制御（OLED “LED monitor” ページ + `rgblight_sethsv_at`）
 

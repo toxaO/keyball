@@ -22,7 +22,7 @@ static uint16_t bro_double_timer = 0;
 void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     dprintf("SWIPE FIRE tag=%u dir=%u\n", (unsigned)tag, (unsigned)dir);
     switch (tag) {
-    case KBS_TAG_APP:
+    case KBS_TAG_SW_APP:
         switch (dir) {
         case KB_SWIPE_UP:
             if (canceller) { tap_code16_with_oneshot(KC_ESC); canceller = false; }
@@ -38,7 +38,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_VOL:
+    case KBS_TAG_SW_VOL:
         switch (dir) {
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_VOLU); break;
         case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_VOLD); break;
@@ -48,7 +48,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_BRO:
+    case KBS_TAG_SW_BRO:
         switch (dir) {
         case KB_SWIPE_UP:
             tap_code16_os(C(S(KC_EQUAL)), G(S(KC_EQUAL)), G(S(KC_EQUAL)), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
@@ -62,29 +62,29 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_TAB:
+    case KBS_TAG_SW_TAB:
         switch (dir) {
         case KB_SWIPE_UP:
-            dprintf("TAB_SW UP (OS=%d)\n", host_os);
+            dprintf("SW_TAB UP (OS=%d)\n", host_os);
             tap_code16_os(S(C(KC_T)), S(G(KC_T)), S(G(KC_T)), KC_NO, KC_NO);
             break;
         case KB_SWIPE_DOWN:
-            dprintf("TAB_SW DOWN (OS=%d)\n", host_os);
+            dprintf("SW_TAB DOWN (OS=%d)\n", host_os);
             tap_code16_os(LCTL(KC_W), LGUI(KC_W), LGUI(KC_W), KC_NO, KC_NO);
             break;
         case KB_SWIPE_LEFT:
-            dprintf("TAB_SW LEFT (OS=%d)\n", host_os);
+            dprintf("SW_TAB LEFT (OS=%d)\n", host_os);
             tap_code16_with_oneshot(S(C(KC_TAB)));
             break;
         case KB_SWIPE_RIGHT:
-            dprintf("TAB_SW RIGHT (OS=%d)\n", host_os);
+            dprintf("SW_TAB RIGHT (OS=%d)\n", host_os);
             tap_code16_with_oneshot(C(KC_TAB));
             break;
         default: break;
         }
         break;
 
-    case KBS_TAG_WIN:
+    case KBS_TAG_SW_WIN:
         switch (dir) {
         case KB_SWIPE_UP:
             if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code16_with_oneshot(KC_UP); }
@@ -106,7 +106,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_UTIL:
+    case KBS_TAG_SW_UTIL:
         switch (dir) {
         case KB_SWIPE_UP:
             tap_code16_os(C(KC_C), G(KC_C), G(KC_C), C(KC_C), C(KC_C));
@@ -125,7 +125,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    case KBS_TAG_ARR:
+    case KBS_TAG_SW_ARR:
         // Arrow proxy: swipe方向に応じて矢印キーを発火
         switch (dir) {
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_UP);    break;
@@ -243,7 +243,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
 
 // セッション終了時のクリーンアップ（Windowsスワイプで押しっぱなしのWinキーを解放）
 void keyball_on_swipe_end(kb_swipe_tag_t tag) {
-    if (tag == KBS_TAG_WIN) {
+    if (tag == KBS_TAG_SW_WIN) {
         if (host_os == OS_WINDOWS) {
             unregister_code(KC_LGUI);
         }
@@ -254,13 +254,13 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 //------------------------------------------------------------
 void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
     switch (tag) {
-    case KBS_TAG_APP:
+    case KBS_TAG_SW_APP:
         tap_code16_os(G(KC_TAB), m_MIS_CON, m_MIS_CON, KC_NO, KC_NO);
         break;
-    case KBS_TAG_VOL:
+    case KBS_TAG_SW_VOL:
         tap_code16_with_oneshot(KC_MPLY);
         break;
-    case KBS_TAG_BRO:
+    case KBS_TAG_SW_BRO:
         {
             uint16_t now = timer_read();
             if (bro_double_wait && timer_elapsed(bro_double_timer) <= TAPPING_TERM) {
@@ -274,17 +274,17 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
             }
         }
         break;
-    case KBS_TAG_TAB:
+    case KBS_TAG_SW_TAB:
         tap_code16_os(C(KC_T), G(KC_T), G(KC_T), KC_NO, KC_NO);
         break;
-    case KBS_TAG_WIN:
+    case KBS_TAG_SW_WIN:
         tap_code16_os(G(KC_Z), RALT(C(KC_F)), KC_NO, KC_NO, KC_NO);
         break;
-    case KBS_TAG_UTIL:
+    case KBS_TAG_SW_UTIL:
         tap_code16_with_oneshot(KC_ESC);
         tap_code16_with_oneshot(KC_LANG2);
         break;
-    case KBS_TAG_ARR:
+    case KBS_TAG_SW_ARR:
         tap_code(KC_NO);
         break;
     /*
@@ -317,11 +317,11 @@ uint16_t keyball_swipe_get_cooldown_ms(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_FLICK_P:
     case KBS_TAG_FLICK_T:
     case KBS_TAG_FLICK_W:
-    case KBS_TAG_BRO:
+    case KBS_TAG_SW_BRO:
         return 300;
 
     // 例2: VOL は左右のみ 500ms、上下は 0ms（連続発火OK）
-    case KBS_TAG_VOL:
+    case KBS_TAG_SW_VOL:
         if (dir == KB_SWIPE_LEFT || dir == KB_SWIPE_RIGHT) return 500;
         return 0;
 

@@ -17,13 +17,13 @@ typedef enum {
 typedef uint8_t kb_swipe_tag_t;
 // 代表タグ（APP/VOL/BRO/TAB/WIN）: キーボードレベルのSWキーで使用
 enum {
-    KBS_TAG_APP = 1,
-    KBS_TAG_VOL,
-    KBS_TAG_BRO,
-    KBS_TAG_TAB,
-    KBS_TAG_WIN,
-    KBS_TAG_UTIL,
-    KBS_TAG_ARR, // Arrow proxy (ARR_SW)
+    KBS_TAG_SW_APP = 1,
+    KBS_TAG_SW_VOL,
+    KBS_TAG_SW_BRO,
+    KBS_TAG_SW_TAB,
+    KBS_TAG_SW_WIN,
+    KBS_TAG_SW_UTIL,
+    KBS_TAG_SW_ARR, // Arrow proxy (SW_ARR)
     KBS_TAG_EX1, // Extension swipe key #1 (SW_EX1)
     KBS_TAG_EX2, // Extension swipe key #2 (SW_EX2)
 };

@@ -24,13 +24,13 @@ void keyboard_post_init_user(void) {
 // AMLの「マウスキー押下中はレイヤ保持」ロジックに乗せる
 bool is_mouse_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-    case APP_SW:
-    case VOL_SW:
-    case BRO_SW:
-    case TAB_SW:
-    case WIN_SW:
-    case ARR_SW:
-    case UTIL_SW:
+    case SW_APP:
+    case SW_VOL:
+    case SW_BRO:
+    case SW_TAB:
+    case SW_WIN:
+    case SW_ARR:
+    case SW_UTIL:
       return true; // マウスキーとして扱う
     default:
       return false;

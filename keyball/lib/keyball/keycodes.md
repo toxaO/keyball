@@ -31,11 +31,11 @@ actions per direction are implemented in user code via hooks
 
 | Keycode | Value on Remap | Hex     | Description                  |
 |:--------|:----------------|:--------|:-----------------------------|
-| `APP_SW` | `Kb 8`         | `0x7e08` | App switch swipe             |
-| `VOL_SW` | `Kb 9`         | `0x7e09` | Volume/media swipe           |
-| `BRO_SW` | `Kb 10`        | `0x7e0a` | Browser/history swipe        |
-| `TAB_SW` | `Kb 11`        | `0x7e0b` | Tab switch swipe             |
-| `WIN_SW` | `Kb 12`        | `0x7e0c` | Window/desktop swipe         |
+| `SW_APP` | `Kb 8`         | `0x7e08` | App switch swipe             |
+| `SW_VOL` | `Kb 9`         | `0x7e09` | Volume/media swipe           |
+| `SW_BRO` | `Kb 10`        | `0x7e0a` | Browser/history swipe        |
+| `SW_TAB` | `Kb 11`        | `0x7e0b` | Tab switch swipe             |
+| `SW_WIN` | `Kb 12`        | `0x7e0c` | Window/desktop swipe         |
 
 <a id="japanese"></a>
 ## 特殊キーコード
@@ -64,11 +64,11 @@ actions per direction are implemented in user code via hooks
 
 | キーコード | Remap上での表記 | 値       | 説明                       |
 |:-----------|:----------------|:---------|:---------------------------|
-| `APP_SW`  | `Kb 8`          | `0x7e08` | アプリ切替スワイプ         |
-| `VOL_SW`  | `Kb 9`          | `0x7e09` | 音量/メディア操作スワイプ  |
-| `BRO_SW`  | `Kb 10`         | `0x7e0a` | ブラウザ/履歴スワイプ      |
-| `TAB_SW`  | `Kb 11`         | `0x7e0b` | タブ切替スワイプ           |
-| `WIN_SW`  | `Kb 12`         | `0x7e0c` | ウィンドウ/デスクトップ系  |
+| `SW_APP`  | `Kb 8`          | `0x7e08` | アプリ切替スワイプ         |
+| `SW_VOL`  | `Kb 9`          | `0x7e09` | 音量/メディア操作スワイプ  |
+| `SW_BRO`  | `Kb 10`         | `0x7e0a` | ブラウザ/履歴スワイプ      |
+| `SW_TAB`  | `Kb 11`         | `0x7e0b` | タブ切替スワイプ           |
+| `SW_WIN`  | `Kb 12`         | `0x7e0c` | ウィンドウ/デスクトップ系  |
 
 補足: OLED設定ページの操作はキーコードから削除されました。操作方法は以下の通りです。
 

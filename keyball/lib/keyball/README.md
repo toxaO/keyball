@@ -72,11 +72,11 @@ Shift+←/→ でもページを移動できます（設定モード中）。
 
 ### 1) キー配置（キーボードレベル）
 - スワイプ実行キーはすべてキーボードレベル（QK_KB_*）です。
-  - `APP_SW` / `VOL_SW` / `BRO_SW` / `TAB_SW` / `WIN_SW` / `UTIL_SW` / `ARR_SW` / `SW_EX1` / `SW_EX2`
+  - `SW_APP` / `SW_VOL` / `SW_BRO` / `SW_TAB` / `SW_WIN` / `SW_UTIL` / `SW_ARR` / `SW_EX1` / `SW_EX2`
 - キーマップへ上記のいずれかを割り当てます（押下で開始、解放で終了）。
 
 ### 2) 下位レイヤ干渉の抑制（任意）
-- Mod-Tap などとの干渉が気になる場合、`process_record_user()` で `APP_SW` 等の押下をフックし、押下時に `_SW_Block` を ON、解放は `keyball_on_swipe_end()` で OFF にします。
+- Mod-Tap などとの干渉が気になる場合、`process_record_user()` で `SW_APP` 等の押下をフックし、押下時に `_SW_Block` を ON、解放は `keyball_on_swipe_end()` で OFF にします。
   - フックしてもキーボードレベルの処理は通す必要があるため、`true` を返して後段の処理（KBレベル）に委ねます。
 
 ### 3) 押下/解放の処理（KBレベルに委任）
@@ -84,12 +84,12 @@ Shift+←/→ でもページを移動できます（設定モード中）。
 - 単押し（発火なし）のフォールバックは KB 側が `keyball_on_swipe_tap()` を呼ぶので、必要に応じて user 側で実装してください。
 
 ```c
-case BRO_SW:
+case SW_BRO:
   if (record->event.pressed) {
     // 下位レイヤ無効化（SW_Block）
     layer_on(_SW_Block);
-    // スワイプ開始（任意のタグ: 例ではKBS_TAG_BRO）
-    keyball_swipe_begin(KBS_TAG_BRO);
+    // スワイプ開始（任意のタグ: 例ではKBS_TAG_SW_BRO）
+    keyball_swipe_begin(KBS_TAG_SW_BRO);
     swipe_timer = timer_read();
   } else {
     // スワイプ終了
@@ -113,7 +113,7 @@ case BRO_SW:
 ```c
 void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
   switch (tag) {
-  case KBS_TAG_BRO:
+  case KBS_TAG_SW_BRO:
     switch (dir) {
     case KB_SWIPE_UP:
       tap_code16_os(C(S(KC_EQUAL)), G(S(KC_EQUAL)), G(S(KC_EQUAL)), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
@@ -153,7 +153,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 意図:
 - macOS で、トラックパッドのジェスチャ方向（上/下）に合わせて Spotlight（上）や App View（下）を呼び出し、もう一度同じ操作方向でキャンセル（ESC）させる体験をキーボードでも再現することを目的に実装。
 
-実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_APP`）:
+実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_SW_APP`）:
 - UP/DOWN の発火で Spotlight/App View 相当のショートカットを `tap_code16_os()` で送出。
 - 直前に同機能を発火した“キャンセル状態”を `canceller` で保持し、同方向の次回発火で `ESC` を送って閉じる。
 
@@ -165,7 +165,7 @@ void keyball_on_swipe_end(kb_swipe_tag_t tag) {
 意図:
 - Windows では `Win + 矢印` により、ウィンドウのスナップ/最大化/最小化等を行えます。任意の状態へ移動するまで Win を押しっぱなしにして矢印を複数回送る必要があるため、スワイプ押下中は Win を維持し、離した時に解除する実装にしています。
 
-実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_WIN`）:
+実装のポイント（例: `keyball/lib_user/features/swipe_user.c` の `KBS_TAG_SW_WIN`）:
 - 発火時は `register_code(KC_LGUI); tap_code(KC_↑/↓/←/→);` を送る。
 - 解放時（`keyball_on_swipe_end()` など）に `unregister_code(KC_LGUI)` でWinを確実に解除。
 - 押下中のみ `_mMou/_wMou` や `_SW_Block` を併用して、下位レイヤからの影響を抑制するのが安全です。
