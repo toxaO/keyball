@@ -56,7 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // kbpf保存用に KB データ領域サイズを拡大
 #ifndef EECONFIG_KB_DATA_SIZE
-#    define EECONFIG_KB_DATA_SIZE 128
+#    define EECONFIG_KB_DATA_SIZE 512
 #endif
 
 // Auto Mouse Layer 設定は共通設定で有効化

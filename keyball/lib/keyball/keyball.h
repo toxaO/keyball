@@ -228,6 +228,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define KBPF_DEFAULT_LAYER 0
 #endif
 
+#ifndef KEYBALL_LAYER_HAPTIC_SLOTS
+#    define KEYBALL_LAYER_HAPTIC_SLOTS 32
+#endif
+#ifndef KBPF_DEFAULT_LAYER_HAPTIC_ENABLE
+#    define KBPF_DEFAULT_LAYER_HAPTIC_ENABLE 0
+#endif
+#ifndef KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT
+#    define KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#endif
+#ifndef KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT
+#    define KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT
+#endif
+#define KEYBALL_LAYER_HAPTIC_ENABLE_LEFT  (1u << 0)
+#define KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT (1u << 1)
+#define KEYBALL_LAYER_HAPTIC_ENABLE_BOTH  (KEYBALL_LAYER_HAPTIC_ENABLE_LEFT | KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT)
+
 // --- Compatibility aliases -------------------------------------------------
 // Preserve historical macro names so older user configuration overrides keep working.
 #ifndef KB_SW_STEP
@@ -441,6 +457,12 @@ typedef struct {
 typedef uint8_t keyball_cpi_t;
 
 typedef struct {
+  uint8_t enable_mask;   // bit0: left, bit1: right
+  uint8_t left_effect;   // DRV2605 effect id
+  uint8_t right_effect;  // DRV2605 effect id
+} keyball_layer_haptic_entry_t;
+
+typedef struct {
   bool this_have_ball;
   bool that_enable;
   bool that_have_ball;
@@ -476,6 +498,13 @@ typedef enum {
   KEYBALL_ADJUST_PRIMARY = 1,
   KEYBALL_ADJUST_SECONDARY = 2,
 } keyball_adjust_t;
+
+typedef enum {
+  KEYBALL_HAPTIC_SIDE_NONE  = 0,
+  KEYBALL_HAPTIC_SIDE_LEFT  = 1 << 0,
+  KEYBALL_HAPTIC_SIDE_RIGHT = 1 << 1,
+  KEYBALL_HAPTIC_SIDE_BOTH  = KEYBALL_HAPTIC_SIDE_LEFT | KEYBALL_HAPTIC_SIDE_RIGHT,
+} keyball_haptic_side_t;
 
 //////////////////////////////////////////////////////////////////////////////
 // Exported values (touch carefully)
@@ -594,6 +623,8 @@ typedef struct __attribute__((packed)) {
   uint8_t  scroll_layer_index;  // 0..31
   // Default base layer configuration (global)
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
+  // Layer-specific haptic feedback configuration
+  keyball_layer_haptic_entry_t layer_haptic[KEYBALL_LAYER_HAPTIC_SLOTS];
 } keyball_profiles_t;
 
 #define KBPF_MAGIC 0x4B425031u /* 'KBP1' */
@@ -601,7 +632,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 17 // v17: AMLハプティック設定を追加（旧v16からは自動移行）
+#define KBPF_VER_CUR 18 // v18: レイヤー別ハプティック設定を追加
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)
@@ -610,3 +641,31 @@ extern keyball_profiles_t kbpf;
 // host OS を検出して、対応するキーコードを tap_code16() で送出します。
 // それぞれ未使用の場合は KC_NO を指定してください。
 void tap_code16_os(uint16_t win, uint16_t mac, uint16_t ios, uint16_t linux, uint16_t unsure);
+
+#ifdef HAPTIC_ENABLE
+void keyball_haptic_play_side(uint8_t effect, keyball_haptic_side_t sides);
+void keyball_haptic_play_left(uint8_t effect);
+void keyball_haptic_play_right(uint8_t effect);
+void keyball_haptic_play_both(uint8_t effect);
+void keyball_layer_haptic_init(layer_state_t layer_state, layer_state_t default_layer_state);
+void keyball_layer_haptic_on_layer_state(layer_state_t state);
+void keyball_layer_haptic_on_default_layer_state(layer_state_t state);
+void keyball_request_remote_haptic(uint8_t effect);
+#else
+static inline void keyball_haptic_play_side(uint8_t effect, keyball_haptic_side_t sides) {
+  (void)effect;
+  (void)sides;
+}
+static inline void keyball_haptic_play_left(uint8_t effect) { (void)effect; }
+static inline void keyball_haptic_play_right(uint8_t effect) { (void)effect; }
+static inline void keyball_haptic_play_both(uint8_t effect) { (void)effect; }
+static inline void keyball_layer_haptic_init(layer_state_t layer_state, layer_state_t default_layer_state) {
+  (void)layer_state;
+  (void)default_layer_state;
+}
+static inline void keyball_layer_haptic_on_layer_state(layer_state_t state) { (void)state; }
+static inline void keyball_layer_haptic_on_default_layer_state(layer_state_t state) { (void)state; }
+static inline void keyball_request_remote_haptic(uint8_t effect) {
+  (void)effect;
+}
+#endif

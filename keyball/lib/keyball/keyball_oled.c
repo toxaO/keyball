@@ -46,10 +46,11 @@ extern const uint16_t AML_TIMEOUT_QU;
 #    define KB_PAGE_RGB_CONF   8
 #    define KB_PAGE_LED_MON    9
 #    define KB_PAGE_DEFAULT_LAYER 10
-#    define KB_PAGE_SEND_MON   11
-#    define KB_PAGE_HAPTIC     12
-#    define KB_UI_PAGES 13
-#    define KB_OLED_PAGE_COUNT 13
+#    define KB_PAGE_LAYER_HAPTIC 11
+#    define KB_PAGE_SEND_MON   12
+#    define KB_PAGE_HAPTIC     13
+#    define KB_UI_PAGES 14
+#    define KB_OLED_PAGE_COUNT 14
 #elif defined(HAPTIC_ENABLE)
 #    define KB_PAGE_SCROLL_CONF 2
 #    define KB_PAGE_SCROLL_SNAP 3
@@ -59,10 +60,11 @@ extern const uint16_t AML_TIMEOUT_QU;
 #    define KB_PAGE_RGB_CONF   7
 #    define KB_PAGE_LED_MON    8
 #    define KB_PAGE_DEFAULT_LAYER 9
-#    define KB_PAGE_SEND_MON   10
-#    define KB_PAGE_HAPTIC     11
-#    define KB_UI_PAGES 12
-#    define KB_OLED_PAGE_COUNT 12
+#    define KB_PAGE_LAYER_HAPTIC 10
+#    define KB_PAGE_SEND_MON   11
+#    define KB_PAGE_HAPTIC     12
+#    define KB_UI_PAGES 13
+#    define KB_OLED_PAGE_COUNT 13
 #else
 #    define KB_PAGE_SCROLL_CONF 2
 #    define KB_PAGE_SCROLL_SNAP 3
@@ -89,6 +91,9 @@ static bool           g_oled_vertical = false; // 右手マスター用の縦向
 
 // デバッグUI: ページごとの選択インデックス
 static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
+#ifdef HAPTIC_ENABLE
+static uint8_t g_layer_haptic_layer = 0;
+#endif
 
 #ifdef HAPTIC_ENABLE
 static uint8_t keyball_oled_clamp_aml_effect(int32_t v) {
@@ -115,10 +120,18 @@ static void keyball_oled_play_aml_effect(uint8_t effect) {
     extern uint8_t split_haptic_play;
     split_haptic_play = effect;
 #        endif
+    keyball_request_remote_haptic(effect);
 #    else
     (void)effect;
     haptic_play();
 #    endif
+}
+
+static keyball_layer_haptic_entry_t *keyball_oled_layer_haptic_entry(void) {
+    if (g_layer_haptic_layer >= KEYBALL_LAYER_HAPTIC_SLOTS) {
+        g_layer_haptic_layer = (uint8_t)(KEYBALL_LAYER_HAPTIC_SLOTS - 1);
+    }
+    return &kbpf.layer_haptic[g_layer_haptic_layer];
 }
 #endif
 
@@ -144,6 +157,7 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
         case KB_PAGE_DEFAULT_LAYER: return 1; // Default layer selector
         case KB_PAGE_SEND_MON:    return 0; // Send monitor
 #ifdef HAPTIC_ENABLE
+        case KB_PAGE_LAYER_HAPTIC: return 5; // Layer haptic config
         case KB_OLED_PAGE_HAPTIC: return 5; // Haptic global config
 #endif
     }
@@ -291,8 +305,13 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
 
     // ページ送り / 値調整（Shift+←/→で値、非Shiftでページ）
     if (keycode == KC_LEFT || keycode == KC_RIGHT) {
+        uint8_t mods = get_mods();
+        mods |= get_oneshot_mods();
+        mods |= get_oneshot_locked_mods();
+        bool shift_held = (mods & MOD_MASK_SHIFT) != 0;
+        bool ctrl_held  = (mods & MOD_MASK_CTRL) != 0;
         // 非Shift: ページ移動（内部でデバウンスするためここでは呼ばない）
-        if ((get_mods() & MOD_MASK_SHIFT) == 0) {
+        if (!shift_held) {
             if (keycode == KC_LEFT) {
                 keyball_oled_prev_page();
             } else {
@@ -303,6 +322,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
         // Shift併用: 値調整
         if (!ui_op_ready()) return true; // 入力は消費
         int dir = (keycode == KC_RIGHT) ? +1 : -1; // S+R: 増加, S+L: 減少
+        int effect_step = ctrl_held ? 10 : 1;
 
         switch (page) {
             case KB_PAGE_MOUSE: {
@@ -401,7 +421,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     en = (dir > 0);
                     kbpf.aml_haptic_enter_enable = en ? 1 : 0;
                 } else if (sel == 1) {
-                    int32_t effect = (int32_t)kbpf.aml_haptic_enter_effect + dir;
+                    int32_t effect = (int32_t)kbpf.aml_haptic_enter_effect + dir * effect_step;
                     kbpf.aml_haptic_enter_effect = keyball_oled_clamp_aml_effect(effect);
                     keyball_oled_play_aml_effect(kbpf.aml_haptic_enter_effect);
                 } else if (sel == 2) {
@@ -409,7 +429,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     en = (dir > 0);
                     kbpf.aml_haptic_exit_enable = en ? 1 : 0;
                 } else if (sel == 3) {
-                    int32_t effect = (int32_t)kbpf.aml_haptic_exit_effect + dir;
+                    int32_t effect = (int32_t)kbpf.aml_haptic_exit_effect + dir * effect_step;
                     kbpf.aml_haptic_exit_effect = keyball_oled_clamp_aml_effect(effect);
                     keyball_oled_play_aml_effect(kbpf.aml_haptic_exit_effect);
                 }
@@ -558,7 +578,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                         haptic_disable();
                     }
                 } else if (sel == 1) {
-                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode + dir;
+                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode + dir * effect_step;
                     if (mode < 1) mode = 1;
                     if (mode >= (int32_t)DRV2605L_EFFECT_COUNT) mode = (int32_t)DRV2605L_EFFECT_COUNT - 1;
                     uint8_t new_mode = (uint8_t)mode;
@@ -571,7 +591,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                         keyball_swipe_haptic_pulse();
                     }
                 } else if (sel == 2) {
-                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode_repeat + dir;
+                    int32_t mode = (int32_t)kbpf.swipe_haptic_mode_repeat + dir * effect_step;
                     if (mode < 1) mode = 1;
                     if (mode >= (int32_t)DRV2605L_EFFECT_COUNT) mode = (int32_t)DRV2605L_EFFECT_COUNT - 1;
                     uint8_t new_mode = (uint8_t)mode;
@@ -591,6 +611,37 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     keyball_swipe_haptic_pulse();
                 }
             } break;
+#    ifdef KB_PAGE_LAYER_HAPTIC
+            case KB_PAGE_LAYER_HAPTIC: {
+                keyball_layer_haptic_entry_t *entry = keyball_oled_layer_haptic_entry();
+                if (sel == 0) {
+                    int32_t next = (int32_t)g_layer_haptic_layer + dir;
+                    if (next < 0) next = 0;
+                    if (next >= KEYBALL_LAYER_HAPTIC_SLOTS) next = KEYBALL_LAYER_HAPTIC_SLOTS - 1;
+                    g_layer_haptic_layer = (uint8_t)next;
+                } else if (sel == 1) {
+                    if (dir > 0) {
+                        entry->enable_mask |= KEYBALL_LAYER_HAPTIC_ENABLE_LEFT;
+                    } else {
+                        entry->enable_mask &= (uint8_t)~KEYBALL_LAYER_HAPTIC_ENABLE_LEFT;
+                    }
+                } else if (sel == 2) {
+                    int32_t eff = (int32_t)entry->left_effect + dir * effect_step;
+                    entry->left_effect = keyball_oled_clamp_aml_effect(eff);
+                    keyball_haptic_play_left(entry->left_effect);
+                } else if (sel == 3) {
+                    if (dir > 0) {
+                        entry->enable_mask |= KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT;
+                    } else {
+                        entry->enable_mask &= (uint8_t)~KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT;
+                    }
+                } else if (sel == 4) {
+                    int32_t eff = (int32_t)entry->right_effect + dir * effect_step;
+                    entry->right_effect = keyball_oled_clamp_aml_effect(eff);
+                    keyball_haptic_play_right(entry->right_effect);
+                }
+            } break;
+#    endif
 #endif
 
             case KB_PAGE_LED_MON: {
@@ -954,26 +1005,24 @@ void keyball_oled_render_setting(void) {
         case KB_OLED_PAGE_HAPTIC: { // Haptic config
             uint8_t sel = g_ui_sel_idx[page];
             uint8_t row = 0;
-            oled_writef(row++, "Hptc");
+            oled_writef(row++, "SW_Hp");
             oled_writef(row++, " conf");
             row_skip(row, 1);
             oled_writef(row++, "En:");
             oled_writef_sel(row++, sel == 0, "%s", haptic_get_enable() ? "on" : "off");
             row_skip(row, 1);
-            oled_writef(row++, "Mode1");
+            oled_writef(row++, "1st");
             {
                 char buf[8];
                 snprintf(buf, sizeof(buf), "%3u", (unsigned)kbpf.swipe_haptic_mode);
                 oled_writef_sel(row++, sel == 1, "%s", buf);
             }
-            row_skip(row, 1);
-            oled_writef(row++, "Mode2");
+            oled_writef(row++, "2nd~");
             {
                 char buf[8];
                 snprintf(buf, sizeof(buf), "%3u", (unsigned)kbpf.swipe_haptic_mode_repeat);
                 oled_writef_sel(row++, sel == 2, "%s", buf);
             }
-            row_skip(row, 1);
             oled_writef(row++, "Idle");
             {
                 char buf[8];
@@ -987,9 +1036,39 @@ void keyball_oled_render_setting(void) {
             row_skip(row, 1);
             oled_writef(row++, "Test");
             oled_writef_sel(row++, sel == 4, "Play");
-            row_skip(row, 1);
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
+#    ifdef KB_PAGE_LAYER_HAPTIC
+        case KB_PAGE_LAYER_HAPTIC: {
+            uint8_t sel = g_ui_sel_idx[page];
+            uint8_t row = 0;
+            keyball_layer_haptic_entry_t *entry = keyball_oled_layer_haptic_entry();
+            oled_writef(row++, "Ly_Hp");
+            oled_writef(row++, " conf");
+            row_skip(row, 1);
+            oled_writef(row++, "Ly:");
+            oled_writef_sel(row++, sel == 0, " %02u", (unsigned)g_layer_haptic_layer);
+            row_skip(row, 1);
+            oled_writef(row++, "L");
+            oled_writef_sel(row++, sel == 1, "%s", (entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_LEFT) ? " on" : "off");
+            oled_writef(row++, " Mode");
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), " %3u", (unsigned)entry->left_effect);
+                oled_writef_sel(row++, sel == 2, "%s", buf);
+            }
+            row_skip(row, 1);
+            oled_writef(row++, "R");
+            oled_writef_sel(row++, sel == 3, "%s", (entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT) ? " on" : "off");
+            oled_writef(row++, " Mode");
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), " %3u", (unsigned)entry->right_effect);
+                oled_writef_sel(row++, sel == 4, "%s", buf);
+            }
+            oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+        } break;
+#    endif
 #endif
 
         case KB_PAGE_LED_MON: {

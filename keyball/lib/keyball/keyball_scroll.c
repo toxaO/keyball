@@ -27,6 +27,7 @@ static void keyball_aml_haptic_trigger(uint8_t effect) {
 #        if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
   split_haptic_play = effect;
 #        endif
+  keyball_request_remote_haptic(effect);
 #    else
   (void)effect;
   haptic_play();

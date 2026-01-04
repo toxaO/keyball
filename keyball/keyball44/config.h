@@ -27,6 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBOUNCE            5
 #define DIODE_DIRECTION     COL2ROW
 
+#ifndef EECONFIG_KB_DATA_SIZE
+#    define EECONFIG_KB_DATA_SIZE 512
+#endif
+
 // Split parameters
 #define SERIAL_USART_TX_PIN GP1
 #define SPLIT_HAND_MATRIX_GRID  GP26, GP4

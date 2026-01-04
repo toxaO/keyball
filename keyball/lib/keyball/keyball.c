@@ -24,6 +24,12 @@
 
 #ifdef HAPTIC_ENABLE
 #    include "haptic.h"
+#    ifdef HAPTIC_DRV2605L
+#        include "drivers/haptic/drv2605l.h"
+#    endif
+#    if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
+extern uint8_t split_haptic_play;
+#    endif
 bool get_haptic_enabled_key(uint16_t keycode, keyrecord_t *record) {
   (void)keycode;
   (void)record;
@@ -86,6 +92,116 @@ keyball_t keyball = {
 
   .pressing_keys = { BL, BL, BL, BL, BL, BL, 0 },
 };
+
+#ifdef HAPTIC_ENABLE
+static uint8_t keyball_haptic_normalize_effect(uint8_t effect) {
+#    ifdef HAPTIC_DRV2605L
+  if (effect < 1u || effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    effect = DRV2605L_DEFAULT_MODE;
+  }
+#    endif
+  return effect;
+}
+
+static void keyball_haptic_play_local(uint8_t effect) {
+#    ifdef HAPTIC_DRV2605L
+  drv2605l_pulse(effect);
+#    else
+  (void)effect;
+  haptic_play();
+#    endif
+}
+
+static void keyball_haptic_queue_remote(uint8_t effect) {
+#    ifdef SPLIT_KEYBOARD
+  if (is_keyboard_master()) {
+#        if defined(SPLIT_HAPTIC_ENABLE)
+    split_haptic_play = effect;
+#        endif
+  } else {
+    keyball_request_remote_haptic(effect);
+  }
+#    else
+  (void)effect;
+#    endif
+}
+
+void keyball_haptic_play_side(uint8_t effect, keyball_haptic_side_t sides) {
+  if (sides == KEYBALL_HAPTIC_SIDE_NONE) {
+    return;
+  }
+  if (!haptic_get_enable()) {
+    return;
+  }
+  uint8_t normalized = keyball_haptic_normalize_effect(effect);
+  bool     want_left  = (sides & KEYBALL_HAPTIC_SIDE_LEFT) != 0;
+  bool     want_right = (sides & KEYBALL_HAPTIC_SIDE_RIGHT) != 0;
+  bool     local_is_left = is_keyboard_left();
+
+  if ((local_is_left && want_left) || (!local_is_left && want_right)) {
+    keyball_haptic_play_local(normalized);
+  }
+#    ifdef SPLIT_KEYBOARD
+  bool remote_needed = (!local_is_left && want_left) || (local_is_left && want_right);
+  if (remote_needed) {
+    keyball_haptic_queue_remote(normalized);
+  }
+#    endif
+}
+
+void keyball_haptic_play_left(uint8_t effect) {
+  keyball_haptic_play_side(effect, KEYBALL_HAPTIC_SIDE_LEFT);
+}
+
+void keyball_haptic_play_right(uint8_t effect) {
+  keyball_haptic_play_side(effect, KEYBALL_HAPTIC_SIDE_RIGHT);
+}
+
+void keyball_haptic_play_both(uint8_t effect) {
+  keyball_haptic_play_side(effect, KEYBALL_HAPTIC_SIDE_BOTH);
+}
+
+static layer_state_t s_layer_haptic_state = 0;
+static layer_state_t s_layer_haptic_default = 0;
+static uint8_t       s_layer_haptic_last = 0xFFu;
+
+static void keyball_layer_haptic_try_trigger(void) {
+  uint8_t highest = get_highest_layer(s_layer_haptic_state | s_layer_haptic_default);
+  if (s_layer_haptic_last == highest) {
+    return;
+  }
+  s_layer_haptic_last = highest;
+  if (!haptic_get_enable()) {
+    return;
+  }
+  if (highest >= KEYBALL_LAYER_HAPTIC_SLOTS) {
+    return;
+  }
+  keyball_layer_haptic_entry_t *entry = &kbpf.layer_haptic[highest];
+  if ((entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_LEFT) != 0u) {
+    keyball_haptic_play_left(entry->left_effect);
+  }
+  if ((entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT) != 0u) {
+    keyball_haptic_play_right(entry->right_effect);
+  }
+}
+
+void keyball_layer_haptic_init(layer_state_t layer_state, layer_state_t default_layer_state) {
+  s_layer_haptic_state   = layer_state;
+  s_layer_haptic_default = default_layer_state;
+  s_layer_haptic_last    = get_highest_layer(layer_state | default_layer_state);
+}
+
+void keyball_layer_haptic_on_layer_state(layer_state_t state) {
+  s_layer_haptic_state = state;
+  keyball_layer_haptic_try_trigger();
+}
+
+void keyball_layer_haptic_on_default_layer_state(layer_state_t state) {
+  s_layer_haptic_default = state;
+  keyball_layer_haptic_try_trigger();
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Hook points
@@ -181,6 +297,35 @@ report_mouse_t pointing_device_task_combined_kb(report_mouse_t left_report, repo
 
 #ifdef SPLIT_KEYBOARD
 
+#    ifdef HAPTIC_ENABLE
+typedef struct {
+  uint8_t effect;
+} keyball_haptic_sync_packet_t;
+
+static void rpc_haptic_sync_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
+  (void)out_buflen;
+  (void)out_data;
+  if (in_buflen < sizeof(keyball_haptic_sync_packet_t)) {
+    return;
+  }
+  if (!haptic_get_enable()) {
+    return;
+  }
+
+  const keyball_haptic_sync_packet_t *packet = (const keyball_haptic_sync_packet_t *)in_data;
+#        ifdef HAPTIC_DRV2605L
+  uint8_t effect = packet->effect;
+  if (effect < 1u || effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    effect = DRV2605L_DEFAULT_MODE;
+  }
+  drv2605l_pulse(effect);
+#        else
+  (void)packet;
+  haptic_play();
+#        endif
+}
+#    endif
+
 static void rpc_get_info_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
   keyball_info_t info = {
     .ballcnt = keyball.this_have_ball ? 1 : 0,
@@ -216,6 +361,22 @@ static void rpc_get_info_invoke(void) {
   keyball_on_adjust_layout(KEYBALL_ADJUST_PRIMARY);
 }
 
+#endif
+
+#if defined(HAPTIC_ENABLE) && defined(SPLIT_KEYBOARD)
+void keyball_request_remote_haptic(uint8_t effect) {
+  if (is_keyboard_master()) {
+    return;
+  }
+  keyball_haptic_sync_packet_t packet = {
+    .effect = effect,
+  };
+  (void)transaction_rpc_send(KEYBALL_SYNC_HAPTIC, sizeof(packet), &packet);
+}
+#else
+void keyball_request_remote_haptic(uint8_t effect) {
+  (void)effect;
+}
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -261,8 +422,11 @@ void keyboard_post_init_kb(void) {
   // register transaction handlers on secondary.
   if (!is_keyboard_master()) {
     transaction_register_rpc(KEYBALL_GET_INFO, rpc_get_info_handler);
-    // no extra RPCs at the moment
+    // その他のRPCは下で両側登録する
   }
+#    ifdef HAPTIC_ENABLE
+  transaction_register_rpc(KEYBALL_SYNC_HAPTIC, rpc_haptic_sync_handler);
+#    endif
 #endif
 
   // QMK 0.30.x 以降の公式 PMW33xx ドライバでは pmw33xx_init_ok は提供されない。
@@ -293,6 +457,9 @@ void keyboard_post_init_kb(void) {
   g_move_th2        = kbpf.move_th2[osi()];
   // 起動時にデフォルトレイヤーを適用
   default_layer_set((uint32_t)1u << kbpf.default_layer);
+#ifdef HAPTIC_ENABLE
+  keyball_layer_haptic_init(layer_state, default_layer_state);
+#endif
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
   // Apply persisted AML settings if available
   set_auto_mouse_enable(kbpf.aml_enable ? true : false);

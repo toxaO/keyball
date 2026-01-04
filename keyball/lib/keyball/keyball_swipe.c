@@ -45,6 +45,7 @@ void keyball_swipe_haptic_pulse(void) {
 #    if defined(SPLIT_KEYBOARD) && defined(SPLIT_HAPTIC_ENABLE)
   split_haptic_play = effect;
 #    endif
+  keyball_request_remote_haptic(effect);
 #else
   // フォールバック: 別ドライバでは通常のハプティック再生
   haptic_play();

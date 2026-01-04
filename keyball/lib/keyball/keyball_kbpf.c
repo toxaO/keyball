@@ -70,6 +70,14 @@ static void kbpf_set_swipe_defaults(keyball_profiles_t *p){
   p->scroll_hysteresis  = KBPF_DEFAULT_SCROLL_HYSTERESIS;
 }
 
+static void kbpf_layer_haptic_set_defaults(void) {
+  for (int i = 0; i < KEYBALL_LAYER_HAPTIC_SLOTS; ++i) {
+    kbpf.layer_haptic[i].enable_mask = (uint8_t)(KBPF_DEFAULT_LAYER_HAPTIC_ENABLE & KEYBALL_LAYER_HAPTIC_ENABLE_BOTH);
+    kbpf.layer_haptic[i].left_effect  = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT;
+    kbpf.layer_haptic[i].right_effect = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT;
+  }
+}
+
 //-------------------------------------------------------------------------
 // Public API
 //-------------------------------------------------------------------------
@@ -136,6 +144,7 @@ void kbpf_defaults(void) {
   kbpf.scroll_layer_index  = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_SCROLL_LAYER_INDEX, 0, 31);
   kbpf.default_layer       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_LAYER, 0, 31);
   kbpf.move_deadzone       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_MOVE_DEADZONE, 0, 32);
+  kbpf_layer_haptic_set_defaults();
 }
 
 static bool kbpf_try_upgrade(uint16_t stored_version) {
@@ -145,6 +154,9 @@ static bool kbpf_try_upgrade(uint16_t stored_version) {
       kbpf.aml_haptic_exit_enable  = KBPF_DEFAULT_AML_HAPTIC_EXIT_ENABLE ? 1u : 0u;
       kbpf.aml_haptic_enter_effect = KBPF_DEFAULT_AML_HAPTIC_ENTER_EFFECT;
       kbpf.aml_haptic_exit_effect  = KBPF_DEFAULT_AML_HAPTIC_EXIT_EFFECT;
+      return kbpf_try_upgrade(17);
+    case 17:
+      kbpf_layer_haptic_set_defaults();
       kbpf.version = KBPF_VER_CUR;
       return true;
     default:
@@ -266,6 +278,42 @@ static void kbpf_validate(void) {
   if (kbpf.scroll_layer_index > 31u) kbpf.scroll_layer_index = KBPF_DEFAULT_SCROLL_LAYER_INDEX;
   // Default layer: clamp 0..31
   if (kbpf.default_layer > 31u) kbpf.default_layer = KBPF_DEFAULT_LAYER;
+#ifdef HAPTIC_ENABLE
+#    ifdef HAPTIC_DRV2605L
+  uint8_t fallback_layer_left = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT;
+  if (fallback_layer_left < 1u || fallback_layer_left >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    fallback_layer_left = DRV2605L_DEFAULT_MODE;
+  }
+  uint8_t fallback_layer_right = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT;
+  if (fallback_layer_right < 1u || fallback_layer_right >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    fallback_layer_right = fallback_layer_left;
+  }
+#    else
+  uint8_t fallback_layer_left = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT;
+  uint8_t fallback_layer_right = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT;
+#    endif
+#endif
+  for (int i = 0; i < KEYBALL_LAYER_HAPTIC_SLOTS; ++i) {
+    kbpf.layer_haptic[i].enable_mask &= KEYBALL_LAYER_HAPTIC_ENABLE_BOTH;
+#ifdef HAPTIC_ENABLE
+#    ifdef HAPTIC_DRV2605L
+    if (kbpf.layer_haptic[i].left_effect < 1u || kbpf.layer_haptic[i].left_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.layer_haptic[i].left_effect = fallback_layer_left;
+    }
+    if (kbpf.layer_haptic[i].right_effect < 1u || kbpf.layer_haptic[i].right_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.layer_haptic[i].right_effect = fallback_layer_right;
+    }
+#    else
+    // 他ドライバでは範囲制限を設けず、値のみ維持
+    (void)fallback_layer_left;
+    (void)fallback_layer_right;
+#    endif
+#else
+    kbpf.layer_haptic[i].enable_mask = 0u;
+    kbpf.layer_haptic[i].left_effect = 0u;
+    kbpf.layer_haptic[i].right_effect = 0u;
+#endif
+  }
 }
 
 void kbpf_after_load_fixup(void) {
