@@ -369,6 +369,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                         tap_code16_with_oneshot(RCTL(KC_LEFT));
+                        break;
                       default:
                         tap_code16_with_oneshot(KC_HOME);
                     }
@@ -380,6 +381,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                         tap_code16_with_oneshot(RCTL(KC_RIGHT));
+                        break;
                       default:
                         tap_code16_with_oneshot(KC_END);
                     }
@@ -391,6 +393,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                         tap_code16_with_oneshot(RCTL(KC_UP));
+                        break;
                       default:
                         tap_code16_with_oneshot(KC_PGUP);
                     }
@@ -402,6 +405,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     switch(host_os) {
                       case OS_MACOS:
                         tap_code16_with_oneshot(RCTL(KC_DOWN));
+                        break;
                       default:
                         tap_code16_with_oneshot(KC_PGDN);
                     }

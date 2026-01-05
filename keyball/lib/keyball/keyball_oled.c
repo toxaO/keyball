@@ -716,14 +716,14 @@ void keyball_oled_render_setting(void) {
                 oled_writef(row++, "mouse"); // row 1
                 oled_writef(row++, " conf"); // row 2
                 row_skip(row, 1);            // row 3
-                oled_writef(row++, "MoSp:");  // row 4 (Mouse Speed)
+                oled_writef(row++, "Sp:");  // row 4 (Mouse Speed)
                 oled_writef_sel(row++, sel == 0, "%u", (unsigned)keyball_get_cpi()); // row 5
                 row_skip(row, 1);            // row 6
 #ifdef KEYBALL_MOVE_SHAPING_ENABLE
                 {
                     uint8_t  g   = kbpf.move_gain_lo_fp[keyball_os_idx()];
                     uint16_t pct = (uint16_t)((g * 100u + 127u) / 255u); // 四捨五入
-                    oled_writef(row++, "Glo:"); // row 7
+                    oled_writef(row++, "GaL:"); // row 7
                     oled_writef_sel(row++, sel == 1, " %u%%", (unsigned)pct); // row 8
                 }
                 row_skip(row, 1); // row 9
@@ -799,12 +799,12 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, "AML");
             oled_writef(row++, " haptic");
             row_skip(row, 1);
-            oled_writef(row++, "INv:");
-            oled_writef_sel(row++, sel == 0, " %3u", kbpf.aml_haptic_enter_enable ? 1u : 0u);
+            oled_writef(row++, "IN:");
+            oled_writef_sel(row++, sel == 0, " %3s", kbpf.aml_haptic_enter_enable ? "on" : "off");
             oled_writef(row++, "INf:");
             oled_writef_sel(row++, sel == 1, " %3u", (unsigned)kbpf.aml_haptic_enter_effect);
-            oled_writef(row++, "OUTv:");
-            oled_writef_sel(row++, sel == 2, " %3u", kbpf.aml_haptic_exit_enable ? 1u : 0u);
+            oled_writef(row++, "OUT:");
+            oled_writef_sel(row++, sel == 2, " %3s", kbpf.aml_haptic_exit_enable ? "on" : "off");
             oled_writef(row++, "OUTf:");
             oled_writef_sel(row++, sel == 3, " %3u", (unsigned)kbpf.aml_haptic_exit_effect);
             row_skip(row, 1);
@@ -908,7 +908,7 @@ void keyball_oled_render_setting(void) {
             oled_writef(row++, "Swipe");
             oled_writef(row++, " conf");
             row_skip(row, 1); // row 12
-            oled_writef(row++, "St:");
+            oled_writef(row++, "Th:");
             oled_writef_sel(row++, sel == 0, " %u", (unsigned)p.step);
             row_skip(row, 1); // row 12
             oled_writef(row++, "Dz:");

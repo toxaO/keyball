@@ -6,11 +6,10 @@
 このリポジトリは Keyball シリーズ用ファームウェア（QMK+vialベース）です。<br>
 [keyball公式](https://github.com/Yowkees/keyball "Yowkees/keyball")を元に、RP2040系として個人的に作成したものです。<br>
 トラブル等は公式には問い合わせず、こちらのリポジトリのissueへお願いします。<br>
-機能としては、vial対応、スワイプ（マウスジェスチャ）、擬似フリック入力、OLEDでの挙動調整などを追加しています。<br>
+機能としては、vial対応、スワイプ（マウスジェスチャ）、振動モーター対応、擬似フリック入力、OLEDでの挙動調整などを追加しています。<br>
+ドキュメントやソースコードに関しては生成AIを使用している箇所が多々あります。確認はしておりますが、誤りや不備がある場合は伝えていただけると幸いです。
 
 ## クイックスタート（Ubuntu 20.04 / WSL2）
-完全に新しい環境で検証する場合は、以下の順で進めると最短です。
-
 ```sh
 sudo apt update
 sudo apt install -y software-properties-common
@@ -47,9 +46,8 @@ bash scripts/build_user_maps.sh
 
 ## キーマップとビルドバリアント
 - 頒布用キーマップは `keyball/lib_user/user` に配置されています。自身の設定を共有する場合はここを編集し、筐体/配列ごとに `keyball/keyball{39,44,61}:user_{dual,left,right}` を指定してビルドしてください。
-- `keyball/lib_user/toxaO` は toxaO の常用設定です。挙動のサンプルとして参考にしつつ、個別ビルドは `keyball/keyball{39,44,61}:toxaO` を指定します。
-- `build/` 配下には頒布用の最新 .uf2 を随時更新して格納します。自分でビルドした成果物も必要に応じてここへコピーしてください。
-- 作業の最後に `make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball{39,44,61}:toxaO` を実行して toxaO 版を更新するのが基本フローです。
+- `keyball/lib_user/toxaO` は toxaO の常用設定です。挙動のサンプルとして参考にしてください。
+- `build/` 配下には頒布用の最新 .uf2 を随時更新して格納します。
 
 ## 対応ボード（RP2040系）
 - RP2040 へ載せ替えが必要です。ATmega32U4系promicro(普通のkeyballで使用しているボード)のままでは使用できません）
@@ -57,10 +55,13 @@ bash scripts/build_user_maps.sh
   - [AliExpressの本品](https://ja.aliexpress.com/item/1005005980167753.html?channel=twinner "promicro rp2040 商品リンク")
   - RP2040 ProMicro 互換（4MBで可）
 
-### ハプティックドライバ（DRV2605L）
-- ファームウェア標準で `HAPTIC_ENABLE = yes` / `HAPTIC_DRIVER = drv2605l` を有効化しており、I2C 接続の DRV2605L モジュール（例: Adafruit DRV2605L Haptic Driver）+ LRA/ERM モーターを左右に搭載すると振動フィードバックを利用できます。
-- RP2040 側の SDA/SCL/3V/GND を DRV2605L に接続し、必要に応じて ENABLE ピンをプルアップしてください。ハプティックを使用しない場合は `rules.mk` の `HAPTIC_ENABLE` を `no` にするとファームサイズを節約できます。
-- OLED 設定の「SW_Hp conf」「Ly_Hp conf」「AML haptic」各ページから、ワンショットスワイプ/レイヤー/AML 遷移時のエフェクト番号や有効・無効をリアルタイムで調整できます。設定値は `KBC_SAVE` で EEPROM（kbpf）へ保存され、PC 再接続後も保持されます。
+### ハプティックドライバ（DRV2605L）(オプション)
+- I2C 接続の DRV2605L モジュール（例: Adafruit DRV2605L Haptic Driver）+ LRA/ERM モーターを左右に搭載すると振動フィードバックを利用できます。
+- 動作確認パーツ
+    - [DRV2605Lモジュール](https://amzn.asia/d/evmf2u0 "Amazon DRV2605L"))
+    - [LRAモーター](https://amzn.asia/d/5kwE7qT "Amazon LRAモーター")
+- 任意のケーブルでRP2040 側の SDA/SCL/3V/GND を DRV2605L に接続し、必要に応じて ENABLE ピンをプルアップしてください（私はプルアップせずに使用していますが問題ないようです）。
+- OLED 設定の「SW_Hp conf」「Ly_Hp conf」「AML haptic」各ページから、スワイプ/レイヤー/AML 遷移時の振動モード番号や有効・無効をで調整できます。設定値は `KBC_SAVE` で EEPROM（kbpf）へ保存され、PC 再接続後も保持されます。
 
 ## 対応手順
 - 対応のボードのシルク（端子の記載）をよく確認の元、お手持ちのkeyballの仕様に合うようにコンスルーかピンヘッダを使用して取り付けてください。
@@ -106,9 +107,9 @@ bash scripts/build_user_maps.sh
 
 ### ハプティックフィードバック
 - `HAPTIC_DRIVER = drv2605l` により、スワイプ／AML／レイヤー切り替え時に DRV2605L 経由で左右別の振動を再生できます。
-- OLED の `SW_Hp conf` ページではスワイプの一次／二次エフェクトやクールタイム（Idle）、テスト再生を操作できます。
-- `Ly_Hp conf` ページでは各レイヤーごとに左・右の有効/無効とエフェクト番号を保持し、デフォルトレイヤー変更にも追従します。
-- `AML haptic` ページでは Auto Mouse Layer の入退場時に鳴らすエフェクトと有効フラグを設定できます。
+- OLED の `SW_Hp conf` ページではスワイプの初回/2回目以降の振動モードや連続振動認識リセット時間（Idle）、テスト再生を操作できます。(初回は強く、連続で動作させる2回目以降は弱くするなどの使用を想定した機能です)
+- `Ly_Hp conf` ページでは各レイヤーごとに左・右の振動の有効/無効とモード番号を設定可能です。
+- `AML haptic` ページでは Auto Mouse Layer の遷移時(in/out)で振動するモードとon/offを設定できます。
 ### 擬似フリック入力
 - Flick_系のキーを押しながら、上下左右にスワイプまたはMULTI_{A, B, C}を押下することで、方向に応じた文字入力が可能。
 - MULTI_Aは左、Bは右、Cの単体タップは上、Cのダブルタップは下に対応しています。
@@ -169,19 +170,19 @@ bash scripts/build_user_maps.sh
 ### OLED 上での設定
 - SET_TOGキーを押すと、OLEDが設定モードに切り替わります。（再度押すと通常画面に戻ります。）
 - 上下キーでカーソルの移動。左右キーでページ移動。Shift+左右キーで値の増減が可能です。
-- 設定はKBC_SAVEキーで保存されます。KBC_RSTキーで初期化されます。
+- 設定は**KBC_SAVEキーで保存**されます。KBC_RSTキーで初期化されます。**OS毎に設定が保存されます。**
 - ご自分でビルドされる方は、lib/keyball/keyball.hで設定されているマクロをkeyball/.../keymap/user/config.hで上書きすることで初期値を変更できます。
 - ページ構成は以下の通りです（RGBLIGHT/HAPTICが無効な場合は該当ページが省略されます）。
 
 | No. | 画面ラベル         | 主な項目                                                                 |
 |:----|:-------------------|:-------------------------------------------------------------------------|
-| 1   | `mouse conf`       | MoSp/Glo/Th1/Th2/DZ（ポインタ移動量）                                     |
+| 1   | `mouse conf`       | Sp/GaL/Th1/Th2/DZ（ポインタ移動量）                                     |
 | 2   | `AML conf`         | en/TO/TH/TG（Auto Mouse Layer 設定）                                      |
-| 3   | `AML haptic`       | INv/INf/OUTv/OUTf（AML入退場時の振動）                                     |
+| 3   | `AML haptic`       | IN/INf/OUT/OUTf（AML入退場時の振動）                                     |
 | 4   | `Scrl conf`        | Sp/Dz/Iv/ScLy/LNo/Md/H_Ga（スクロール全般）                                |
 | 5   | `SSNP conf`        | Mode/Thr/Rst（スクロールスナップ）                                        |
 | 6   | `Scrl moni`        | スクロール生値・内部状態モニタ                                            |
-| 7   | `Swipe conf`       | St/Dz/Rt/Frz（スワイプ判定パラメータ）                                    |
+| 7   | `Swipe conf`       | Th/Dz/Rt/Frz（スワイプ判定パラメータ）                                    |
 | 8   | `Swipe moni`       | アクティブ状態・方向・累積値                                               |
 | 9   | `RGB conf`         | light/HUE/SAT/VAL/Mode（RGBライト）                                       |
 | 10  | `SW_Hp conf`       | En/1st/2nd~/Idle/Test（スワイプ時ハプティック）                           |
@@ -191,8 +192,8 @@ bash scripts/build_user_maps.sh
 | 14  | `Send moni`        | 直近に送出したキー/レイヤ/Mods/位置                                        |
 
 ### mouse config（ページ1）
-- MoSp: (Mouse speed)ポインタの速度
-- Glo: (Gain low speed)低速域のゲイン。低速域ではポインタの速度がここで指定した割合になります。
+- Sp: (Mouse speed)ポインタの速度
+- GaL: (Gain low speed)低速域のゲイン。低速域ではポインタの速度がここで指定した割合になります。
 - Th1/Th2: (Threshold1/2)低速域のしきい値。Th1以下ではMoSpの(Glo)%、Th1～Th2では線形補間されたゲイン、Th2以上ではMoSpの速度になります。
 - DZ: (DEAD ZONE)この値以下のボールの動作は無視されます。
 
@@ -204,7 +205,7 @@ bash scripts/build_user_maps.sh
 - TG_L: (Target Layer)AMLが有効になったときの切り替え先レイヤー番号。
 
 ### AML haptic config（ページ3）
-- INv/OUTv: Auto Mouse Layer の入場/退場で振動させるかどうか。
+- IN/OUT: Auto Mouse Layer の遷移/解除で振動させるかどうか。
 - INf/OUTf: それぞれに割り当てる DRV2605L のエフェクト番号（1〜123程度）。
 
 ### Scroll config（ページ4）
@@ -224,7 +225,7 @@ bash scripts/build_user_maps.sh
 - スクロール変換前後の生値（x/y/h/v）と内部加速度（ah/av）、テンション値(t)をリアルタイムで表示します。チューニング時の目視用です。
 
 ### Swipe config（ページ7）
-- St: (Swipe Threshold) スワイプと判定する移動量の閾値
+- Th: (Swipe Threshold) スワイプと判定する移動量の閾値
 - Dz: (Dead Zone) この値以下のボールの動作は無視されます。
 - Rt: (Reset Time) スワイプ動作のリセット時間(ms)。この時間内に閾値を超える動作がなければ、スワイプ動作用の移動量はリセットされます。
 - Frz: (Freeze) スワイプ中にポインタを固定するかどうか。
@@ -243,13 +244,13 @@ bash scripts/build_user_maps.sh
 - En: スワイプ時のハプティックを有効／無効。
 - 1st: 1方向目のエフェクト番号。
 - 2nd~: 連続スワイプ時に使用するエフェクト番号。
-- Idle: 同一方向の連続発火までの待ち時間（0で常時）。
+- Idle: 連続スワイプとして認識される時間。
 - Test: カーソルを合わせて Shift+左右 でエフェクトをテスト再生。
 
 ### Layer haptic config（ページ11、HAPTIC_ENABLE 時のみ）
 - Ly: 設定対象のレイヤー番号。
 - L/R: 左右の振動を個別に ON/OFF。
-- Mode: それぞれのエフェクト番号。`KBC_SAVE` で kbpf に保持されます。
+- Mode: それぞれのエフェクト番号。
 
 ### LED monitor（ページ12）
 - 現在の LED インデックスや輝度テスト用の簡易画面です。WS2812 の配線確認時に利用できます。

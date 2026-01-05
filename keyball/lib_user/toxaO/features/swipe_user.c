@@ -160,7 +160,6 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         default: break;
         }
         break;
-Oops error braces? need fix.
 
     // FLICK_* 系：ベースキーごとの方向マッピング
     case KBS_TAG_FLICK_A:
