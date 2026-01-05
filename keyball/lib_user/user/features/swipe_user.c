@@ -140,19 +140,19 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     // デフォルト動作はユーザーレベルで定義してください（本ファイルで上書き可能）。
     case KBS_TAG_EX1:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F13); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F14); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F14); break;
         case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F15); break;
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F16); break;
+        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F16); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F17); break;
         default: break;
         }
         break;
     case KBS_TAG_EX2:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F18); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F19); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F19); break;
         case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F20); break;
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F21); break;
+        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F21); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F22); break;
         default: break;
         }
         break;
@@ -294,11 +294,10 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
     // 下記のようにケースを追加すれば、ユーザー側で自由に置き換えられます。
     */
     case KBS_TAG_EX1:
-        // tap 時の置き換え
         tap_code16_with_oneshot(KC_F13);
         break;
     case KBS_TAG_EX2:
-        tap_code16_with_oneshot(KC_F17);
+        tap_code16_with_oneshot(KC_F18);
         break;
     default:
         break;

@@ -66,11 +66,13 @@ qmk setup -H "$QMK_HOME_ABS" -y
 既存の `.venv` が Python 3.8 以前で作られている場合は、一度削除してから上記コマンドで作り直してください。再作成後に `python -V` を実行し、3.9 以上になっていることを確認すると安心です。
 
 ## Vial のビルド
-以下のコマンドで Vial 用ファームウェアをビルドできます。
+以下のコマンドで Vial 用ファームウェアをビルドできます（`keymap` には `toxaO` や `user_dual` 等の実在するキーマップ名を指定してください）。
 
 ```sh
 make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:toxaO
-make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:user_left
+make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:user_dual
+# user 配布用の 9 ターゲットをまとめてビルドする場合
+bash scripts/build_user_maps.sh
 # (必要なキーボード/キーマップの組み合わせを指定)
 ```
 
@@ -83,6 +85,5 @@ make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:user_left
 - `make: *** No rule to make target` → キーボード名・キーマップ名のタイプミスを確認してください。
 
 ## 他の選択肢
-- セットアップを自動化したい場合は `scripts/setup_and_build.sh` を利用すると、仮想環境の作成やシンボリックリンクの準備までをワンコマンドで実行できます（ビルドは含まれません）。その後のビルドには `scripts/build_vial_all.sh` などを併用してください。
-- 一部ターゲットのみテストしたい場合は `scripts/build_vial_test_39_user_right.sh` を利用すると、`keyball/keyball39:user_right` のみを素早くビルドできます。
+- セットアップを自動化したい場合は `scripts/setup_and_build.sh` を利用すると、仮想環境の作成やシンボリックリンクの準備までをワンコマンドで実行できます（ビルドは含まれません）。その後のビルドには `scripts/build_vial_all.sh`（全 toxaOターゲット）や `scripts/build_user_maps.sh`（頒布用 user ターゲット）を併用してください。
 - 完全再現性を重視する場合は Docker イメージによるセットアップも提供しています。詳細は `docs/docker_setup.md` を参照してください。

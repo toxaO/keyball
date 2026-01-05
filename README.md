@@ -42,11 +42,11 @@ bash scripts/build_user_maps.sh
 - `qmk_firmware` … 公式 QMK へのリンク用ツリー
 - `vial-qmk` … Vial 対応 QMK ツリー
 - `scripts` … セットアップスクリプト群
-- `.github/workflows` … GitHub Actions（自動ビルド）
 - `build` … ビルド済み .uf2 の置き場
+- `docs/releases` … バージョン別のリリースノート
 
 ## キーマップとビルドバリアント
-- 頒布用キーマップは `keyball/lib_user/user` に配置されています。自身の設定を共有する場合はここを編集し、`keyball/keyball{39,44,61}:user` でビルドしてください。
+- 頒布用キーマップは `keyball/lib_user/user` に配置されています。自身の設定を共有する場合はここを編集し、筐体/配列ごとに `keyball/keyball{39,44,61}:user_{dual,left,right}` を指定してビルドしてください。
 - `keyball/lib_user/toxaO` は toxaO の常用設定です。挙動のサンプルとして参考にしつつ、個別ビルドは `keyball/keyball{39,44,61}:toxaO` を指定します。
 - `build/` 配下には頒布用の最新 .uf2 を随時更新して格納します。自分でビルドした成果物も必要に応じてここへコピーしてください。
 - 作業の最後に `make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball{39,44,61}:toxaO` を実行して toxaO 版を更新するのが基本フローです。
@@ -56,6 +56,11 @@ bash scripts/build_user_maps.sh
 - 必要ボード: 下記いずれか
   - [AliExpressの本品](https://ja.aliexpress.com/item/1005005980167753.html?channel=twinner "promicro rp2040 商品リンク")
   - RP2040 ProMicro 互換（4MBで可）
+
+### ハプティックドライバ（DRV2605L）
+- ファームウェア標準で `HAPTIC_ENABLE = yes` / `HAPTIC_DRIVER = drv2605l` を有効化しており、I2C 接続の DRV2605L モジュール（例: Adafruit DRV2605L Haptic Driver）+ LRA/ERM モーターを左右に搭載すると振動フィードバックを利用できます。
+- RP2040 側の SDA/SCL/3V/GND を DRV2605L に接続し、必要に応じて ENABLE ピンをプルアップしてください。ハプティックを使用しない場合は `rules.mk` の `HAPTIC_ENABLE` を `no` にするとファームサイズを節約できます。
+- OLED 設定の「SW_Hp conf」「Ly_Hp conf」「AML haptic」各ページから、ワンショットスワイプ/レイヤー/AML 遷移時のエフェクト番号や有効・無効をリアルタイムで調整できます。設定値は `KBC_SAVE` で EEPROM（kbpf）へ保存され、PC 再接続後も保持されます。
 
 ## 対応手順
 - 対応のボードのシルク（端子の記載）をよく確認の元、お手持ちのkeyballの仕様に合うようにコンスルーかピンヘッダを使用して取り付けてください。
@@ -90,26 +95,31 @@ bash scripts/build_user_maps.sh
 | キーコード | 説明                       |タップ                                |左             |下                          |上                       |右            |
 |:-----------|:---------------------------|:-------------------------------------|:--------------|:---------------------------|:------------------------|:-------------|
 | `SW_APP`   | アプリ切替スワイプ         |タスクビュー<br>ミッションコントロール| 右デスクトップ|タスクビュー<br>アプリビュー|copilot<br>スポットライト|左デスクトップ|
-| `SW_VOL`   | 音量/メディア操作スワイプ  |再生/停止                             |前の曲         |音量上昇                    |音量減少                 |次の曲        |
+| `SW_VOL`   | 音量/メディア操作スワイプ  |再生/停止                             |次の曲         |音量上昇                    |音量減少                 |前の曲        |
 | `SW_BRO`   | ブラウザ/履歴スワイプ      |アドレスバー                          |戻る           |ズームアウト（Ctrl/Cmd -）|ズームイン（Ctrl/Cmd +）|進む          |
 | `SW_TAB`   | タブ切替スワイプ           | 新規タブ                             |前のタブ       |タブを閉じる                |最後に閉じたタブ         |次のタブ      |
-| `SW_WIN`   | ウィンドウ位置操作         |ウィンドウを最大化                    |左半分に       |下半分に                    |上半分に                 |右半分に      |
-| `SW_UTIL`  | ユーティリティスワイプ     |Esc → LANG2                           |Undo/Redo<br>(Win=Ctrl+Y, Mac=Cmd+Z, Linux=Ctrl+Z) |ペースト                    |コピー                   |Redo<br>(Win/既定=Ctrl+Y, Mac=Cmd+Shift+Z, Linux=Ctrl+Shift+Z) |
+| `SW_WIN`   | ウィンドウ位置操作         |Snapメニュー / Fn+Ctrl+F（Win=Win+Z） |左半分（Win+← / Fn+Ctrl+←） |下半分/最小化（Win+↓ / Fn+Ctrl+↓） |最大化（Win+↑ / Fn+Ctrl+↑） |右半分（Win+→ / Fn+Ctrl+→） |
+| `SW_UTIL`  | ユーティリティスワイプ     |Esc → LANG2                           |Undo（Win/Linux=Ctrl+Z, macOS=Cmd+Z） |ペースト                    |コピー                   |Redo（Win=Ctrl+Y, macOS=Cmd+Shift+Z, Linux=Ctrl+Shift+Z） |
 | `SW_ARR`   | 矢印キー                   |動作なし                              |左キー         |下キー                      |上キー                   |右キー        |
-| `SW_EX1`   | 各自拡張用                 |F13                                   |F15            |F16                         |F14                      |F17           |
-| `SW_EX2`   | 各自拡張用                 |F17                                   |F21            |F20                         |F18                      |F19           |
+| `SW_EX1`   | 各自拡張用                 |F13                                   |F14            |F15                         |F16                      |F17           |
+| `SW_EX2`   | 各自拡張用                 |F18                                   |F19            |F20                         |F21                      |F22           |
 
+### ハプティックフィードバック
+- `HAPTIC_DRIVER = drv2605l` により、スワイプ／AML／レイヤー切り替え時に DRV2605L 経由で左右別の振動を再生できます。
+- OLED の `SW_Hp conf` ページではスワイプの一次／二次エフェクトやクールタイム（Idle）、テスト再生を操作できます。
+- `Ly_Hp conf` ページでは各レイヤーごとに左・右の有効/無効とエフェクト番号を保持し、デフォルトレイヤー変更にも追従します。
+- `AML haptic` ページでは Auto Mouse Layer の入退場時に鳴らすエフェクトと有効フラグを設定できます。
 ### 擬似フリック入力
 - Flick_系のキーを押しながら、上下左右にスワイプまたはMULTI_{A, B, C}を押下することで、方向に応じた文字入力が可能。
 - MULTI_Aは左、Bは右、Cの単体タップは上、Cのダブルタップは下に対応しています。
 
 | キーコード | 説明           |タップ  |左        |下          |上        |右        |
 |:-----------|:---------------|:-------|:---------|:-----------|:---------|:---------|
-| `FLICK_A`  | 擬似フリックA  |a       |b         |なし        |なし      |c         |
-| `FLICK_D`  | 擬似フリックD  |d       |e         |なし        |なし      |f         |
-| `FLICK_G`  | 擬似フリックG  |g       |h         |なし        |なし      |c         |
-| `FLICK_J`  | 擬似フリックJ  |j       |k         |なし        |なし      |c         |
-| `FLICK_M`  | 擬似フリックM  |m       |l         |なし        |なし      |c         |
+| `FLICK_A`  | 擬似フリックA  |a       |b         |なし        |@         |c         |
+| `FLICK_D`  | 擬似フリックD  |d       |e         |)           |(         |f         |
+| `FLICK_G`  | 擬似フリックG  |g       |h         |なし        |なし      |i         |
+| `FLICK_J`  | 擬似フリックJ  |j       |k         |なし        |なし      |l         |
+| `FLICK_M`  | 擬似フリックM  |m       |n         |なし        |なし      |o         |
 | `FLICK_P`  | 擬似フリックP  |p       |q         |なし        |r         |s         |
 | `FLICK_T`  | 擬似フリックT  |t       |u         |なし        |なし      |v         |
 | `FLICK_W`  | 擬似フリックW  |w       |x         |なし        |y         |z         |
@@ -161,49 +171,94 @@ bash scripts/build_user_maps.sh
 - 上下キーでカーソルの移動。左右キーでページ移動。Shift+左右キーで値の増減が可能です。
 - 設定はKBC_SAVEキーで保存されます。KBC_RSTキーで初期化されます。
 - ご自分でビルドされる方は、lib/keyball/keyball.hで設定されているマクロをkeyball/.../keymap/user/config.hで上書きすることで初期値を変更できます。
+- ページ構成は以下の通りです（RGBLIGHT/HAPTICが無効な場合は該当ページが省略されます）。
 
-### mouse config
+| No. | 画面ラベル         | 主な項目                                                                 |
+|:----|:-------------------|:-------------------------------------------------------------------------|
+| 1   | `mouse conf`       | MoSp/Glo/Th1/Th2/DZ（ポインタ移動量）                                     |
+| 2   | `AML conf`         | en/TO/TH/TG（Auto Mouse Layer 設定）                                      |
+| 3   | `AML haptic`       | INv/INf/OUTv/OUTf（AML入退場時の振動）                                     |
+| 4   | `Scrl conf`        | Sp/Dz/Iv/ScLy/LNo/Md/H_Ga（スクロール全般）                                |
+| 5   | `SSNP conf`        | Mode/Thr/Rst（スクロールスナップ）                                        |
+| 6   | `Scrl moni`        | スクロール生値・内部状態モニタ                                            |
+| 7   | `Swipe conf`       | St/Dz/Rt/Frz（スワイプ判定パラメータ）                                    |
+| 8   | `Swipe moni`       | アクティブ状態・方向・累積値                                               |
+| 9   | `RGB conf`         | light/HUE/SAT/VAL/Mode（RGBライト）                                       |
+| 10  | `SW_Hp conf`       | En/1st/2nd~/Idle/Test（スワイプ時ハプティック）                           |
+| 11  | `Ly_Hp conf`       | Layer/左右有効/左右エフェクト（レイヤー別ハプティック）                  |
+| 12  | `LED moni`         | LEDインデックスモニタ                                                      |
+| 13  | `layer conf`       | def（デフォルトレイヤー）                                                 |
+| 14  | `Send moni`        | 直近に送出したキー/レイヤ/Mods/位置                                        |
+
+### mouse config（ページ1）
 - MoSp: (Mouse speed)ポインタの速度
 - Glo: (Gain low speed)低速域のゲイン。低速域ではポインタの速度がここで指定した割合になります。
 - Th1/Th2: (Threshold1/2)低速域のしきい値。Th1以下ではMoSpの(Glo)%、Th1～Th2では線形補間されたゲイン、Th2以上ではMoSpの速度になります。
 - DZ: (DEAD ZONE)この値以下のボールの動作は無視されます。
 
-### AML config
+### AML config（ページ2）
 - en: (enable) オートマウスレイヤーの有効/無効
 - TO: (Time Out)設定の時間(ms)が経過するまでマウスレイヤーに留まります。500ms単位で増減。9500より大きく設定しようとすると、HOLDとして60秒間の設定となります。
 - AMLはマウスキー以外のボタンを押すことで解除されます。（マウスキー：MS_BTN1やスワイプキー。util_user.cで追加設定できます。）
 - TH: AUTO MOUSE LAYERの閾値。ポインタの移動量がこれを超えるとAMLが有効になります。
 - TG_L: (Target Layer)AMLが有効になったときの切り替え先レイヤー番号。
 
-### Scroll config
+### AML haptic config（ページ3）
+- INv/OUTv: Auto Mouse Layer の入場/退場で振動させるかどうか。
+- INf/OUTf: それぞれに割り当てる DRV2605L のエフェクト番号（1〜123程度）。
+
+### Scroll config（ページ4）
 - Sp: (Scroll Speed)スクロールのステップ。1～7で設定可能。
 - Dz: (DEAD ZONE)この値以下のボールの動作は無視されます。
-- Inv: (Invert)スクロールの反転。
-- ScLy: (Scroll Layer)任意のレイヤーでスクロールモードをを有効にする。
-- LNo: (Layer number)スクロールモードを有効にするレイヤー番号。
-- Mode: (Mode)モード。m:macモード。f:高精度モード。n:標準モード。macでは高精度モードを使用できません。
+- Iv: (Invert)スクロールの反転フラグ（OS別）。
+- ScLy/LNo: 任意のレイヤーでスクロールモードを常時有効化するトグルとレイヤー番号。
+- Md: (Mode) m:macモード、f:高精度モード、n:標準モード。macでは高精度モードを使用できません。
 - H_Ga: (Horizontal Gain)スクロール最終ゲインの水平成分。垂直成分に対する割合(%)。左右方向のスクロールを遅くしたい場合に調整します。
 
-### SSNP config
+### SSNP config（ページ5）
 - Mode: ver/ hor/ free。一方向へのスクロールを優先し、一定以上の量を超えた場合にフリースクロールになります。freeは常にフリースクロールです。
 - Thr:  (Threshold) ver/horモードでフリースクロールに切り替わる閾値。
 - Rst: フリースクロールでいる時間。
 
-### Swipe config
+### Scroll monitor（ページ6）
+- スクロール変換前後の生値（x/y/h/v）と内部加速度（ah/av）、テンション値(t)をリアルタイムで表示します。チューニング時の目視用です。
+
+### Swipe config（ページ7）
 - St: (Swipe Threshold) スワイプと判定する移動量の閾値
 - Dz: (Dead Zone) この値以下のボールの動作は無視されます。
 - Rt: (Reset Time) スワイプ動作のリセット時間(ms)。この時間内に閾値を超える動作がなければ、スワイプ動作用の移動量はリセットされます。
 - Frz: (Freeze) スワイプ中にポインタを固定するかどうか。
 
-### RGB config
+### Swipe monitor（ページ8）
+- アクティブ状態（Ac）、現在のタグ（Md）、方向（Dir）、各方向の蓄積値（U/D/R/L）を確認できます。誤判定時のデバッグに利用してください。
+
+### RGB config（ページ9、RGBLIGHT_ENABLE 時のみ）
 - light on/off（offの時は以下の設定を変更できません）
 - HUE (色相)。
 - SAT (彩度)。
 - VAL (明度)。
 - Mode アニメーションモード。(一部モードではHUE, SAT, VALは変更できません)
 
-### layer config
-- def: (Default Layer) デフォルトレイヤーとするレイヤー番号。
+### Swipe haptic config（ページ10、HAPTIC_ENABLE 時のみ）
+- En: スワイプ時のハプティックを有効／無効。
+- 1st: 1方向目のエフェクト番号。
+- 2nd~: 連続スワイプ時に使用するエフェクト番号。
+- Idle: 同一方向の連続発火までの待ち時間（0で常時）。
+- Test: カーソルを合わせて Shift+左右 でエフェクトをテスト再生。
+
+### Layer haptic config（ページ11、HAPTIC_ENABLE 時のみ）
+- Ly: 設定対象のレイヤー番号。
+- L/R: 左右の振動を個別に ON/OFF。
+- Mode: それぞれのエフェクト番号。`KBC_SAVE` で kbpf に保持されます。
+
+### LED monitor（ページ12）
+- 現在の LED インデックスや輝度テスト用の簡易画面です。WS2812 の配線確認時に利用できます。
+
+### Default layer config（ページ13）
+- def: (Default Layer) デフォルトレイヤーとするレイヤー番号。`default_layer_set` と連動します。
+
+### Send monitor（ページ14）
+- 直近に送出したキーコード・レイヤー・(row,col)・修飾キー状態を表示します。キースキャンの確認やデバッグに利用できます。
 
 
 ## 詳細ドキュメント
@@ -213,9 +268,6 @@ bash scripts/build_user_maps.sh
 - シェルスクリプトによる導入（MSYS2/macOS/Ubuntu想定）
   - `bash scripts/setup_and_build.sh`
   - 依存確認→qmk CLI venv→シンボリックリンク作成→QMK & Vial ビルドまで自動実行
-- GitHub Actions でのビルド
-  - Actions → "Keyball manual build (QMK/Vial)"
-  - 入力フォームで kb（例: keyball/keyball61）, km（例: mymap）, impl（qmk/vial）を選択
 - Vial 上でキーマップの編集が可能です（Vial対応ビルドを使用）。
 
 ## ビルド済み生成物

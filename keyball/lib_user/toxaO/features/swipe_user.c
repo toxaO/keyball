@@ -142,28 +142,25 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         }
         break;
 
-    // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
-    // デフォルト動作はユーザーレベルで定義してください（本ファイルで上書き可能）。
-    /*
     case KBS_TAG_EX1:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F11); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F12); break;
-        case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F13); break;
         case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F14); break;
+        case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F15); break;
+        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F16); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F17); break;
         default: break;
         }
         break;
     case KBS_TAG_EX2:
         switch (dir) {
-        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F16); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F17); break;
-        case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F18); break;
         case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_F19); break;
+        case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_F20); break;
+        case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_F21); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_F22); break;
         default: break;
         }
         break;
-    */
+Oops error braces? need fix.
 
     // FLICK_* 系：ベースキーごとの方向マッピング
     case KBS_TAG_FLICK_A:
@@ -299,19 +296,12 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         tap_code16_with_oneshot(KC_ESC);
         tap_code16_with_oneshot(KC_LNG2);
         break;
-    /*
-    // 例: 拡張スワイプキー（SW_EX1/SW_EX2）のユーザーオーバーライド
-    // デフォルト（KBレベル）は、EX1: tap=F10 / UP=F11 / RIGHT=F12 / DOWN=F13 / LEFT=F14
-    //                           EX2: tap=F15 / UP=F16 / RIGHT=F17 / DOWN=F18 / LEFT=F19
-    // 下記のようにケースを追加すれば、ユーザー側で自由に置き換えられます。
     case KBS_TAG_EX1:
-        // tap 時の置き換え
-        tap_code16_with_oneshot(KC_F10);
+        tap_code16_with_oneshot(KC_F13);
         break;
     case KBS_TAG_EX2:
-        tap_code16_with_oneshot(KC_F15);
+        tap_code16_with_oneshot(KC_F18);
         break;
-    */
     default:
         break;
     }
