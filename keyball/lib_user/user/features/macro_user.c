@@ -11,7 +11,6 @@
 #include "deferred_exec.h"
 #include "print.h"
 
-// uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 // bool canceller = false;
 uint8_t mod_state;
 

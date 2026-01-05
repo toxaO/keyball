@@ -9,9 +9,9 @@
 #include "lib/keyball/keyball.h"
 #include "lib/keyball/keyball_swipe.h"
 
+
 // Swipeの動作はこのファイルで指定します。
 
-uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 bool canceller = false;
 static bool bro_double_wait = false;
 static uint16_t bro_double_timer = 0;
@@ -115,7 +115,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
             tap_code16_os(C(KC_V), G(KC_V), G(KC_V), C(KC_V), C(KC_V));
             break;
         case KB_SWIPE_LEFT:
-            tap_code16_os(C(KC_Y), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Y));
+            tap_code16_os(C(KC_Z), G(KC_Z), G(KC_Z), C(KC_Z), C(KC_Z));
             break;
         case KB_SWIPE_RIGHT:
             tap_code16_os(C(KC_Y), S(G(KC_Z)), S(G(KC_Z)), C(S(KC_Z)), C(KC_Y));
@@ -282,7 +282,7 @@ void keyball_on_swipe_tap(kb_swipe_tag_t tag) {
         break;
     case KBS_TAG_SW_UTIL:
         tap_code16_with_oneshot(KC_ESC);
-        tap_code16_with_oneshot(KC_LANG2);
+        tap_code16_with_oneshot(KC_LNG2);
         break;
     case KBS_TAG_SW_ARR:
         tap_code(KC_NO);

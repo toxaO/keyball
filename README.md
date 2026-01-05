@@ -21,7 +21,10 @@ sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-di
 git clone --recurse-submodules https://github.com/toxaO/keyball.git
 cd keyball
 bash scripts/setup_and_build.sh  # 初回セットアップ（ビルドは行わない）
-make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:user
+# user版は筐体別・レイアウト別に `user_dual` / `user_left` / `user_right` を指定してください
+make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:user_dual
+# すべての user レイアウトをまとめてビルドする場合
+bash scripts/build_user_maps.sh
 ```
 
 `scripts/setup_and_build.sh` は `make` / `pip` / `arm-none-eabi-gcc` に加えて Python 3.9 以上を利用します。上記の `sudo apt install ...` を実行してからセットアップスクリプトを走らせてください（未導入のまま実行すると不足パッケージの警告が表示されます）。既存の `.venv` が古い Python で作られている場合は、スクリプトが自動的に削除して再作成します。
@@ -29,6 +32,24 @@ make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:user
 ※ 仮想環境を手動で再作成したい場合は、リポジトリ直下で `rm -rf .venv && python3.10 -m venv .venv && source .venv/bin/activate && python -m pip install -U pip qmk` を実行し、`python -V` が 3.10 以上になっていることを確認してください。
 
 ※ `git clone --recurse-submodules` を忘れた場合は、クローン後に `git submodule update --init --recursive` で補完してください。
+
+## リポジトリ構造
+- `keyball` … キーボード本体の実装
+- `keyball/lib` … キーボード共有（KBレベル）のライブラリ
+- `keyball/lib_user` … ユーザーレベルの実装
+  - `keyball/lib_user/user` … 頒布用キーマップ（誰でも編集可）
+  - `keyball/lib_user/toxaO` … toxaO 用の個人設定（サンプル）
+- `qmk_firmware` … 公式 QMK へのリンク用ツリー
+- `vial-qmk` … Vial 対応 QMK ツリー
+- `scripts` … セットアップスクリプト群
+- `.github/workflows` … GitHub Actions（自動ビルド）
+- `build` … ビルド済み .uf2 の置き場
+
+## キーマップとビルドバリアント
+- 頒布用キーマップは `keyball/lib_user/user` に配置されています。自身の設定を共有する場合はここを編集し、`keyball/keyball{39,44,61}:user` でビルドしてください。
+- `keyball/lib_user/toxaO` は toxaO の常用設定です。挙動のサンプルとして参考にしつつ、個別ビルドは `keyball/keyball{39,44,61}:toxaO` を指定します。
+- `build/` 配下には頒布用の最新 .uf2 を随時更新して格納します。自分でビルドした成果物も必要に応じてここへコピーしてください。
+- 作業の最後に `make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball{39,44,61}:toxaO` を実行して toxaO 版を更新するのが基本フローです。
 
 ## 対応ボード（RP2040系）
 - RP2040 へ載せ替えが必要です。ATmega32U4系promicro(普通のkeyballで使用しているボード)のままでは使用できません）

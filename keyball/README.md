@@ -50,6 +50,17 @@
 ヒント（拡張の例）
 - 疑似フリック入力: `keyball_on_swipe_fire(tag, dir)` で、方向に応じた文字や役割を送出することで実現可能です。
 
+## スワイプ実装の現状
+
+- 一般配布用（`lib_user/user/features/swipe_user.c`）
+  - `SW_APP`～`SW_UTIL`は OS 検出を併用し、Spotlight/タスクビュー、音量/トラック、ブラウザ履歴とズーム、タブ制御、Win+矢印相当、コピー/貼り付け/Undo/Redo などを方向ごとに割り当てています。
+  - `SW_APP` は `canceller` フラグで2度押し目に ESC を送り、アプリ切替を閉じる挙動を共通化しています。`SW_WIN` では Windows で押しっぱなしになり得る Win キーを `keyball_on_swipe_end()` で確実に解放しています。
+  - フリックキー（`KBS_TAG_FLICK_A`～`W`）は A-D-G-J-M-P-T-W の T9 配列をベースに、左/右/上方向へスマホ式の隣接文字（例: P→左Q/上R/右S, W→左X/上Y/右Z）を送出する構成になっています。
+- toxaO 用（`lib_user/toxaO/features/swipe_user.c`）
+  - 作りは user 版と同じで、`SW_APP` は Ueli など個人ツール向けショートカットを優先し、`SW_WIN` の上下左右は Magnet (`MGN_*`) を呼び出すなど Mac 向けのカスタムを含みます。
+  - ブラウザタップ時は単/複タップ判定を共有しつつ、`SW_ARR` タップで ESC→Lang2 を追加発火させる等の個別調整があります。
+  - フリック割り当ては user 版に合わせて P/Q/R/S・T/U/V・W/X/Y/Z のセットを保持しているため、スマホのフリック習慣から移行しやすい構成です。
+
 ## カスタムキーコード（キーボードレベル）
 
 Vial の customKeycodes にも掲載される主要キー：

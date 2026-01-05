@@ -61,8 +61,8 @@
     { "name": "FLICK_G", "title": "Flick G (tap G; L=H, R=I)",                      "shortName": "FLICK\nG" },
     { "name": "FLICK_J", "title": "Flick J (tap J; L=K, R=L)",                      "shortName": "FLICK\nJ" },
     { "name": "FLICK_M", "title": "Flick M (tap M; L=N, R=O)",                      "shortName": "FLICK\nM" },
-    { "name": "FLICK_P", "title": "Flick P (tap P; L=Q, R=R)",                      "shortName": "FLICK\nP" },
-    { "name": "FLICK_T", "title": "Flick S (tap S; L=T, R=U)",                      "shortName": "FLICK\nS" },
-    { "name": "FLICK_W", "title": "Flick V (tap V; L=Z, R=W, U=Y)",                 "shortName": "FLICK\nV" }
+    { "name": "FLICK_P", "title": "Flick P (tap P; L=Q, U=R, R=S)",                      "shortName": "FLICK\nP" },
+    { "name": "FLICK_T", "title": "Flick T (tap T; L=U, R=V)",                      "shortName": "FLICK\nT" },
+    { "name": "FLICK_W", "title": "Flick W (tap W; L=X, R=Z, U=Y)",                 "shortName": "FLICK\nW" }
   ]
 }
