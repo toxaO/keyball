@@ -389,7 +389,6 @@ enum keyball_keycodes {
   SW_BRO  = QK_KB_10,
   SW_TAB  = QK_KB_11,
   SW_WIN  = QK_KB_12,
-  SW_UTIL = QK_KB_24,
 
   // Multi action keys (Kb 13..16): A,B,C,D correspond to LEFT,RIGHT,UP,DOWN  [番号を詰めた]
   MULTI_A = QK_KB_13,
@@ -411,6 +410,9 @@ enum keyball_keycodes {
   // Mouse Speed (MoSp): CPI ± step (100)
   MOSP_DEC = QK_KB_22, // Mouse speed - (CPI down)
   MOSP_INC = QK_KB_23, // Mouse speed + (CPI up)
+
+  // Utility swipe (Esc/LANG2 tap)。既存レイアウトとの互換のため QK_KB_24 を使用。
+  SW_UTIL = QK_KB_24,
 
   KEYBALL_SAFE_RANGE,
 
