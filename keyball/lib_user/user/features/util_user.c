@@ -3,6 +3,7 @@
 #include "os_detection.h"
 #include "lib/keyball/keyball.h"
 #include "../keycode_user.h"
+#include "lib/keyball/keyball_led.h"
 
 int host_os;
 
@@ -17,6 +18,8 @@ void keyboard_post_init_user(void) {
       // 利用者が `AML_TO` などで明示的に切り替える前提とする。
     }
 #endif
+
+    keyball_led_monitor_init();
 }
 
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE

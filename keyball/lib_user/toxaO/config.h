@@ -41,10 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define RGBLIGHT_MAX_LAYERS 32
 #endif
 
-#ifdef SPLIT_KEYBOARD
-#    define SPLIT_TRANSACTION_IDS_USER TOXAO_LED_MONITOR_SYNC
-#endif
-
 // scroll snap
 #undef KEYBALL_SCROLLSNAP_ENABLE
 #define KEYBALL_SCROLLSNAP_ENABLE 2

@@ -253,7 +253,17 @@ bash scripts/build_user_maps.sh
 - Mode: それぞれのエフェクト番号。
 
 ### LED monitor（ページ12）
-- 現在の LED インデックスや輝度テスト用の簡易画面です。WS2812 の配線確認時に利用できます。
+- 現在の LED インデックスを表示し、該当 LED のみを青色で点灯させます。配線チェックや個別点灯確認に利用できます。
+  `keyball_led_set_hsv_at()` / `keyball_led_set_hsv_range()` を使用すると自動的に RPC 同期され、slave側のLEDも点灯させられます。
+  ```c
+  #include "lib/keyball/keyball_led.h"
+
+  void indicate_layer_change(void) {
+      keyball_led_set_hsv_at(HSV_WHITE, 10);        // LED10 を白に
+      keyball_led_set_hsv_range(HSV_RED, 20, 3);    // LED20～22 を赤に
+  }
+  ```
+  これらの関数は内部で `rgblight_sethsv_*` を呼びつつ、分割構成では `KEYBALL_LED_SYNC` RPC により反対側へも同じ指示を送ります。より細かい制御を行いたい場合は `keyball_led_monitor.c` の実装を参考に独自の同期処理を追加してください。
 
 ### Default layer config（ページ13）
 - def: (Default Layer) デフォルトレイヤーとするレイヤー番号。`default_layer_set` と連動します。

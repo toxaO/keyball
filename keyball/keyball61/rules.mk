@@ -43,6 +43,7 @@ SRC += lib/keyball/keyball_keycodes.c
 SRC += lib/keyball/keyball_swipe.c
 SRC += lib/keyball/keyball_oled.c
 SRC += lib/keyball/keyball_kbpf.c
+SRC += lib/keyball/keyball_led.c
 
 # Disable other features to squeeze firmware size
 SPACE_CADET_ENABLE = no

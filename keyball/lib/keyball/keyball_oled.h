@@ -55,8 +55,4 @@ void oled_render_info_key_pos(void);
 bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record);
 
 // Optional LED monitor hooks (user側で必要に応じて実装)
-void    keyball_led_monitor_init(void);
-void    keyball_led_monitor_on(void);
-void    keyball_led_monitor_off(void);
-void    keyball_led_monitor_step(int8_t delta);
-uint8_t keyball_led_monitor_get_index(void);
+#include "keyball_led.h"
