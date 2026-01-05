@@ -43,6 +43,11 @@ static struct {
     uint8_t prev_val;
 } monitor_state = {0};
 
+static uint8_t keyball_led_normalize_index(uint8_t index);
+static uint8_t keyball_led_clamp_count(uint8_t start, uint8_t count);
+static void keyball_led_apply_hsv_at(uint8_t hue, uint8_t sat, uint8_t val, uint8_t index);
+static void keyball_led_apply_hsv_range(uint8_t hue, uint8_t sat, uint8_t val, uint8_t index, uint8_t count);
+
 #    ifdef SPLIT_KEYBOARD
 typedef struct {
     uint8_t index;
