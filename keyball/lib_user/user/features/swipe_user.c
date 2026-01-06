@@ -51,7 +51,7 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_SW_BRO:
         switch (dir) {
         case KB_SWIPE_UP:
-            tap_code16_os(C(S(KC_EQUAL)), G(S(KC_EQUAL)), G(S(KC_EQUAL)), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
+            tap_code16_os(C(S(KC_EQUAL)), G(KC_SCLN), G(KC_SCLN), C(S(KC_EQUAL)), C(S(KC_EQUAL)));
             break;
         case KB_SWIPE_DOWN:
             tap_code16_os(C(KC_MINUS), G(KC_MINUS), G(KC_MINUS), C(KC_MINUS), C(KC_MINUS));

@@ -97,7 +97,7 @@ bash scripts/build_user_maps.sh
 |:-----------|:---------------------------|:-------------------------------------|:--------------|:---------------------------|:------------------------|:-------------|
 | `SW_APP`   | アプリ切替スワイプ         |タスクビュー<br>ミッションコントロール| 右デスクトップ|タスクビュー<br>アプリビュー|copilot<br>スポットライト|左デスクトップ|
 | `SW_VOL`   | 音量/メディア操作スワイプ  |再生/停止                             |次の曲         |音量上昇                    |音量減少                 |前の曲        |
-| `SW_BRO`   | ブラウザ/履歴スワイプ      |アドレスバー                          |戻る           |ズームアウト（Ctrl/Cmd -）|ズームイン（Ctrl/Cmd +）|進む          |
+| `SW_BRO`   | ブラウザ/履歴スワイプ      |アドレスバー                          |戻る           |ズームアウト（Win/Linux=Ctrl+-、macOS=Cmd+-）|ズームイン（Win/Linux=Ctrl+Shift+=、macOS=Cmd+;）|進む          |
 | `SW_TAB`   | タブ切替スワイプ           | 新規タブ                             |前のタブ       |タブを閉じる                |最後に閉じたタブ         |次のタブ      |
 | `SW_WIN`   | ウィンドウ位置操作         |Snapメニュー / Fn+Ctrl+F（Win=Win+Z） |左半分（Win+← / Fn+Ctrl+←） |下半分/最小化（Win+↓ / Fn+Ctrl+↓） |最大化（Win+↑ / Fn+Ctrl+↑） |右半分（Win+→ / Fn+Ctrl+→） |
 | `SW_UTIL`  | ユーティリティスワイプ     |Esc → LANG2                           |Undo（Win/Linux=Ctrl+Z, macOS=Cmd+Z） |ペースト                    |コピー                   |Redo（Win=Ctrl+Y, macOS=Cmd+Shift+Z, Linux=Ctrl+Shift+Z） |
