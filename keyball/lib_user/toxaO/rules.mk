@@ -1,6 +1,7 @@
 # default
 RGBLIGHT_ENABLE = yes
 OLED_ENABLE = yes
+LAYER_LOCK_ENABLE = yes
 
 # personal setting
 EXTRAKEY_ENABLE = yes

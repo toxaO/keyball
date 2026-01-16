@@ -8,6 +8,7 @@
 
 #    ifdef SPLIT_KEYBOARD
 #        include "transactions.h"
+#        include "split_util.h"
 #    endif
 
 #    ifndef HSV_BLUE
@@ -68,11 +69,65 @@ static inline bool keyball_led_monitor_has_leds(void) {
     return RGBLIGHT_LED_COUNT > 0;
 }
 
+#    ifdef SPLIT_KEYBOARD
+static inline void keyball_led_monitor_split_counts(uint8_t *left, uint8_t *right) {
+#        ifdef RGBLED_SPLIT
+    static const uint8_t split_counts[] = RGBLED_SPLIT;
+    *left  = split_counts[0];
+    *right = (sizeof(split_counts) / sizeof(split_counts[0]) > 1) ? split_counts[1] : 0;
+#        else
+    *left  = RGBLIGHT_LED_COUNT / 2;
+    *right = RGBLIGHT_LED_COUNT - *left;
+#        endif
+}
+#    endif
+
+static inline void keyball_led_monitor_get_local_range(uint8_t *start, uint8_t *end) {
+    uint8_t clip_start = rgblight_ranges.clipping_start_pos;
+    uint8_t clip_count = rgblight_ranges.clipping_num_leds;
+    if (clip_count > 0 && clip_start < RGBLIGHT_LED_COUNT) {
+        uint8_t clip_end = clip_start + clip_count;
+        if (clip_end > RGBLIGHT_LED_COUNT) {
+            clip_end = RGBLIGHT_LED_COUNT;
+        }
+        if (clip_count < RGBLIGHT_LED_COUNT) {
+            *start = clip_start;
+            *end   = clip_end;
+            return;
+        }
+    }
+
+#    ifdef SPLIT_KEYBOARD
+    uint8_t left_leds = 0, right_leds = 0;
+    keyball_led_monitor_split_counts(&left_leds, &right_leds);
+    if (is_keyboard_left()) {
+        *start = 0;
+        *end   = left_leds;
+    } else {
+        *start = left_leds;
+        *end   = left_leds + right_leds;
+    }
+#    else
+    *start = 0;
+    *end   = RGBLIGHT_LED_COUNT;
+#    endif
+}
+
+static inline bool keyball_led_monitor_index_is_local(uint8_t index) {
+    uint8_t start, end;
+    keyball_led_monitor_get_local_range(&start, &end);
+    return index >= start && index < end;
+}
+
 static void keyball_led_monitor_clear(void) {
     if (!keyball_led_monitor_has_leds()) {
         return;
     }
-    rgblight_setrgb_range(0, 0, 0, 0, RGBLIGHT_LED_COUNT);
+    uint8_t start, end;
+    keyball_led_monitor_get_local_range(&start, &end);
+    if (end > start) {
+        rgblight_setrgb_range(0, 0, 0, start, end);
+    }
     last_index = -1;
 }
 
@@ -82,7 +137,15 @@ static void keyball_led_monitor_apply(void) {
     }
 
     if (last_index >= 0 && last_index < RGBLIGHT_LED_COUNT && last_index != monitor_index) {
-        rgblight_sethsv_at(HSV_OFF, (uint8_t)last_index);
+        if (keyball_led_monitor_index_is_local((uint8_t)last_index)) {
+            rgblight_sethsv_at(HSV_OFF, (uint8_t)last_index);
+        }
+        last_index = -1;
+    }
+
+    if (!keyball_led_monitor_index_is_local(monitor_index)) {
+        last_index = -1;
+        return;
     }
 
     rgblight_sethsv_at(KEYBALL_LED_MONITOR_COLOR_HSV, monitor_index);

@@ -5,6 +5,7 @@
 #include "../keycode_user.h"
 #include "../features/util_user.h"
 #include QMK_KEYBOARD_H
+#include "layer_lock.h"
 #include "eeconfig.h"
 
 #include "lib/keyball/keyball.h"
@@ -244,7 +245,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < TAPPING_TERM) {
           tap_code16_with_oneshot(KC_LNG2);
         }
-        layer_off(_NumP);
+        if (!is_layer_locked(_NumP)) {
+          layer_off(_NumP);
+        }
       }
       return false;
 
@@ -264,7 +267,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < TAPPING_TERM) {
           tap_code16_with_oneshot(KC_LNG1);
         }
-        layer_off(_NumP);
+        if (!is_layer_locked(_NumP)) {
+          layer_off(_NumP);
+        }
       }
       return false;
 
