@@ -78,6 +78,14 @@ static void kbpf_layer_haptic_set_defaults(void) {
   }
 }
 
+static void kbpf_mod_haptic_set_defaults(void) {
+  for (int i = 0; i < KEYBALL_MOD_HAPTIC_SLOTS; ++i) {
+    kbpf.mod_haptic[i].enable_mask = (uint8_t)(KBPF_DEFAULT_MOD_HAPTIC_ENABLE & KEYBALL_LAYER_HAPTIC_ENABLE_BOTH);
+    kbpf.mod_haptic[i].left_effect  = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_LEFT;
+    kbpf.mod_haptic[i].right_effect = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_RIGHT;
+  }
+}
+
 //-------------------------------------------------------------------------
 // Public API
 //-------------------------------------------------------------------------
@@ -145,6 +153,7 @@ void kbpf_defaults(void) {
   kbpf.default_layer       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_LAYER, 0, 31);
   kbpf.move_deadzone       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_MOVE_DEADZONE, 0, 32);
   kbpf_layer_haptic_set_defaults();
+  kbpf_mod_haptic_set_defaults();
 }
 
 static bool kbpf_try_upgrade(uint16_t stored_version) {
@@ -157,6 +166,9 @@ static bool kbpf_try_upgrade(uint16_t stored_version) {
       return kbpf_try_upgrade(17);
     case 17:
       kbpf_layer_haptic_set_defaults();
+      return kbpf_try_upgrade(18);
+    case 18:
+      kbpf_mod_haptic_set_defaults();
       kbpf.version = KBPF_VER_CUR;
       return true;
     default:
@@ -288,9 +300,19 @@ static void kbpf_validate(void) {
   if (fallback_layer_right < 1u || fallback_layer_right >= (uint8_t)DRV2605L_EFFECT_COUNT) {
     fallback_layer_right = fallback_layer_left;
   }
+  uint8_t fallback_mod_left = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_LEFT;
+  if (fallback_mod_left < 1u || fallback_mod_left >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    fallback_mod_left = DRV2605L_DEFAULT_MODE;
+  }
+  uint8_t fallback_mod_right = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_RIGHT;
+  if (fallback_mod_right < 1u || fallback_mod_right >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+    fallback_mod_right = fallback_mod_left;
+  }
 #    else
   uint8_t fallback_layer_left = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_LEFT;
   uint8_t fallback_layer_right = KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT;
+  uint8_t fallback_mod_left = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_LEFT;
+  uint8_t fallback_mod_right = KBPF_DEFAULT_MOD_HAPTIC_EFFECT_RIGHT;
 #    endif
 #endif
   for (int i = 0; i < KEYBALL_LAYER_HAPTIC_SLOTS; ++i) {
@@ -312,6 +334,26 @@ static void kbpf_validate(void) {
     kbpf.layer_haptic[i].enable_mask = 0u;
     kbpf.layer_haptic[i].left_effect = 0u;
     kbpf.layer_haptic[i].right_effect = 0u;
+#endif
+  }
+  for (int i = 0; i < KEYBALL_MOD_HAPTIC_SLOTS; ++i) {
+    kbpf.mod_haptic[i].enable_mask &= KEYBALL_LAYER_HAPTIC_ENABLE_BOTH;
+#ifdef HAPTIC_ENABLE
+#    ifdef HAPTIC_DRV2605L
+    if (kbpf.mod_haptic[i].left_effect < 1u || kbpf.mod_haptic[i].left_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.mod_haptic[i].left_effect = fallback_mod_left;
+    }
+    if (kbpf.mod_haptic[i].right_effect < 1u || kbpf.mod_haptic[i].right_effect >= (uint8_t)DRV2605L_EFFECT_COUNT) {
+      kbpf.mod_haptic[i].right_effect = fallback_mod_right;
+    }
+#    else
+    (void)fallback_mod_left;
+    (void)fallback_mod_right;
+#    endif
+#else
+    kbpf.mod_haptic[i].enable_mask = 0u;
+    kbpf.mod_haptic[i].left_effect = 0u;
+    kbpf.mod_haptic[i].right_effect = 0u;
 #endif
   }
 }

@@ -12,7 +12,7 @@ void keyboard_post_init_user(void) {
     // Auto Mouse Layer 初期デフォルト（EEPROM未設定時のみ）
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     if (kbpf.aml_layer == 0xFFu) {
-      set_auto_mouse_layer(3);
+      set_auto_mouse_layer(_Mou);
       // ここではレイヤの既定値のみを設定し、有効化はしない。
       // 有効/無効は永続化済み設定（kbpf.aml_enable）に従い、
       // 利用者が `AML_TO` などで明示的に切り替える前提とする。

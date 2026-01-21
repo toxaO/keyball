@@ -186,6 +186,33 @@ static void keyball_layer_haptic_try_trigger(void) {
   }
 }
 
+static uint8_t s_mod_haptic_last = 0;
+
+static void keyball_mod_haptic_check(void) {
+  uint8_t mods = get_mods() | get_oneshot_mods() | get_oneshot_locked_mods();
+  uint8_t newly = (uint8_t)(mods & (uint8_t)~s_mod_haptic_last);
+  s_mod_haptic_last = mods;
+  if (newly == 0u || !haptic_get_enable()) {
+    return;
+  }
+  static const uint8_t mod_bits[KEYBALL_MOD_HAPTIC_SLOTS] = {
+      MOD_LSFT, MOD_LCTL, MOD_LGUI, MOD_LALT,
+      MOD_RSFT, MOD_RCTL, MOD_RGUI, MOD_RALT,
+  };
+  for (uint8_t i = 0; i < KEYBALL_MOD_HAPTIC_SLOTS; ++i) {
+    if ((newly & mod_bits[i]) == 0u) {
+      continue;
+    }
+    keyball_layer_haptic_entry_t *entry = &kbpf.mod_haptic[i];
+    if ((entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_LEFT) != 0u) {
+      keyball_haptic_play_left(entry->left_effect);
+    }
+    if ((entry->enable_mask & KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT) != 0u) {
+      keyball_haptic_play_right(entry->right_effect);
+    }
+  }
+}
+
 void keyball_layer_haptic_init(layer_state_t layer_state, layer_state_t default_layer_state) {
   s_layer_haptic_state   = layer_state;
   s_layer_haptic_default = default_layer_state;
@@ -479,6 +506,13 @@ void keyboard_post_init_kb(void) {
     keyboard_post_init_user();
 
     keyball_refresh_scroll_layer();
+}
+
+void matrix_scan_kb(void) {
+#ifdef HAPTIC_ENABLE
+  keyball_mod_haptic_check();
+#endif
+  matrix_scan_user();
 }
 
 // ---------------------------------------------------------------------------

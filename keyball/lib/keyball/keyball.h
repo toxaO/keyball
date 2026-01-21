@@ -231,6 +231,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KEYBALL_LAYER_HAPTIC_SLOTS
 #    define KEYBALL_LAYER_HAPTIC_SLOTS 32
 #endif
+#ifndef KEYBALL_MOD_HAPTIC_SLOTS
+#    define KEYBALL_MOD_HAPTIC_SLOTS 8
+#endif
 #ifndef KBPF_DEFAULT_LAYER_HAPTIC_ENABLE
 #    define KBPF_DEFAULT_LAYER_HAPTIC_ENABLE 0
 #endif
@@ -239,6 +242,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #ifndef KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT
 #    define KBPF_DEFAULT_LAYER_HAPTIC_EFFECT_RIGHT KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT
+#endif
+#ifndef KBPF_DEFAULT_MOD_HAPTIC_ENABLE
+#    define KBPF_DEFAULT_MOD_HAPTIC_ENABLE 0
+#endif
+#ifndef KBPF_DEFAULT_MOD_HAPTIC_EFFECT_LEFT
+#    define KBPF_DEFAULT_MOD_HAPTIC_EFFECT_LEFT KBPF_DEFAULT_SWIPE_HAPTIC_MODE
+#endif
+#ifndef KBPF_DEFAULT_MOD_HAPTIC_EFFECT_RIGHT
+#    define KBPF_DEFAULT_MOD_HAPTIC_EFFECT_RIGHT KBPF_DEFAULT_SWIPE_HAPTIC_MODE_REPEAT
 #endif
 #define KEYBALL_LAYER_HAPTIC_ENABLE_LEFT  (1u << 0)
 #define KEYBALL_LAYER_HAPTIC_ENABLE_RIGHT (1u << 1)
@@ -627,6 +639,8 @@ typedef struct __attribute__((packed)) {
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
   // Layer-specific haptic feedback configuration
   keyball_layer_haptic_entry_t layer_haptic[KEYBALL_LAYER_HAPTIC_SLOTS];
+  // Modifier-specific haptic feedback configuration
+  keyball_layer_haptic_entry_t mod_haptic[KEYBALL_MOD_HAPTIC_SLOTS];
 } keyball_profiles_t;
 
 #define KBPF_MAGIC 0x4B425031u /* 'KBP1' */
@@ -634,7 +648,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 18 // v18: レイヤー別ハプティック設定を追加
+#define KBPF_VER_CUR 19 // v19: 修飾キー別ハプティック設定を追加
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)
