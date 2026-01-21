@@ -78,6 +78,15 @@ static void kbpf_layer_haptic_set_defaults(void) {
   }
 }
 
+static void kbpf_layer_led_set_defaults(void) {
+  for (int i = 0; i < KEYBALL_LAYER_LED_SLOTS; ++i) {
+    kbpf.layer_led[i].index = 0;
+    kbpf.layer_led[i].hue   = 0;
+    kbpf.layer_led[i].sat   = 0;
+    kbpf.layer_led[i].val   = 0;
+  }
+}
+
 static void kbpf_mod_haptic_set_defaults(void) {
   for (int i = 0; i < KEYBALL_MOD_HAPTIC_SLOTS; ++i) {
     kbpf.mod_haptic[i].enable_mask = (uint8_t)(KBPF_DEFAULT_MOD_HAPTIC_ENABLE & KEYBALL_LAYER_HAPTIC_ENABLE_BOTH);
@@ -153,6 +162,7 @@ void kbpf_defaults(void) {
   kbpf.default_layer       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_LAYER, 0, 31);
   kbpf.move_deadzone       = (uint8_t)_CONSTRAIN(KBPF_DEFAULT_MOVE_DEADZONE, 0, 32);
   kbpf_layer_haptic_set_defaults();
+  kbpf_layer_led_set_defaults();
   kbpf_mod_haptic_set_defaults();
 }
 
@@ -169,6 +179,9 @@ static bool kbpf_try_upgrade(uint16_t stored_version) {
       return kbpf_try_upgrade(18);
     case 18:
       kbpf_mod_haptic_set_defaults();
+      return kbpf_try_upgrade(19);
+    case 19:
+      kbpf_layer_led_set_defaults();
       kbpf.version = KBPF_VER_CUR;
       return true;
     default:

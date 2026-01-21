@@ -48,10 +48,11 @@ extern const uint16_t AML_TIMEOUT_QU;
 #    define KB_PAGE_DEFAULT_LAYER 10
 #    define KB_PAGE_LAYER_HAPTIC 11
 #    define KB_PAGE_MOD_HAPTIC 12
-#    define KB_PAGE_SEND_MON   13
-#    define KB_PAGE_HAPTIC     14
-#    define KB_UI_PAGES 15
-#    define KB_OLED_PAGE_COUNT 15
+#    define KB_PAGE_LAYER_LED  13
+#    define KB_PAGE_SEND_MON   14
+#    define KB_PAGE_HAPTIC     15
+#    define KB_UI_PAGES 16
+#    define KB_OLED_PAGE_COUNT 16
 #elif defined(HAPTIC_ENABLE)
 #    define KB_PAGE_SCROLL_CONF 2
 #    define KB_PAGE_SCROLL_SNAP 3
@@ -63,10 +64,11 @@ extern const uint16_t AML_TIMEOUT_QU;
 #    define KB_PAGE_DEFAULT_LAYER 9
 #    define KB_PAGE_LAYER_HAPTIC 10
 #    define KB_PAGE_MOD_HAPTIC 11
-#    define KB_PAGE_SEND_MON   12
-#    define KB_PAGE_HAPTIC     13
-#    define KB_UI_PAGES 14
-#    define KB_OLED_PAGE_COUNT 14
+#    define KB_PAGE_LAYER_LED  12
+#    define KB_PAGE_SEND_MON   13
+#    define KB_PAGE_HAPTIC     14
+#    define KB_UI_PAGES 15
+#    define KB_OLED_PAGE_COUNT 15
 #else
 #    define KB_PAGE_SCROLL_CONF 2
 #    define KB_PAGE_SCROLL_SNAP 3
@@ -76,9 +78,10 @@ extern const uint16_t AML_TIMEOUT_QU;
 #    define KB_PAGE_RGB_CONF   7
 #    define KB_PAGE_LED_MON    8
 #    define KB_PAGE_DEFAULT_LAYER 9
-#    define KB_PAGE_SEND_MON   10
-#    define KB_UI_PAGES 11
-#    define KB_OLED_PAGE_COUNT 11
+#    define KB_PAGE_LAYER_LED  10
+#    define KB_PAGE_SEND_MON   11
+#    define KB_UI_PAGES 12
+#    define KB_OLED_PAGE_COUNT 12
 #endif
 
 #define KB_OLED_PAGE_LED_MONITOR KB_PAGE_LED_MON
@@ -96,6 +99,9 @@ static uint8_t g_ui_sel_idx[KB_UI_PAGES] = {0};
 #ifdef HAPTIC_ENABLE
 static uint8_t g_layer_haptic_layer = 0;
 static uint8_t g_mod_haptic_mod = 0;
+#endif
+#ifdef RGBLIGHT_ENABLE
+static uint8_t g_layer_led_layer = 0;
 #endif
 
 #ifdef HAPTIC_ENABLE
@@ -156,6 +162,15 @@ static const char *keyball_oled_mod_label(uint8_t idx) {
 }
 #endif
 
+#ifdef RGBLIGHT_ENABLE
+static keyball_layer_led_entry_t *keyball_oled_layer_led_entry(void) {
+    if (g_layer_led_layer >= KEYBALL_LAYER_LED_SLOTS) {
+        g_layer_led_layer = (uint8_t)(KEYBALL_LAYER_LED_SLOTS - 1);
+    }
+    return &kbpf.layer_led[g_layer_led_layer];
+}
+#endif
+
 static inline uint8_t ui_items_on_page(uint8_t p) {
     switch (p) {
         case KB_PAGE_MOUSE: return 5; // CPI, Glo, Th1, Th2, Dz
@@ -176,6 +191,12 @@ static inline uint8_t ui_items_on_page(uint8_t p) {
 #endif
         case KB_PAGE_LED_MON:     return 0; // LED monitor
         case KB_PAGE_DEFAULT_LAYER: return 1; // Default layer selector
+        case KB_PAGE_LAYER_LED:
+#ifdef RGBLIGHT_ENABLE
+            return 5; // Layer LED indicator config
+#else
+            return 0;
+#endif
         case KB_PAGE_SEND_MON:    return 0; // Send monitor
 #ifdef HAPTIC_ENABLE
         case KB_PAGE_LAYER_HAPTIC: return 5; // Layer haptic config
@@ -345,6 +366,7 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
         if (!ui_op_ready()) return true; // 入力は消費
         int dir = (keycode == KC_RIGHT) ? +1 : -1; // S+R: 増加, S+L: 減少
         int effect_step = ctrl_held ? 10 : 1;
+        int hsv_step = ctrl_held ? 10 : 1;
 
         switch (page) {
             case KB_PAGE_MOUSE: {
@@ -712,6 +734,43 @@ bool keyball_oled_handle_ui_key(uint16_t keycode, keyrecord_t *record) {
                     kbpf.default_layer = (uint8_t)v;
                     default_layer_set((uint32_t)1u << kbpf.default_layer);
                 }
+            } break;
+
+            case KB_PAGE_LAYER_LED: {
+#ifdef RGBLIGHT_ENABLE
+                keyball_layer_led_entry_t *entry = keyball_oled_layer_led_entry();
+                if (sel == 0) {
+                    int32_t v = (int32_t)g_layer_led_layer + dir;
+                    if (v < 0) v = 0;
+                    if (v >= KEYBALL_LAYER_LED_SLOTS) v = KEYBALL_LAYER_LED_SLOTS - 1;
+                    g_layer_led_layer = (uint8_t)v;
+                } else if (sel == 1) {
+                    int32_t v = (int32_t)entry->index + dir;
+                    if (RGBLIGHT_LED_COUNT == 0) {
+                        v = 0;
+                    } else {
+                        if (v < 0) v = 0;
+                        if (v >= RGBLIGHT_LED_COUNT) v = RGBLIGHT_LED_COUNT - 1;
+                    }
+                    entry->index = (uint8_t)v;
+                } else if (sel == 2) {
+                    int32_t v = (int32_t)entry->hue + dir * hsv_step;
+                    if (v < 0) v = 0;
+                    if (v > 255) v = 255;
+                    entry->hue = (uint8_t)v;
+                } else if (sel == 3) {
+                    int32_t v = (int32_t)entry->sat + dir * hsv_step;
+                    if (v < 0) v = 0;
+                    if (v > 255) v = 255;
+                    entry->sat = (uint8_t)v;
+                } else if (sel == 4) {
+                    int32_t v = (int32_t)entry->val + dir * hsv_step;
+                    if (v < 0) v = 0;
+                    if (v > 255) v = 255;
+                    entry->val = (uint8_t)v;
+                }
+                keyball_layer_led_refresh();
+#endif
             } break;
 
             default:
@@ -1187,6 +1246,38 @@ void keyball_oled_render_setting(void) {
                 oled_writef_sel(row++, sel == 0, "%s", b);
             }
             row_skip(row, 10); // row 12
+            oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
+        } break;
+
+        case KB_PAGE_LAYER_LED: {
+            uint8_t sel = g_ui_sel_idx[page];
+            uint8_t row = 0;
+#ifdef RGBLIGHT_ENABLE
+            keyball_layer_led_entry_t *entry = keyball_oled_layer_led_entry();
+            oled_writef(row++, "LyLED");
+            oled_writef(row++, " conf");
+            row_skip(row, 1);
+            oled_writef(row++, "Ly:");
+            oled_writef_sel(row++, sel == 0, " %02u", (unsigned)g_layer_led_layer);
+            row_skip(row, 1);
+            oled_writef(row++, "Idx:");
+            oled_writef_sel(row++, sel == 1, "%3u", (unsigned)entry->index);
+            oled_writef(row++, "H:");
+            oled_writef_sel(row++, sel == 2, "%3u", (unsigned)entry->hue);
+            oled_writef(row++, "S:");
+            oled_writef_sel(row++, sel == 3, "%3u", (unsigned)entry->sat);
+            oled_writef(row++, "V:");
+            oled_writef_sel(row++, sel == 4, "%3u", (unsigned)entry->val);
+            row_skip(row, 1);
+#else
+            oled_writef(row++, "LyLED");
+            row_skip(row, 1);
+            oled_writef(row++, " conf");
+            oled_writef(row++, "");
+            row_skip(row, 1);
+            oled_writef(row++, "(dis)");
+            row_skip(row, 1);
+#endif
             oled_writef(row++, " %u/%u", (unsigned)(page + 1), (unsigned)keyball_oled_get_page_count());
         } break;
 

@@ -52,12 +52,18 @@ layer_state_t layer_state_set_kb(layer_state_t state) {
 #ifdef HAPTIC_ENABLE
     keyball_layer_haptic_on_layer_state(state);
 #endif
+#ifdef RGBLIGHT_ENABLE
+    keyball_layer_led_on_layer_state(state);
+#endif
     return state;
 }
 
 layer_state_t default_layer_state_set_kb(layer_state_t state) {
 #ifdef HAPTIC_ENABLE
     keyball_layer_haptic_on_default_layer_state(state);
+#endif
+#ifdef RGBLIGHT_ENABLE
+    keyball_layer_led_on_default_layer_state(state);
 #endif
     return state;
 }

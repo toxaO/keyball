@@ -231,6 +231,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KEYBALL_LAYER_HAPTIC_SLOTS
 #    define KEYBALL_LAYER_HAPTIC_SLOTS 32
 #endif
+#ifndef KEYBALL_LAYER_LED_SLOTS
+#    define KEYBALL_LAYER_LED_SLOTS 32
+#endif
 #ifndef KEYBALL_MOD_HAPTIC_SLOTS
 #    define KEYBALL_MOD_HAPTIC_SLOTS 8
 #endif
@@ -477,6 +480,13 @@ typedef struct {
 } keyball_layer_haptic_entry_t;
 
 typedef struct {
+  uint8_t index; // LED index
+  uint8_t hue;
+  uint8_t sat;
+  uint8_t val;
+} keyball_layer_led_entry_t;
+
+typedef struct {
   bool this_have_ball;
   bool that_enable;
   bool that_have_ball;
@@ -639,6 +649,8 @@ typedef struct __attribute__((packed)) {
   uint8_t  default_layer;   // 0..31 (QMK default layer index)
   // Layer-specific haptic feedback configuration
   keyball_layer_haptic_entry_t layer_haptic[KEYBALL_LAYER_HAPTIC_SLOTS];
+  // Layer-specific LED indicator configuration
+  keyball_layer_led_entry_t layer_led[KEYBALL_LAYER_LED_SLOTS];
   // Modifier-specific haptic feedback configuration
   keyball_layer_haptic_entry_t mod_haptic[KEYBALL_MOD_HAPTIC_SLOTS];
 } keyball_profiles_t;
@@ -648,7 +660,7 @@ typedef struct __attribute__((packed)) {
 extern keyball_profiles_t kbpf;
 
 #define KBPF_VER_OLD 7
-#define KBPF_VER_CUR 19 // v19: 修飾キー別ハプティック設定を追加
+#define KBPF_VER_CUR 20 // v20: レイヤー別LEDインジケータ設定を追加
 
 //////////////////////////////////////////////////////////////////////////////
 // OS-dependent key tap helper (KB-level)
@@ -667,6 +679,20 @@ void keyball_layer_haptic_init(layer_state_t layer_state, layer_state_t default_
 void keyball_layer_haptic_on_layer_state(layer_state_t state);
 void keyball_layer_haptic_on_default_layer_state(layer_state_t state);
 void keyball_request_remote_haptic(uint8_t effect);
+#ifdef RGBLIGHT_ENABLE
+void keyball_layer_led_init(layer_state_t layer_state, layer_state_t default_layer_state);
+void keyball_layer_led_on_layer_state(layer_state_t state);
+void keyball_layer_led_on_default_layer_state(layer_state_t state);
+void keyball_layer_led_refresh(void);
+#else
+static inline void keyball_layer_led_init(layer_state_t layer_state, layer_state_t default_layer_state) {
+  (void)layer_state;
+  (void)default_layer_state;
+}
+static inline void keyball_layer_led_on_layer_state(layer_state_t state) { (void)state; }
+static inline void keyball_layer_led_on_default_layer_state(layer_state_t state) { (void)state; }
+static inline void keyball_layer_led_refresh(void) {}
+#endif
 #else
 static inline void keyball_haptic_play_side(uint8_t effect, keyball_haptic_side_t sides) {
   (void)effect;

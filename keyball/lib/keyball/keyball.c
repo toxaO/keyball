@@ -230,6 +230,58 @@ void keyball_layer_haptic_on_default_layer_state(layer_state_t state) {
 }
 #endif
 
+#ifdef RGBLIGHT_ENABLE
+static layer_state_t s_layer_led_state = 0;
+static layer_state_t s_layer_led_default = 0;
+static uint8_t       s_layer_led_last = 0xFFu;
+static uint8_t       s_layer_led_last_index = 0;
+static bool          s_layer_led_last_on = false;
+
+static void keyball_layer_led_apply(bool force) {
+  uint8_t highest = get_highest_layer(s_layer_led_state | s_layer_led_default);
+  if (!force && s_layer_led_last == highest) {
+    return;
+  }
+  if (s_layer_led_last_on) {
+    keyball_led_set_hsv_at(0, 0, 0, s_layer_led_last_index);
+    s_layer_led_last_on = false;
+  }
+  s_layer_led_last = highest;
+  if (highest >= KEYBALL_LAYER_LED_SLOTS) {
+    return;
+  }
+  keyball_layer_led_entry_t *entry = &kbpf.layer_led[highest];
+  if (entry->val == 0u) {
+    return;
+  }
+  keyball_led_set_hsv_at(entry->hue, entry->sat, entry->val, entry->index);
+  s_layer_led_last_index = entry->index;
+  s_layer_led_last_on = true;
+}
+
+void keyball_layer_led_init(layer_state_t layer_state, layer_state_t default_layer_state) {
+  s_layer_led_state   = layer_state;
+  s_layer_led_default = default_layer_state;
+  s_layer_led_last    = 0xFFu;
+  s_layer_led_last_on = false;
+  keyball_layer_led_apply(true);
+}
+
+void keyball_layer_led_on_layer_state(layer_state_t state) {
+  s_layer_led_state = state;
+  keyball_layer_led_apply(false);
+}
+
+void keyball_layer_led_on_default_layer_state(layer_state_t state) {
+  s_layer_led_default = state;
+  keyball_layer_led_apply(false);
+}
+
+void keyball_layer_led_refresh(void) {
+  keyball_layer_led_apply(true);
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // Hook points
 
@@ -486,6 +538,9 @@ void keyboard_post_init_kb(void) {
   default_layer_set((uint32_t)1u << kbpf.default_layer);
 #ifdef HAPTIC_ENABLE
   keyball_layer_haptic_init(layer_state, default_layer_state);
+#endif
+#ifdef RGBLIGHT_ENABLE
+  keyball_layer_led_init(layer_state, default_layer_state);
 #endif
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
   // Apply persisted AML settings if available
