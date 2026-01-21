@@ -16,7 +16,7 @@ sudo apt install -y software-properties-common
 sudo add-apt-repository universe
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install -y git build-essential python3.10 python3.10-venv python3.10-distutils python3-pip gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+sudo apt install -y git build-essential gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
 git clone --recurse-submodules https://github.com/toxaO/keyball.git
 cd keyball
 bash scripts/setup_and_build.sh  # 初回セットアップ（ビルドは行わない）
@@ -26,11 +26,10 @@ make -C vial-qmk SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:user_dual
 bash scripts/build_user_maps.sh
 ```
 
-`scripts/setup_and_build.sh` は `make` / `pip` / `arm-none-eabi-gcc` に加えて Python 3.9 以上を利用します。上記の `sudo apt install ...` を実行してからセットアップスクリプトを走らせてください（未導入のまま実行すると不足パッケージの警告が表示されます）。既存の `.venv` が古い Python で作られている場合は、スクリプトが自動的に削除して再作成します。
-
-※ 仮想環境を手動で再作成したい場合は、リポジトリ直下で `rm -rf .venv && python3.10 -m venv .venv && source .venv/bin/activate && python -m pip install -U pip qmk` を実行し、`python -V` が 3.10 以上になっていることを確認してください。
+`scripts/setup_and_build.sh` は `make` / `arm-none-eabi-gcc` の存在確認と、`vial-qmk` へのシンボリックリンク作成のみを行います（ビルドは行いません）。未導入のまま実行すると不足パッケージの警告が表示されます。
 
 ※ `git clone --recurse-submodules` を忘れた場合は、クローン後に `git submodule update --init --recursive` で補完してください。
+※ Docker でのセットアップを推奨しています。詳細は `docs/docker_setup.md` を参照してください。
 
 ## リポジトリ構造
 - `keyball` … キーボード本体の実装
@@ -278,8 +277,9 @@ bash scripts/build_user_maps.sh
 ## セットアップとビルド
 - シェルスクリプトによる導入（MSYS2/macOS/Ubuntu想定）
   - `bash scripts/setup_and_build.sh`
-  - 依存確認→qmk CLI venv→シンボリックリンク作成→QMK & Vial ビルドまで自動実行
+  - 依存確認→`vial-qmk` へのシンボリックリンク作成（ビルドは行いません）
 - Vial 上でキーマップの編集が可能です（Vial対応ビルドを使用）。
+- Docker でのセットアップを推奨しています。詳細は `docs/docker_setup.md` を参照してください。
 
 ## ビルド済み生成物
 - `build/` ディレクトリにビルド済みファームが入っています（必要に応じて更新）。
