@@ -88,6 +88,11 @@ tags
 *.ttf
 *.otf
 
+# Allow README images under images/
+!images/*.jpg
+!images/*.jpeg
+!images/*.png
+
 # Things Travis sees
 /.vs
 id_rsa_*
