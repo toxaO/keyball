@@ -71,7 +71,7 @@ bash scripts/build_user_maps.sh
 - またはキーコード(QK_BOOT)を使用しても良いです。
 - ※取り付ける向きは画像の面が上を向くようにしてください。（リセットボタンが隠れます）※
 
-<img src="images/rp2040promicro.jpeg" alt="rp2040promicro" width="150"/>
+<img src="images/rp2040promicro_mod.jpeg" alt="rp2040promicro" width="150"/>
 
 ## !!ファームの使用の前に!!
 ### karabiner-elementsの導入の推奨（macユーザ向け）
