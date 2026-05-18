@@ -4,36 +4,67 @@
 
 ## OLED 設定ページと調整項目
 
-設定モードの入/切は `STG_TOG`。ページ移動は `STG_NP`/`STG_PP`（または設定モード中の Shift+←/→）です。選択行は ↑/↓、値の増減は ←/→ で行います。`KBC_SAVE` で保存、`KBC_RST` で初期化します。
+設定モードの入/切は `STG_TOG`。ページ移動は ←/→、値の増減は Shift+←/→ です。選択行は ↑/↓ で移動します。`KBC_SAVE` で保存、`KBC_RST` で初期化します。
 
 - Mouse（ポインタ）
-  - MoSp: マウススピード（CPIベース）。
-  - Glo: 低速域ゲイン（%）。OLED操作は5%刻み（内部は近似）。
+  - Sp: マウススピード（CPI）。
+  - GaL: 低速域ゲイン（%）。OLED操作は5%刻み（内部は近似）。
   - Th1/Th2: 低速/高速のしきい値。
+  - Dz: ポインタのデッドゾーン。
 - AML（Auto Mouse Layer）
   - en: 有効(1)/無効(0)
   - TO: タイムアウト（100..9500ms, HOLD=無制限）
   - TH: 閾値（既定100）
   - TG_L: 追従先レイヤ（0..31）
+- AML haptic（※AML+HAPTIC有効時）
+  - IN: 入り時の振動 ON/OFF
+  - INf: 入り時のエフェクト番号
+  - OUT: 抜け時の振動 ON/OFF
+  - OUTf: 抜け時のエフェクト番号
 - Scroll（スクロール）
   - ScSp: スクロールスピード（体感速度段）
   - Dz: デッドゾーン（小入力の無視）
   - Iv: 反転（0/1）
+  - ScLy: スクロールレイヤの自動切替 ON/OFF
+  - LNo: スクロールレイヤ番号
   - Md: プリセット（nor/fin/mac 相当）
   - H_Ga: 最終水平ゲイン（垂直基準に対する%）
 - Scroll Snap（スクロールスナップ）
   - Mode: VRT/HOR/FRE（垂直/水平/自由）
   - Thr: テンション閾値（FREEへ一時遷移するしきい）
   - Rst: FREE 継続時間（ms）
+- Scroll Monitor（監視）
+  - x/y/h/v などの内部値を表示（調整不可）
 - Swipe conf（スワイプ設定）
-  - St: 発火しきい値
+  - Th: 発火しきい値
   - Dz: デッドゾーン
   - Rt: リセット（ms）
   - Frz: フリーズ（押下中ポインタを止める等）
+- Swipe Monitor（監視）
+  - Active/Mode/Dir/Accum などの内部値を表示（調整不可）
 - RGB（有効時）
   - on/off, H/S/V, Mode
+- LED Monitor（監視）
+  - LED番号の確認（調整不可）
+- Send Monitor（監視）
+  - 送信レイヤ/キーコード/位置/修飾キー状態の表示（調整不可）
+- Haptic（※HAPTIC有効時）
+  - En: 有効/無効
+  - 1st/2nd~: 1回目/2回目以降のエフェクト
+  - Idle: アイドル時間
+  - Test: 再生
+- Layer Haptic（※HAPTIC有効時）
+  - Ly: 対象レイヤ
+  - L/R: 左右の有効/エフェクト
+- Mod Haptic（※HAPTIC有効時）
+  - Md: 対象修飾キー
+  - L/R: 左右の有効/エフェクト
 - layer conf
   - def: 既定レイヤー（保存して保持）
+- Layer LED（※RGB有効時）
+  - Ly: 対象レイヤ
+  - Idx: LEDインデックス
+  - H/S/V: 色指定
 
 ## デフォルト搭載のスワイプ・マルチキー
 
@@ -65,7 +96,7 @@
 
 Vial の customKeycodes にも掲載される主要キー：
 - KBC_*: `KBC_RST`（初期化）, `KBC_SAVE`（保存）
-- STG_*: `STG_TOG`（設定ON/OFF）, `STG_NP` / `STG_PP`（設定ページ移動）
+- STG_*: `STG_TOG`（設定ON/OFF）
 - スクロール: `SCRL_TO`（トグル）, `SCRL_MO`（押下中）
   - スピード調整: `SCSP_DEC` / `SCSP_INC`（ScSp−/＋）
 - マウス速度: `MOSP_DEC` / `MOSP_INC`（MoSp−/＋）
