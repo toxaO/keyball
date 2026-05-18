@@ -9,8 +9,8 @@
 #
 # できること:
 #   1) 依存コマンドの有無を確認（無ければ各OSごとの導入コマンドを案内）
-#   2) vial-qmk 側に keyboards/keyball のシンボリックリンクを作成
-#   3) Vial 側で mymap をビルド（例: 39）
+#   2) vial-qmk 側の keyboards/keyball 参照を確認
+#   3) Vial 側で現行キーマップ（toxaO / user_*）を一括ビルド
 #
 # 注意:
 #   - 本リポジトリ直下で実行してください（keyball/ と qmk_firmware/ と vial-qmk/ が並んでいる前提）。
@@ -69,15 +69,35 @@ if [ ${#missing[@]} -gt 0 ]; then
 fi
 
 # --- キーボード本体をVialツリーへリンク ---------------------------------------
-# 目的: 本リポの keyball/ を vial-qmk から参照可能にするための symlink を作る
+# 目的: 本リポの keyball/ を vial-qmk から参照可能にするための symlink を確認する。
+# 注意: vial-qmk/keyboards/keyball 自体を丸ごと置き換えるとサブモジュールが
+# dirty になるため、必要な中身だけを確認・作成する。
 link_into_tree() {
   local tree_dir="$1"
-  local from="$tree_dir/keyboards/keyball"
-  local to="../../$KEYBALL_DIR"
-  mkdir -p "$tree_dir/keyboards"
-  if [ -e "$from" ] || [ -L "$from" ]; then rm -rf "$from"; fi
-  ln -s "$to" "$from"
-  say "symlink: $from -> $to"
+  local base="$tree_dir/keyboards/keyball"
+  local entries=("config.h" "keyball" "keyball39" "keyball44" "keyball61" "lib" "lib_user")
+
+  mkdir -p "$base"
+  for entry in "${entries[@]}"; do
+    local from="$base/$entry"
+    local to="../../../$KEYBALL_DIR/$entry"
+    if [ "$entry" = "keyball" ]; then
+      to="../../keyball"
+    fi
+
+    if [ -L "$from" ]; then
+      if [ "$(readlink "$from")" != "$to" ]; then
+        rm "$from"
+        ln -s "$to" "$from"
+        say "symlink: $from -> $to"
+      fi
+    elif [ -e "$from" ]; then
+      say "exists: $from"
+    else
+      ln -s "$to" "$from"
+      say "symlink: $from -> $to"
+    fi
+  done
 }
 
 link_into_tree "$VIAL_DIR"
@@ -89,12 +109,16 @@ link_into_tree "$VIAL_DIR"
 #   VIAL_ENABLE=yes: Vial 機能を有効化
 #   最後の引数     : QMKのターゲット名（keyboard:keymap）
 
-say "[Vial] build -> keyball/keyball39:mymap (SKIP_GIT=yes VIAL_ENABLE=yes)"
-make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball39:mymap
+keyboards=("keyball39" "keyball44" "keyball61")
+keymaps=("toxaO" "user_right" "user_left" "user_dual")
 
-# 追加で他ターゲットを作る場合の例（必要ならコメント解除）
-# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball44:mymap
-# make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes keyball/keyball61:mymap
+for kb in "${keyboards[@]}"; do
+  for km in "${keymaps[@]}"; do
+    target="keyball/${kb}:${km}"
+    say "[Vial] build -> $target (SKIP_GIT=yes VIAL_ENABLE=yes)"
+    make -C "$VIAL_DIR" SKIP_GIT=yes VIAL_ENABLE=yes "$target"
+  done
+done
 
 say "Vial build done. artifacts → $VIAL_DIR/.build/"
 say "All done! 生成された .uf2 を各 .build/ ディレクトリで確認してください。"

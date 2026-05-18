@@ -23,8 +23,8 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
     case KBS_TAG_SW_APP:
         switch (dir) {
         case KB_SWIPE_UP:
-            if (canceller) { tap_code16_with_oneshot(KC_ESC); canceller = false; }
-            else           { tap_code16_os(w_Ueli, G(KC_SPACE), G(KC_SPACE), KC_NO, KC_NO); canceller = true; }
+            tap_code16_os(w_Ueli, G(KC_SPACE), G(KC_SPACE), KC_NO, KC_NO);
+            canceller = false;
             break;
         case KB_SWIPE_DOWN:
             if (canceller) { tap_code16_with_oneshot(KC_ESC); canceller = false; }
