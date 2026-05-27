@@ -5,7 +5,6 @@
 #include "../keycode_user.h"
 #include "../features/util_user.h"
 #include QMK_KEYBOARD_H
-#include "layer_lock.h"
 #include "eeconfig.h"
 
 #include "lib/keyball/keyball.h"
@@ -21,8 +20,8 @@ static bool kana_c_pressed = false;
 static bool l_ctrl_pressed = false;
 static bool sft_pressed = false;
 
-static uint16_t first_ctrl_tap_time = 0;
-static uint16_t first_shift_tap_time = 0;
+static uint16_t ctrl_press_time = 0;
+static uint16_t shift_press_time = 0;
 
 uint16_t swipe_timer; // スワイプキーがTAPPING_TERMにあるかを判定する (≒ mod_tap)
 bool canceller = false;
@@ -232,43 +231,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case EISU_S_N:
       if (record->event.pressed) {
-        if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < 500) {
-          layer_on(_NumP);
-        } else {
-          register_code(KC_LSFT);
-          sft_pressed = true;
-          first_shift_tap_time = record->event.time;
-        }
+        register_code(KC_LSFT);
+        sft_pressed = true;
+        shift_press_time = record->event.time;
       } else {
         unregister_code(KC_LSFT);
         sft_pressed = false;
-        if (TIMER_DIFF_16(record->event.time, first_shift_tap_time) < TAPPING_TERM) {
+        if (TIMER_DIFF_16(record->event.time, shift_press_time) < TAPPING_TERM) {
           tap_code16_with_oneshot(KC_LNG2);
-        }
-        if (!is_layer_locked(_NumP)) {
-          layer_off(_NumP);
         }
       }
       return false;
 
     case KANA_C_N:
       if (record->event.pressed) {
-        if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < 500) {
-          tap_code16_with_oneshot(KC_LNG2);
-          layer_on(_NumP);
-        } else {
-          register_code(KC_LCTL);
-          kana_c_pressed = true;
-          first_ctrl_tap_time = record->event.time;
-        }
+        register_code(KC_LCTL);
+        kana_c_pressed = true;
+        ctrl_press_time = record->event.time;
       } else {
         unregister_code(KC_LCTL);
         kana_c_pressed = false;
-        if (TIMER_DIFF_16(record->event.time, first_ctrl_tap_time) < TAPPING_TERM) {
+        if (TIMER_DIFF_16(record->event.time, ctrl_press_time) < TAPPING_TERM) {
           tap_code16_with_oneshot(KC_LNG1);
-        }
-        if (!is_layer_locked(_NumP)) {
-          layer_off(_NumP);
         }
       }
       return false;
