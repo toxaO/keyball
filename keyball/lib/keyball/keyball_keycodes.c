@@ -45,7 +45,7 @@ static void kb_default_multi_a(kb_swipe_tag_t tag) {
       tap_code16_os(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO);
       break;
     case KBS_TAG_SW_VOL:
-      tap_code(KC_MNXT);
+      tap_code(KC_MPRV);
       break;
     case KBS_TAG_SW_WIN:
       if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_LEFT); }
@@ -76,7 +76,7 @@ static void kb_default_multi_b(kb_swipe_tag_t tag) {
       tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO);
       break;
     case KBS_TAG_SW_VOL:
-      tap_code(KC_MPRV);
+      tap_code(KC_MNXT);
       break;
     case KBS_TAG_SW_WIN:
       if (detected_host_os() == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_RIGHT); }

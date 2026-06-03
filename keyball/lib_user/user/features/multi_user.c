@@ -21,7 +21,7 @@ void keyball_on_multi_a(kb_swipe_tag_t tag) {
     case KBS_TAG_SW_APP: tap_code16_os(w_L_DESK, m_L_DESK, m_L_DESK, KC_NO, KC_NO); break;
     case KBS_TAG_SW_TAB: tap_code16(S(C(KC_TAB))); break;
     case KBS_TAG_SW_BRO: tap_code16_os(KC_WBAK, G(KC_LEFT), G(KC_LEFT), KC_NO, KC_NO); break;
-    case KBS_TAG_SW_VOL: tap_code(KC_MNXT); break;
+    case KBS_TAG_SW_VOL: tap_code(KC_MPRV); break;
     case KBS_TAG_SW_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_LEFT); }
         else                        { tap_code16(RCTL(LCTL(KC_L))); }
@@ -42,7 +42,7 @@ void keyball_on_multi_b(kb_swipe_tag_t tag) {
     case KBS_TAG_SW_APP: tap_code16_os(w_R_DESK, m_R_DESK, m_R_DESK, KC_NO, KC_NO); break;
     case KBS_TAG_SW_TAB: tap_code16(C(KC_TAB)); break;
     case KBS_TAG_SW_BRO: tap_code16_os(KC_WFWD, G(KC_RIGHT), G(KC_RIGHT), KC_NO, KC_NO); break;
-    case KBS_TAG_SW_VOL: tap_code(KC_MPRV); break;
+    case KBS_TAG_SW_VOL: tap_code(KC_MNXT); break;
     case KBS_TAG_SW_WIN:
         if (host_os == OS_WINDOWS) { register_code(KC_LGUI); tap_code(KC_RIGHT); }
         else                        { tap_code16(RCTL(LCTL(KC_R))); }
