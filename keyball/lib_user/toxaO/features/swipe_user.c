@@ -40,8 +40,8 @@ void keyball_on_swipe_fire(kb_swipe_tag_t tag, kb_swipe_dir_t dir) {
         switch (dir) {
         case KB_SWIPE_UP:    tap_code16_with_oneshot(KC_VOLU); break;
         case KB_SWIPE_DOWN:  tap_code16_with_oneshot(KC_VOLD); break;
-        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_MNXT); break;
-        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_MPRV); break;
+        case KB_SWIPE_LEFT:  tap_code16_with_oneshot(KC_MPRV); break;
+        case KB_SWIPE_RIGHT: tap_code16_with_oneshot(KC_MNXT); break;
         default: break;
         }
         break;
